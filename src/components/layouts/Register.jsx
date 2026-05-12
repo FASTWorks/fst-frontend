@@ -1,7 +1,6 @@
+// src/components/layouts/Login.jsx
 import React, { useState } from 'react';
 
-// --- Komponen Reusable untuk Input ---
-// Menerapkan prinsip DRY (Don't Repeat Yourself) agar form tetap bersih
 const InputField = ({ label, type, placeholder, id, icon, onIconClick }) => (
   <div className="mb-4">
     <label htmlFor={id} className="block text-sm font-bold text-gray-900 mb-2">
