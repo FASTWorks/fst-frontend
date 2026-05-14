@@ -1,4 +1,4 @@
-// src/components/layouts/Login.jsx
+// src/components/pages/RegisterPage.jsx
 import React, { useState } from 'react';
 
 const InputField = ({ label, type, placeholder, id, icon, onIconClick }) => (
@@ -26,7 +26,7 @@ const InputField = ({ label, type, placeholder, id, icon, onIconClick }) => (
   </div>
 );
 
-export default function Register() {
+export default function RegisterPage() {
   // State untuk toggle visibilitas password (KISS: state sederhana, tidak perlu reducer kompleks)
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -49,7 +49,7 @@ export default function Register() {
     <div className="min-h-screen bg-[#FCF9F6] flex flex-col items-center justify-center p-6 font-sans">
       
       {/* Container Form Utama */}
-      <div className="w-full max-w-[420px]">
+      <div className="w-full max-w-105">
         
         {/* Header */}
         <div className="mb-8">
