@@ -1,0 +1,36 @@
+# Progress FST Frontend
+
+## 2026-05-09
+
+### Initial Setup
+- Created `fst-frontend` project - Inisialisasi project dengan Vite + React 19
+- Created `vite.config.js` - Konfigurasi Vite dengan plugin React
+- Created `src/index.css` - Setup Tailwind CSS v4 + font Geist + CSS variables theme
+- Created `src/main.jsx` - Entry point React
+- Created `src/lib/utils.js` - Utility `cn()` untuk class merging
+- Created `components.json` - Konfigurasi shadcn/ui
+- Created `eslint.config.js` - Flat config ESLint
+
+## 2026-05-12
+
+### Dependencies & UI Components
+- Modified `package.json` - Setup dependencies (React Router, Axios, shadcn, Tailwind, dll)
+- Created `src/components/ui/button.jsx` - Komponen Button shadcn dengan varian
+- Created `src/components/ui/dialog.jsx` - Komponen Dialog shadcn dengan Radix
+- Created `src/components/layouts/index.js` - Placeholder layout
+
+### Login Page
+- Created `src/pages/LoginPage.jsx` - Halaman login dengan form email/password
+
+## 2026-05-14
+
+### Routing & Pages
+- Modified `src/App.jsx` - Setup React Router v7 dengan 4 routes (/, /login, /register, *)
+- Modified `src/pages/index.js` - Barrel export semua halaman
+- Created `src/pages/RegisterPage.jsx` - Halaman register dengan form
+- Created `src/pages/NotFound.jsx` - Halaman 404
+
+## 2026-05-15
+
+### Homepage
+- Created `src/pages/HomePage.jsx` - Halaman utama dengan hero section dan navigasi
