@@ -3,34 +3,38 @@ import React from 'react';
 // --- DATA DUMMY UNTUK MODULARITAS ---
 const teamMembers = [
   {
+    name: 'Bagus Aji Fernando (Baji)',
     role: 'Full-Stack Web Developer',
     desc: 'Membangun arsitektur web yang responsif, aman, dan user-friendly.',
-    img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80'
+    img: '/src/assets/our-team/fs-baji.svg',
+    linkedin: 'https://www.linkedin.com/in/bagus-aji-fernando-466347286/',
+    instagram: 'https://instagram.com/_bajif/',
   },
   {
+    name: 'Abdurrahman Abdul Hamid',
     role: 'Full-Stack Web Developer',
     desc: 'Membangun arsitektur web yang responsif, aman, dan user-friendly.',
-    img: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80'
+    img: '/src/assets/our-team/dummy.svg',
   },
   {
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80'
+    img: '/src/assets/our-team/ai-ahmad-raja-fadhil.svg'
   },
   {
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=150&q=80'
+    img: '/src/assets/our-team/ai-putri-maharani-fetra.png'
   },
   {
     role: 'Data Scientist',
     desc: 'Mengolah data histori keuangan pengguna untuk menghasilkan prediksi pengeluaran dan grafik analitik yang akurat.',
-    img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80'
+    img: '/src/assets/our-team/ds-devia.svg'
   },
   {
     role: 'Data Scientist',
     desc: 'Mengolah data histori keuangan pengguna untuk menghasilkan prediksi pengeluaran dan grafik analitik yang akurat.',
-    img: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&q=80'
+    img: '/src/assets/our-team/dummy.svg'
   }
 ];
 
