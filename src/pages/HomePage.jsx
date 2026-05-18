@@ -6,37 +6,37 @@ const teamMembers = [
     name: 'Bagus Aji Fernando (Baji)',
     role: 'Full-Stack Web Developer',
     desc: 'Membangun arsitektur web yang responsif, aman, dan user-friendly.',
-    img: '/src/assets/our-team/fs-baji 1.svg'
+    img: 'src/assets/our-team/fs-baji 1.svg'
   },
   {
     name: 'Abdurrahman Abdul Hamid',
     role: 'Full-Stack Web Developer',
     desc: 'Membangun arsitektur web yang responsif, aman, dan user-friendly.',
-    img: '/src/assets/our-team/dummy 1.svg'
+    img: './src/assets/our-team/dummy 1.svg'
   },
   {
     name: 'Ahmad Raja Fadhil',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: '/src/assets/our-team/ai-ahmad-raja-fadhil 1.svg'
+    img: 'src/assets/our-team/ai-ahmad-raja-fadhil 1.svg'
   },
   {
     name: 'Putri Maharani Fetra',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: '/src/assets/our-team/ai-putri-maharani-fetra 1.svg'
+    img: 'src/assets/our-team/ai-putri-maharani-fetra 1.svg'
   },
   {
     name: 'Devia',
     role: 'Data Scientist',
     desc: 'Mengolah data histori keuangan pengguna untuk menghasilkan prediksi pengeluaran dan grafik analitik yang akurat.',
-    img: '/src/assets/our-team/ds-devia 1.svg'
+    img: 'src/assets/our-team/ds-devia 1.svg'
   },
   {
     name: 'Nalitha',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: '/src/assets/our-team/ai-nalitha.svg'
+    img: 'src/assets/our-team/ai-nalitha.svg'
   }
 ];
 
