@@ -1,124 +1,137 @@
-// src/pages/LoginPage.jsx
 import React from 'react';
 
-// Fungsi kecil yang reusable untuk elemen input
-const inputField = ({ label, type, placeholder, icon }) => (
-  <div className="mb-5">
-    <label className="block text-sm font-bold text-gray-900 mb-2">
-      {label}
-    </label>
-    <div className="relative">
-      <input
-        type={type}
-        className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FBA919] focus:border-transparent text-sm placeholder-gray-400 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] transition-all"
-        placeholder={placeholder}
-      />
-      <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400">
-        {icon}
-      </div>
-    </div>
-  </div>
-);
-
-export default function LoginPage() {
-  // SVG Icons sesuai dengan desain
-  const iconUser = (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-    </svg>
-  );
-
-  const iconLock = (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-    </svg>
-  );
-
+const LoginPage = () => {
   return (
-    <div className="min-h-screen bg-[#FCF9F6] flex flex-col items-center justify-center p-4 sm:p-6 font-sans">
-      
-      {/* Wrapper Utama */}
-      <div className="w-full max-w-105">
+    <main className="min-h-screen bg-[#FFFDF9] flex items-center justify-center p-4 font-sans">
+      <section className="w-full max-w-md bg-transparent sm:p-6 rounded-xl">
         
         {/* Header Section */}
-        <div className="mb-8">
-          <h1 className="text-[#FBA919] text-2xl font-bold mb-6 tracking-wide">FASTWorks</h1>
-          <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Welcome back!</h2>
-          <p className="text-gray-600 text-sm">Manage your money with optimism and clarity.</p>
-        </div>
+        <header className="mb-8">
+          <h1 className="text-2xl font-bold text-[#FF9D2A] mb-8">
+            FASTWorks
+          </h1>
+          <h2 className="text-3xl font-extrabold text-gray-900 mb-2">
+            Welcome back!
+          </h2>
+          <p className="text-gray-600 text-sm">
+            Manage your money with optimism and clarity.
+          </p>
+        </header>
 
-        {/* Form Login */}
-        <form onSubmit={(e) => e.preventDefault()}>
+        {/* Form Section */}
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
           
-          {inputField({
-            label: "Email",
-            type: "email",
-            placeholder: "youremail@email.com",
-            icon: iconUser
-          })}
-          
-          {inputField({
-            label: "Kata Sandi",
-            type: "password",
-            placeholder: "********",
-            icon: iconLock
-          })}
+          {/* Email Input */}
+          <div>
+            <label htmlFor="email" className="block text-sm font-bold text-gray-800 mb-1">
+              Email
+            </label>
+            <div className="relative">
+              <input
+                type="email"
+                id="email"
+                placeholder="youremail@email.com"
+                className="w-full pl-4 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF9D2A] focus:border-transparent text-gray-800 placeholder-gray-400"
+                required
+              />
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+            </div>
+          </div>
 
-          {/* Ingat Saya & Lupa Kata Sandi */}
-          <div className="flex items-center justify-between mt-2 mb-6">
+          {/* Password Input */}
+          <div>
+            <label htmlFor="password" className="block text-sm font-bold text-gray-800 mb-1">
+              Kata Sandi
+            </label>
+            <div className="relative">
+              <input
+                type="password"
+                id="password"
+                placeholder="********"
+                className="w-full pl-4 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF9D2A] focus:border-transparent text-gray-800 placeholder-gray-400"
+                required
+              />
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Options */}
+          <div className="flex items-center justify-between mt-2">
             <div className="flex items-center">
               <input
-                id="remember"
+                id="remember_me"
+                name="remember_me"
                 type="checkbox"
-                className="w-4 h-4 border-gray-300 rounded text-[#FBA919] focus:ring-[#FBA919]"
+                className="h-4 w-4 text-[#FF9D2A] focus:ring-[#FF9D2A] border-gray-300 rounded cursor-pointer"
               />
-              <label htmlFor="remember" className="ml-2 text-sm text-gray-700">
+              <label htmlFor="remember_me" className="ml-2 block text-sm text-gray-700 cursor-pointer">
                 Ingat Saya
               </label>
             </div>
-            <a href="#" className="text-sm font-bold text-[#146C83] hover:underline">
-              Lupa Kata Sandi?
-            </a>
+
+            <div className="text-sm">
+              <a href="#" className="font-semibold text-[#006C7A] hover:text-[#00535e]">
+                Lupa Kata Sandi?
+              </a>
+            </div>
           </div>
 
-          {/* Tombol Login */}
+          {/* Login Button */}
           <button
             type="submit"
-            className="w-full bg-[#FBA919] hover:bg-[#e59a15] text-black font-bold py-3.5 rounded-xl shadow-md transition-colors duration-200"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-[#FFB03A] hover:bg-[#F29F25] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF9D2A] mt-6 transition duration-150 ease-in-out"
           >
             LOGIN
           </button>
         </form>
 
-        {/* Garis Pemisah (OR) */}
-        <div className="flex items-center my-8">
-          <div className="flex-1 border-t border-gray-300"></div>
-          <span className="px-4 text-xs font-bold text-gray-400 tracking-widest">OR</span>
-          <div className="flex-1 border-t border-gray-300"></div>
+        {/* Divider */}
+        <div className="mt-8">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-3 bg-[#FFFDF9] text-gray-500 font-medium">OR</span>
+            </div>
+          </div>
         </div>
 
-        {/* Tombol Social Login */}
-        <button
-          type="button"
-          className="w-full flex items-center justify-center bg-white border border-gray-200 hover:bg-gray-50 text-gray-800 font-semibold py-3 px-4 rounded-full shadow-sm transition-colors duration-200 mb-10"
-        >
-          <img 
-            src="https://www.svgrepo.com/show/475656/google-color.svg" 
-            alt="Google Icon" 
-            className="w-5 h-5 mr-3"
-          />
-          Sign in with Google
-        </button>
+        {/* Google SSO Button */}
+        <div className="mt-8">
+          <button
+            type="button"
+            className="w-full flex items-center justify-center py-2.5 px-4 border border-gray-300 rounded-full shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition duration-150 ease-in-out max-w-[240px] mx-auto"
+          >
+            <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+            </svg>
+            Sign in with Google
+          </button>
+        </div>
 
         {/* Footer Link */}
-        <p className="text-center text-sm text-gray-600">
+        <div className="mt-8 text-center text-sm text-gray-600">
           Don't have an account?{' '}
-          <a href="#" className="text-[#146C83] font-bold hover:underline">
+          <a href="#" className="font-bold text-[#006C7A] hover:text-[#00535e]">
             Create Account
           </a>
-        </p>
-
-      </div>
-    </div>
+        </div>
+        
+      </section>
+    </main>
   );
-}
+};
+
+export default LoginPage;
