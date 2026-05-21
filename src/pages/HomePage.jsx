@@ -6,35 +6,37 @@ const teamMembers = [
     name: 'Bagus Aji Fernando (Baji)',
     role: 'Full-Stack Web Developer',
     desc: 'Membangun arsitektur web yang responsif, aman, dan user-friendly.',
-    img: '/src/assets/our-team/fs-baji.svg',
-    linkedin: 'https://www.linkedin.com/in/bagus-aji-fernando-466347286/',
-    instagram: 'https://instagram.com/_bajif/',
+    img: 'src/assets/our-team/fs-baji 1.svg'
   },
   {
     name: 'Abdurrahman Abdul Hamid',
     role: 'Full-Stack Web Developer',
     desc: 'Membangun arsitektur web yang responsif, aman, dan user-friendly.',
-    img: '/src/assets/our-team/dummy.svg',
+    img: './src/assets/our-team/dummy 1.svg'
   },
   {
+    name: 'Ahmad Raja Fadhil',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: '/src/assets/our-team/ai-ahmad-raja-fadhil.svg'
+    img: 'src/assets/our-team/ai-ahmad-raja-fadhil 1.svg'
   },
   {
+    name: 'Putri Maharani Fetra',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: '/src/assets/our-team/ai-putri-maharani-fetra.png'
+    img: 'src/assets/our-team/ai-putri-maharani-fetra 1.svg'
   },
   {
+    name: 'Devia',
     role: 'Data Scientist',
     desc: 'Mengolah data histori keuangan pengguna untuk menghasilkan prediksi pengeluaran dan grafik analitik yang akurat.',
-    img: '/src/assets/our-team/ds-devia.svg'
+    img: 'src/assets/our-team/ds-devia 1.svg'
   },
   {
-    role: 'Data Scientist',
-    desc: 'Mengolah data histori keuangan pengguna untuk menghasilkan prediksi pengeluaran dan grafik analitik yang akurat.',
-    img: '/src/assets/our-team/dummy.svg'
+    name: 'Nalitha',
+    role: 'AI Engineer',
+    desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
+    img: 'src/assets/our-team/ai-nalitha.svg'
   }
 ];
 
@@ -82,7 +84,7 @@ const FastLandingPage = () => {
         <div className="rounded-xl overflow-hidden shadow-2xl bg-white border border-gray-100">
           {/* Placeholder untuk gambar laptop/dashboard */}
           <img 
-            src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80" 
+            src="/src/assets/.svg" 
             alt="Dashboard Preview" 
             className="w-full h-auto object-cover"
           />
@@ -126,7 +128,7 @@ const FastLandingPage = () => {
              <p className="text-sm text-gray-600 leading-relaxed">Create flexible budgets that adapt to your lifestyle. Set custom saving goals, track your progress visually, and receive alerts before you overspend in specific categories.</p>
           </div>
           <div className="md:w-1/2 bg-gray-50 h-full p-4 flex justify-end">
-             <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80" alt="Charts preview" className="rounded-l-lg shadow-sm w-full object-cover max-h-64" />
+             <img src="/src/assets/.svg" alt="Charts preview" className="rounded-l-lg shadow-sm w-full object-cover max-h-64" />
           </div>
         </div>
       </section>
@@ -151,14 +153,15 @@ const FastLandingPage = () => {
           <p className="text-gray-500 text-sm">Kenali para inovator di balik teknologi finansial masa depan Anda.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2">
           {teamMembers.map((member, index) => (
-            <div key={index} className="bg-white border border-gray-100 rounded-xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow">
+            <div key={index} className="min-w-65 md:min-w-0 bg-white border border-gray-100 rounded-xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow snap-start">
               <img 
                 src={member.img} 
                 alt={member.role} 
                 className="w-16 h-16 rounded-full object-cover mb-4 ring-2 ring-gray-100"
               />
+              {member.name && <h4 className="font-semibold text-gray-900 text-xs mb-1">{member.name}</h4>}
               <h3 className="font-bold text-gray-900 text-sm mb-2">{member.role}</h3>
               <p className="text-xs text-gray-500 leading-relaxed">{member.desc}</p>
             </div>
