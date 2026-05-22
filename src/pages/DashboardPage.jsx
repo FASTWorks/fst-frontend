@@ -132,7 +132,7 @@ const DashboardPage = () => {
               Halo, Username <span className="text-xl md:text-2xl">👋</span>
             </h2>
           </div>
-          <div className="w-10 h-10 rounded-full border-2 border-[#FFAD2D] overflow-hidden flex-shrink-0">
+          <div className="w-10 h-10 rounded-full border-2 border-[#FFAD2D] overflow-hidden shrink-0">
             <img 
               src="https://api.dicebear.com/7.x/avataaars/svg?seed=Baji" 
               alt="Profile Avatar" 
@@ -148,7 +148,7 @@ const DashboardPage = () => {
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             
             {/* Asset Card */}
-            <div className="bg-gradient-to-br from-[#E18252] to-[#8C3A7A] rounded-3xl p-6 text-white shadow-md relative overflow-hidden">
+            <div className="bg-linear-to-br from-[#E18252] to-[#8C3A7A] rounded-3xl p-6 text-white shadow-md relative overflow-hidden">
               <div className="flex items-center mb-4 opacity-80">
                 <WalletIcon />
                 <span className="ml-2 font-medium">Asset</span>
@@ -251,7 +251,7 @@ const DashboardPage = () => {
                 {transactions.map((trx) => (
                   <div key={trx.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-xl transition-colors">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFF8ED] rounded-xl flex items-center justify-center text-[#FFAD2D] mr-3 sm:mr-4 flex-shrink-0">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFF8ED] rounded-xl flex items-center justify-center text-[#FFAD2D] mr-3 sm:mr-4 shrink-0">
                         {trx.icon}
                       </div>
                       <div>
