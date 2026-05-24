@@ -137,7 +137,7 @@ export default function RegisterPage() {
 
         {/* Footer Links */}
         <p className="text-center text-sm text-gray-700 mb-12">
-          Sudah punya akun? <a href="#" className="text-[#32829E] font-semibold hover:underline">Masuk di sini</a>
+          Sudah punya akun? <a href="/login" className="text-[#32829E] font-semibold hover:underline">Login di sini</a>
         </p>
 
         {/* Copyright */}

@@ -62,10 +62,8 @@ const FastLandingPage = () => {
           <a href="#" className="hover:text-gray-900">Contact Us</a>
         </div>
         <div className="flex items-center gap-4 text-sm font-medium">
-          <a href="#" className="text-gray-600 hover:text-gray-900">Login</a>
-          <button className="bg-[#ffb320] hover:bg-amber-500 text-gray-900 px-5 py-2 rounded-md transition-colors">
-            Sign Up
-          </button>
+          <a href="/login" className="text-gray-600 hover:text-gray-900">Login</a>
+          <a href="/register" className="bg-[#ffb320] hover:bg-amber-500 text-gray-900 px-5 py-2 rounded-md transition-colors">Sign Up</a>
         </div>
       </nav>
 

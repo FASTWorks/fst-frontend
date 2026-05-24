@@ -78,7 +78,7 @@ const LoginPage = () => {
             </div>
 
             <div className="text-sm">
-              <a href="#" className="font-semibold text-[#006C7A] hover:text-[#00535e]">
+              <a href="/lupa-kata-sandi" className="font-semibold text-[#006C7A] hover:text-[#00535e]">
                 Lupa Kata Sandi?
               </a>
             </div>
@@ -124,8 +124,8 @@ const LoginPage = () => {
         {/* Footer Link */}
         <div className="mt-8 text-center text-sm text-gray-600">
           Don't have an account?{' '}
-          <a href="#" className="font-bold text-[#006C7A] hover:text-[#00535e]">
-            Create Account
+          <a href="/register" className="font-bold text-[#006C7A] hover:text-[#00535e]">
+            Buat Akun
           </a>
         </div>
         
