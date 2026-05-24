@@ -6,5 +6,7 @@ import HomePage from "./HomePage";
 import PemasukanPage from "./PemasukanPage";
 import UploadPage from "./UploadPage";
 import PengeluaranPage from "./PengeluaranPage";
+import TabunganPage from "./TabunganPage";
+import CatatTabunganPage from "./CatatTabunganPage";
 
-export { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPage, UploadPage, PengeluaranPage };
+export { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPage, UploadPage, PengeluaranPage, TabunganPage, CatatTabunganPage };
