@@ -5,5 +5,6 @@ import NotFound from "./NotFound";
 import HomePage from "./HomePage";
 import PemasukanPage from "./PemasukanPage";
 import UploadPage from "./UploadPage";
+import PengeluaranPage from "./PengeluaranPage";
 
-export { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPage, UploadPage };
+export { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPage, UploadPage, PengeluaranPage };

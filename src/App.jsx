@@ -1,6 +1,6 @@
 // src/App.jsx
 import React from "react";
-import { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPage, UploadPage } from "./pages/index.js";
+import { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPage, UploadPage, PengeluaranPage } from "./pages/index.js";
 import { Routes, Route } from "react-router-dom";
 const App = () => {
   return (
@@ -12,6 +12,7 @@ const App = () => {
       <Route path="/pemasukan" element={<PemasukanPage/>}/>
       <Route path="/lupa-kata-sandi" element={<NotFound/>}/>
       <Route path="/upload" element={<UploadPage/>}/>
+      <Route path="/pengeluaran" element={<PengeluaranPage/>}/>
       <Route path="*" element={<NotFound/>}/>
     </Routes>
   );

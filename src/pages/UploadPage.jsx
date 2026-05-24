@@ -91,11 +91,10 @@ const UploadPage = () => {
             <div className="w-16 h-16 rounded-xl flex items-center justify-center mb-2">
               <img src="src/assets/logo/logo-fast-v1-bg-white.svg" alt="FAST Logo" className="w-full h-full object-contain" />
             </div>
-            <h1 className="text-xl font-bold mt-1 tracking-wide">FAST</h1>
           </div>
           <nav className="space-y-2">
             {navLinks.map((link) => (
-              <a key={link.id} href="#" className={`flex items-center px-4 py-3 rounded-xl transition-colors ${link.active ? 'bg-[#FFF8ED] text-[#963F71] font-bold border-l-4 border-[#FFAD2D]' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-medium'}`}>
+              <a key={link.id} href={link.label.toLowerCase()} className={`flex items-center px-4 py-3 rounded-xl transition-colors ${link.active ? 'bg-[#FFF8ED] text-[#963F71] font-bold border-l-4 border-[#FFAD2D]' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-medium'}`}>
                 <span className="mr-3">{link.icon}</span>{link.label}
               </a>
             ))}
@@ -113,10 +112,12 @@ const UploadPage = () => {
         <header className="bg-white px-4 md:px-8 py-4 md:py-5 flex justify-between items-center border-b border-gray-100 sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <button onClick={toggleSidebar} className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-lg"><MenuIcon /></button>
-            <h2 className="text-lg font-bold text-gray-800 hidden md:block">Halo, Username 👋</h2>
+
+            <h2 className="text-lg md:text-xl font-bold text-gray-900">
+              Halo, Username <span className="text-xl md:text-2xl">👋</span>
+            </h2>
           </div>
           <div className="flex items-center gap-4">
-            <h1 className="text-lg font-bold md:hidden">FAST</h1>
             <div className="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-[#FFAD2D]">
               <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User Avatar" className="w-full h-full object-cover bg-gray-200" />
             </div>
