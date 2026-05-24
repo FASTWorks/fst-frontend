@@ -6,37 +6,37 @@ const teamMembers = [
     name: 'Bagus Aji Fernando (Baji)',
     role: 'Full-Stack Web Developer',
     desc: 'Membangun arsitektur web yang responsif, aman, dan user-friendly.',
-    img: 'src/assets/our-team/fs-baji 1.svg'
+    img: '/src/assets/our-team/fs-baji.svg'
   },
   {
     name: 'Abdurrahman Abdul Hamid',
     role: 'Full-Stack Web Developer',
     desc: 'Membangun arsitektur web yang responsif, aman, dan user-friendly.',
-    img: './src/assets/our-team/dummy 1.svg'
+    img: '/src/assets/our-team/dummy.svg'
   },
   {
     name: 'Ahmad Raja Fadhil',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: 'src/assets/our-team/ai-ahmad-raja-fadhil 1.svg'
+    img: 'src/assets/our-team/ai-ahmad-raja-fadhil.svg'
   },
   {
     name: 'Putri Maharani Fetra',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: 'src/assets/our-team/ai-putri-maharani-fetra 1.svg'
+    img: 'src/assets/our-team/ai-putri-maharani-fetra.svg'
   },
   {
     name: 'Devia',
     role: 'Data Scientist',
     desc: 'Mengolah data histori keuangan pengguna untuk menghasilkan prediksi pengeluaran dan grafik analitik yang akurat.',
-    img: 'src/assets/our-team/ds-devia 1.svg'
+    img: 'src/assets/our-team/ds-devia.svg'
   },
   {
     name: 'Nalitha',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: 'src/assets/our-team/ai-nalitha.svg'
+    img: 'src/assets/our-team/ds-nalitha.svg'
   }
 ];
 
@@ -48,7 +48,11 @@ const FastLandingPage = () => {
       {/* NAVBAR */}
       <nav className="flex justify-between items-center py-4 px-8 max-w-7xl mx-auto">
         <div className="flex items-center gap-2">
-          <div className="bg-amber-400 text-white font-bold p-1 rounded">FAST</div>
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+            <a href="#">
+            <img src="/src/assets/logo/logo-fast-v1-bg-white.svg" alt="Logo FAST" />
+            </a>
+          </div>
         </div>
         <div className="hidden md:flex gap-8 text-sm font-medium text-gray-600">
           <a href="#" className="hover:text-gray-900">Home</a>
@@ -77,14 +81,14 @@ const FastLandingPage = () => {
           <p className="text-gray-600 leading-relaxed max-w-md">
             Gain absolute clarity over your personal finances. Reduce cognitive load with real-time tracking, AI insights, and intelligent receipt scanning designed for millennial professionals.
           </p>
-          <button className="bg-[#ffb320] hover:bg-amber-500 text-gray-900 font-medium px-6 py-3 rounded-md transition-colors">
+          <a href="/login" className="bg-[#ffb320] hover:bg-amber-500 text-gray-900 font-medium px-6 py-3 rounded-md transition-colors">
             Get Started
-          </button>
+          </a>
         </div>
-        <div className="rounded-xl overflow-hidden shadow-2xl bg-white border border-gray-100">
+        <div className="rounded-xl overflow-hidden shadow-2xl bg-white border">
           {/* Placeholder untuk gambar laptop/dashboard */}
           <img 
-            src="/src/assets/.svg" 
+            src="/src/assets/logo/logo-fast-v1.svg" 
             alt="Dashboard Preview" 
             className="w-full h-auto object-cover"
           />
