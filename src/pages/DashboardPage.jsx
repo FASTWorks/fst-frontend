@@ -81,7 +81,6 @@ const DashboardPage = () => {
                 className="w-full h-full object-contain"
               />
             </div>
-            <h1 className="text-xl font-extrabold text-gray-900 tracking-wider">FAST</h1>
           </div>
 
           {/* Navigation */}
@@ -89,7 +88,7 @@ const DashboardPage = () => {
             {navLinks.map((link) => (
               <a
                 key={link.id}
-                href="#"
+                href={link.label.toLowerCase()}
                 className={`flex items-center px-4 py-3 rounded-xl transition-colors ${
                   link.active
                     ? 'bg-[#FFF8ED] text-[#963F71] font-semibold border-l-4 border-[#FFAD2D]'
