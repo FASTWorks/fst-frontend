@@ -17,7 +17,6 @@ const SparklesIcon = () => <svg width="20" height="20" fill="none" viewBox="0 0 
 const MenuIcon = () => <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>;
 const CloseIcon = () => <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
 
-// --- 2. Dummy Data ---
 const navLinks = [
   { id: 1, label: 'Dashboard', icon: <DashboardIcon />, active: true },
   { id: 2, label: 'Pemasukan', icon: <WalletIcon />, active: false },
@@ -43,7 +42,6 @@ const barChartData = [
   { day: 'Min', height: 'h-20', color: 'bg-[#DED5C6]' },
 ];
 
-// --- 3. Main Component ---
 const DashboardPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -74,7 +72,6 @@ const DashboardPage = () => {
             </button>
 
             <div className="w-16 h-16 rounded-xl flex items-center justify-center mb-2">
-              {/* Gambar Logo Terupdate */}
               <img 
                 src="src/assets/logo/logo-fast-v1-bg-white.svg" 
                 alt="FAST Logo" 
@@ -276,14 +273,14 @@ const DashboardPage = () => {
                 <h3 className="ml-2 font-bold text-sm">Insight Jago AI</h3>
               </div>
               <p className="text-sm text-gray-800 leading-relaxed italic">
-                "Pengeluaran kopi Anda meningkat <span className="text-[#FFAD2D] font-bold">20%</span> minggu ini. Pertimbangkan untuk membatasi budget 'Gaya Hidup' agar target <span className="font-semibold">Umroh</span> tetap tercapai."
+                "Infokan Pengeluaran kopi Anda meningkat <span className="text-[#FFAD2D] font-bold">20%</span> minggu ini. Pertimbangkan untuk membatasi budget 'Gaya Hidup' agar target <span className="font-semibold">Umroh</span> tetap tercapai."
               </p>
             </div>
           </section>
 
         </main>
+        {/* Hehew */}
 
-        {/* Floating Action Button (Mobile Only) */}
         <button className="fixed md:hidden bottom-8 right-6 w-14 h-14 bg-[#FFAD2D] hover:bg-[#F29F25] text-white rounded-full shadow-lg flex items-center justify-center text-3xl font-light transition-transform hover:scale-105 z-40">
           +
         </button>

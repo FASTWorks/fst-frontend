@@ -5,7 +5,7 @@ const teamMembers = [
   {
     name: 'Bagus Aji Fernando (Baji)',
     role: 'Full-Stack Web Developer',
-    desc: 'Membangun arsitektur web yang responsif, aman, dan user-friendly.',
+    desc: 'Membangun arsitektur web yang responsif, aman, dan user-friendly dan Gacor.',
     img: '/src/assets/our-team/fs-baji.svg'
   },
   {
@@ -90,6 +90,7 @@ const FastLandingPage = () => {
           <img 
             src="/src/assets/logo/logo-fast-v1.svg" 
             alt="Dashboard Preview" 
+
             className="w-full h-auto object-cover"
           />
         </div>
