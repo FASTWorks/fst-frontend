@@ -10,5 +10,6 @@ import TabunganPage from "./TabunganPage";
 import CatatTabunganPage from "./CatatTabunganPage";
 import BuatTabunganPage from "./BuatTabunganPage";
 import EditTabunganPage from "./EditTabunganPage";
+import ProfilePage from "./ProfilePage";
 
-export { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPage, UploadPage, PengeluaranPage, TabunganPage, CatatTabunganPage, BuatTabunganPage, EditTabunganPage };
+export { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPage, UploadPage, PengeluaranPage, TabunganPage, CatatTabunganPage, BuatTabunganPage, EditTabunganPage, ProfilePage };
