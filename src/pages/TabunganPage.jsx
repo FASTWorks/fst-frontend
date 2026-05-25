@@ -46,7 +46,8 @@ const TabunganPage = () => {
   ];
 
   // Data Target Tabungan
-  const tabunganData = [
+// [UBAH BAGIAN INI MENJADI STATE]
+  const [tabunganData, setTabunganData] = useState([
     { 
       id: 1, 
       title: 'McLaren 750S', 
@@ -71,7 +72,17 @@ const TabunganPage = () => {
       saved: 'Rp1.000.000', 
       target: 'Rp100.000.000' 
     },
-  ];
+  ]);
+
+  const [viewMode, setViewMode] = useState('grid');
+
+  const handleDeleteTabungan = (id) => {
+    const isConfirm = window.confirm('Apakah Anda yakin ingin menghapus tabungan ini?');
+    if (isConfirm) {
+      // Menyaring array dan hanya menyimpan data yang id-nya TIDAK sama dengan id yang dihapus
+      setTabunganData(tabunganData.filter((item) => item.id !== id));
+    }
+  };
 
   return (
     <div className="flex h-screen bg-[#FFFDF9] font-sans text-gray-800 overflow-hidden">
@@ -159,10 +170,10 @@ const TabunganPage = () => {
                   +12.5% this month
                 </div>
               </div>
-              <button className="bg-[#F59E0B] hover:bg-[#d98205] text-white font-bold py-3.5 px-6 rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 whitespace-nowrap border-2 border-transparent hover:border-white/20">
+              <Link to="/tabungan/buat" className="bg-[#F59E0B] hover:bg-[#d98205] text-white font-bold py-3.5 px-6 rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 whitespace-nowrap border-2 border-transparent hover:border-white/20">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
                 Buat Tabungan
-              </button>
+              </Link>
             </div>
 
             {/* Section Tabungan Anda */}
@@ -170,66 +181,107 @@ const TabunganPage = () => {
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-2xl font-bold text-gray-900">Tabungan Anda</h3>
                 <div className="flex gap-2">
-                  <button className="p-1.5 bg-gray-200 rounded-md text-gray-800"><GridIcon /></button>
-                  <button className="p-1.5 hover:bg-gray-100 rounded-md"><ListIcon /></button>
+                  <button 
+                    onClick={() => setViewMode('grid')}
+                    className={`p-1.5 rounded-md transition-colors ${
+                      viewMode === 'grid' 
+                        ? 'bg-gray-200 text-gray-800' 
+                        : 'text-gray-400 hover:bg-gray-100'
+                    }`}
+                  >
+                    <GridIcon />
+                  </button>
+                  <button 
+                    onClick={() => setViewMode('list')}
+                    className={`p-1.5 rounded-md transition-colors ${
+                      viewMode === 'list' 
+                        ? 'bg-gray-200 text-gray-800' 
+                        : 'text-gray-400 hover:bg-gray-100'
+                    }`}>
+                    <ListIcon />
+                  </button>
                 </div>
               </div>
-
-              {/* Grid Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className={
+                  viewMode === 'grid' 
+                    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+                    : "flex flex-col gap-4"
+                }>
                 {tabunganData.map((data) => (
-                  <div key={data.id} className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm flex flex-col">
-                    
-                    {/* Card Header */}
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="text-gray-900">
-                        <BagIcon />
+                  <div 
+                    key={data.id} 
+                    className={`bg-white border border-gray-200 rounded-3xl p-6 shadow-sm flex ${
+                      viewMode === 'list' ? 'flex-col md:flex-row md:items-center gap-6' : 'flex-col'
+                    }`}>
+                    {/* Card Header (Icon & Title Group) */}
+                    <div className={`flex ${viewMode === 'list' ? 'w-full md:w-1/4 flex-col' : 'flex-col w-full'}`}>
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="text-gray-900">
+                          <BagIcon />
+                        </div>
+                        {/* Action Edit/Delete (Hanya tampil di atas jika mode Grid, jika List pindah ke kanan) */}
+                        {viewMode === 'grid' && (
+                          <div className="flex items-center gap-2 border border-gray-300 rounded-full px-3 py-1.5">
+                            <Link to={`edit`}><PencilIcon /></Link>
+                            <div className="w-px h-4 bg-gray-300"></div>
+                            <button type="button" onClick={() => handleDeleteTabungan(data.id)} className="focus:outline-none">
+                              <TrashIcon />
+                            </button>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2 border border-gray-300 rounded-full px-3 py-1.5">
-                        <PencilIcon />
-                        <div className="w-px h-4 bg-gray-300"></div>
-                        <TrashIcon />
-                      </div>
+                      <h4 className="text-lg font-bold text-gray-900 mb-1 line-clamp-1" title={data.title}>
+                        {data.title}
+                      </h4>
+                      <p className="text-xs text-gray-500 font-medium mb-2 md:mb-0">{data.days}</p>
                     </div>
-
-                    {/* Card Title & Days */}
-                    <h4 className="text-lg font-bold text-gray-900 mb-1 line-clamp-1" title={data.title}>
-                      {data.title}
-                    </h4>
-                    <p className="text-xs text-gray-500 font-medium mb-6">{data.days}</p>
 
                     {/* Progress Area */}
-                    <div className="mb-2 flex justify-between items-end">
-                      <span className="text-xs font-bold text-gray-500">Progress</span>
-                      <span className="text-sm font-bold text-gray-900">{data.progress}%</span>
-                    </div>
-                    
-                    {/* Progress Bar */}
-                    <div className="w-full bg-gray-100 rounded-full h-2.5 mb-4">
-                      <div 
-                        className="bg-[#F59E0B] h-2.5 rounded-full" 
-                        style={{ width: `${data.progress}%` }}
-                      ></div>
+                    <div className={`flex-1 ${viewMode === 'grid' ? 'mb-6' : 'w-full md:px-4'}`}>
+                      <div className="mb-2 flex justify-between items-end">
+                        <span className="text-xs font-bold text-gray-500">Progress</span>
+                        <span className="text-sm font-bold text-gray-900">{data.progress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-2.5 mb-2 md:mb-0">
+                        <div 
+                          className="bg-[#F59E0B] h-2.5 rounded-full" 
+                          style={{ width: `${data.progress}%` }}
+                        ></div>
+                      </div>
                     </div>
 
-                    {/* Saved vs Target Amounts */}
-                    <div className="flex justify-between items-end mb-6">
-                      <div className="flex flex-col">
+                    {/* Amounts Area */}
+                    <div className={`flex justify-between ${viewMode === 'list' ? 'w-full md:w-auto md:flex-col md:items-end md:gap-2' : 'items-end mb-6 w-full'}`}>
+                      <div className={`flex flex-col ${viewMode === 'list' ? 'md:text-right' : ''}`}>
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Saved</span>
                         <span className="text-sm font-bold text-gray-900">{data.saved}</span>
                       </div>
-                      <div className="flex flex-col text-right">
+                      <div className={`flex flex-col text-right ${viewMode === 'list' ? 'md:text-right' : ''}`}>
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Target</span>
                         <span className="text-xs font-bold text-gray-500">{data.target}</span>
                       </div>
                     </div>
 
-                    <Link 
-                      to="/tabungan/catat" 
-                      className="mt-auto w-full flex justify-center bg-[#963F71] hover:bg-[#7a325b] text-white font-bold py-2.5 rounded-xl border-2 border-gray-900 shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] transition-transform active:translate-y-0.5 active:shadow-none"
-                    >
-                      Catat Tabungan
-                    </Link>
+                    {/* Action Button & List Mode Actions */}
+                    <div className={`flex items-center gap-3 ${viewMode === 'list' ? 'w-full md:w-auto' : 'mt-auto w-full'}`}>
+                      <Link 
+                        to="/tabungan/catat" 
+                        className={`flex justify-center items-center bg-[#963F71] hover:bg-[#7a325b] text-white font-bold py-2.5 px-4 rounded-xl border-2 border-gray-900 shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] transition-transform active:translate-y-0.5 active:shadow-none ${viewMode === 'list' ? 'flex-1 md:flex-none whitespace-nowrap' : 'w-full mt-4'}`}
+                      >
+                        Catat Tabungan
+                      </Link>
+                      
+                      {/* Action Edit/Delete (Tampil di sebelah tombol Catat jika mode List) */}
+                      {viewMode === 'list' && (
+                        <div className="flex items-center gap-2 border border-gray-300 rounded-xl px-3 py-2.5 h-full">
+                          <Link to={`edit`}><PencilIcon /></Link>
+                          <div className="w-px h-4 bg-gray-300"></div>
+                          <button type="button" onClick={() => handleDeleteTabungan(data.id)} className="focus:outline-none">
+                            <TrashIcon />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

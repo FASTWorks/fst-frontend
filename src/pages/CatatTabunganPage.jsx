@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-
-// --- Icons Tambahan ---
+import { Link } from 'react-router-dom';
 
 const CloseIcon = () => (
   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -212,12 +211,12 @@ const CatatTabunganPage = () => {
 
             {/* Action Buttons */}
             <div className="flex justify-end gap-3">
-              <button
-                type="button"
+              <Link
+                to="/tabungan"
                 className="px-6 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-bold hover:bg-gray-50 transition-colors shadow-sm"
               >
                 Cancel
-              </button>
+              </Link>
               <button
                 type="submit"
                 className="px-8 py-2.5 rounded-xl bg-[#963F71] hover:bg-[#7a325b] text-white font-bold border-2 border-gray-900 shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] transition-transform active:translate-y-0.5 active:shadow-none"
