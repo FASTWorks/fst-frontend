@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 // --- 1. Minimal SVG Icons Components ---
 const DashboardIcon = () => <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>;
@@ -85,9 +86,11 @@ const PemasukanPage = () => {
 
         {/* Sidebar Footer */}
         <div className="space-y-4">
-          <button className="w-full bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-colors">
-            New Transaction
-          </button>
+          <Link to="/pengeluaran" className="">
+            <button className="w-full bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-colors">
+              New Transaction
+            </button>
+          </Link>
           <button className="flex items-center text-gray-500 hover:text-gray-900 px-4 py-2 w-full transition-colors">
             <LogoutIcon />
             <span className="ml-3 font-medium">Logout</span>

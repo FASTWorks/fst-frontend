@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 // --- Mock Icons ---
 const CloseIcon = () => (
@@ -97,9 +98,11 @@ const PengeluaranPage = () => {
         </div>
 
         <div className="space-y-4">
-          <button className="w-full bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-colors">
-            New Transaction
-          </button>
+          <Link to="/pengeluaran" className="">
+            <button className="w-full bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-colors">
+              New Transaction
+            </button>
+          </Link>
           <button className="flex items-center text-gray-500 hover:text-gray-900 px-4 py-2 w-full transition-colors">
             <LogoutIcon />
             <span className="ml-3 font-medium">Logout</span>
