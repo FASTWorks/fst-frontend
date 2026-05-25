@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 // --- Icons ---
 const CloseIcon = () => (
@@ -178,9 +179,9 @@ const ProfilePage = () => {
                       className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700 bg-white"
                     />
                     <div className="mt-2">
-                      <a href="#" className="text-xs font-bold text-[#0284C7] hover:text-[#0369A1] transition-colors">
+                      <Link to="/lupa-kata-sandi" className="text-xs font-bold text-[#0284C7] hover:text-[#0369A1] transition-colors">
                         Lupa Kata Sandi?
-                      </a>
+                      </Link>
                     </div>
                   </div>
                   

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const LoginPage = () => {
   return (
@@ -78,9 +79,9 @@ const LoginPage = () => {
             </div>
 
             <div className="text-sm">
-              <a href="/lupa-kata-sandi" className="font-semibold text-[#006C7A] hover:text-[#00535e]">
+              <Link to="/lupa-kata-sandi" className="font-semibold text-[#006C7A] hover:text-[#00535e]">
                 Lupa Kata Sandi?
-              </a>
+              </Link>
             </div>
           </div>
 
