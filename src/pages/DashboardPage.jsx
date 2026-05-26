@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom'; // Asumsi Anda menggunakan react-router-dom
 
 // --- Mock Icons (Sesuaikan dengan import Anda) ---
+const DownloadIcon = () => <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>;
 const ChevronLeftIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>;
 const ChevronRightIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>;
 const CloseIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>;
@@ -122,7 +123,38 @@ const DashboardPage = () => {
       );
   
 
+  const handleDownloadCSV = () => {
+    // 1. Definisikan Header Tabel
+    const headers = ['No', 'Nama Transaksi', 'Tanggal', 'Nominal', 'Kategori', 'Tipe'];
 
+    // 2. Map data ke format baris CSV (Di sini saya pakai 'transactions' agar semua data ter-download)
+    // Jika ingin hanya halaman aktif, ganti dengan 'currentTransactions'
+    const csvRows = transactions.map((trx, index) => {
+      return [
+        index + 1,
+        `"${trx.title}"`, // Diberi tanda kutip ganda (") jaga-jaga jika ada koma di nama transaksi
+        `"${trx.date}"`,
+        `"${trx.amount}"`,
+        `"${trx.category}"`,
+        trx.type === 'income' ? 'Pemasukan' : 'Pengeluaran'
+      ].join(','); // Gabungkan per kolom dengan koma
+    });
+
+    // 3. Gabungkan Header dan Baris Data dengan enter (\n)
+    const csvString = [headers.join(','), ...csvRows].join('\n');
+
+    // 4. Buat File (Blob) dan paksa browser untuk mendownloadnya
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    link.href = url;
+    link.setAttribute('download', `Riwayat_Transaksi_FAST_${new Date().toISOString().slice(0, 10)}.csv`);
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   return (
     <div className="flex h-screen bg-[#FFFDF9] font-sans overflow-hidden relative">
       
@@ -384,13 +416,25 @@ const DashboardPage = () => {
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 lg:col-span-2 flex flex-col">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-gray-900">Transaksi Terbaru</h3>
-                {/* Tombol Toggle Lihat Semua / Lihat Sebagian */}
-                <button 
-                  onClick={() => setIsViewAll(!isViewAll)}
-                  className="text-sm font-semibold text-[#8C3A7A] hover:text-[#702e5c] focus:outline-none transition-colors"
-                >
-                  {isViewAll ? 'Lihat Sebagian' : 'Lihat Semua'}
-                </button>
+                
+                <div className="flex items-center gap-4">
+                  {/* Tombol Download */}
+                  <button 
+                    onClick={handleDownloadCSV}
+                    className="flex items-center text-xs font-bold bg-[#FFF8ED] text-[#FFAD2D] hover:bg-[#FFAD2D] hover:text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+                  >
+                    <DownloadIcon />
+                    Export CSV
+                  </button>
+
+                  {/* Tombol Toggle Lihat Semua */}
+                  <button 
+                    onClick={() => setIsViewAll(!isViewAll)}
+                    className="text-sm font-semibold text-[#8C3A7A] hover:text-[#702e5c] focus:outline-none transition-colors"
+                  >
+                    {isViewAll ? 'Lihat Sebagian' : 'Lihat Semua'}
+                  </button>
+                </div>
               </div>
               
               {/* List Transaksi */}
