@@ -1,53 +1,160 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom'; // Asumsi Anda menggunakan react-router-dom
 
-// --- 1. Minimal SVG Icons Components ---
-const DashboardIcon = () => <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>;
-const WalletIcon = () => <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>;
-const UploadIcon = () => <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>;
-const ChartIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg>;
-const PiggyBankIcon = () => <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
-const UserIcon = () => <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>;
-const LogoutIcon = () => <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>;
-const TrendingUpIcon = () => <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>;
-const ArrowUpRightIcon = () => <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>;
-const ArrowDownRightIcon = () => <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>;
-const FoodIcon = () => <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>;
-const BriefcaseIcon = () => <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>;
-const SparklesIcon = () => <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>;
-const MenuIcon = () => <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>;
-const CloseIcon = () => <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
-
-const navLinks = [
-  { id: 1, label: 'Dashboard', icon: <DashboardIcon />, active: true },
-  { id: 2, label: 'Pemasukan', icon: <WalletIcon />, active: false },
-  { id: 3, label: 'Upload', icon: <UploadIcon />, active: false },
-  { id: 4, label: 'Pengeluaran', icon: <ChartIcon />, active: false },
-  { id: 5, label: 'Tabungan', icon: <PiggyBankIcon />, active: false },
-  { id: 6, label: 'Profile', icon: <UserIcon />, active: false },
-];
-
-const transactions = [
-  { id: 1, title: 'Gacoan Central Park', date: 'Kemarin • 19:24', amount: '- Rp 45.000', category: 'Makanan', type: 'expense', icon: <FoodIcon /> },
-  { id: 2, title: 'Top Up GoPay', date: 'Kemarin • 08:15', amount: '- Rp 200.000', category: 'Top Up', type: 'expense', icon: <WalletIcon /> },
-  { id: 3, title: 'Gaji PT. Maju Jaya', date: '25 Okt • 00:01', amount: '+ Rp 15.000.000', category: 'Penghasilan', type: 'income', icon: <BriefcaseIcon /> },
-];
-
-const barChartData = [
-  { day: 'Sen', height: 'h-16', color: 'bg-[#DED5C6]' },
-  { day: 'Sel', height: 'h-24', color: 'bg-[#DED5C6]' },
-  { day: 'Rab', height: 'h-32', color: 'bg-[#963F71]' }, 
-  { day: 'Kam', height: 'h-36', color: 'bg-[#FFAD2D]' }, 
-  { day: 'Jum', height: 'h-24', color: 'bg-[#DED5C6]' },
-  { day: 'Sab', height: 'h-12', color: 'bg-[#DED5C6]' },
-  { day: 'Min', height: 'h-20', color: 'bg-[#DED5C6]' },
-];
+// --- Mock Icons (Sesuaikan dengan import Anda) ---
+const DownloadIcon = () => <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>;
+const ChevronLeftIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>;
+const ChevronRightIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>;
+const CloseIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>;
+const MenuIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>;
+const LogoutIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>;
+const WalletIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>;
+const TrendingUpIcon = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>;
+const ArrowUpRightIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 17L17 7M17 7H7M17 7v10"></path></svg>;
+const ArrowDownRightIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17L7 7M17 17V7M17 17H7"></path></svg>;
+const SparklesIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>;
 
 const DashboardPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // State untuk periode chart ('7days' atau '30days')
+  const [chartPeriod, setChartPeriod] = useState('7days');
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
+  // --- Nav Links Mock ---
+  const navLinks = [
+    { id: 1, label: 'Dashboard', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>, active: true },
+    { id: 2, label: 'Pemasukan', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>, active: false },
+    { id: 3, label: 'Upload', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>, active: false },
+    { id: 4, label: 'Pengeluaran', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg>, active: false },
+    { id: 5, label: 'Tabungan', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>, active: false },
+    { id: 6, label: 'Profile', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>, active: false },
+  ];
+
+  // --- Transaksi Mock ---
+  // ! Contoh data dummy nya
+  const transactions = [
+    { id: 1, title: 'Kopi Kenangan', date: 'Hari ini', amount: 'Rp 45.000', category: 'Gaya Hidup', type: 'expense', icon: '☕' },
+    { id: 2, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 3, title: 'Belanja Bulanan', date: '2 hari yang lalu', amount: 'Rp 2.000.000', category: 'Gaya Hidup', type: 'expense', icon: '�️' },
+    { id: 4, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 5, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 6, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 7, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 8, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 9, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 10, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 11, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 12, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 13, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 14, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 15, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 16, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 17, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 18, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 19, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 20, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 21, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 22, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 23, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+  ];
+
+
+  // --- LOGIKA CHART DINAMIS ---
+  
+// --- STATE UNTUK TOOLTIP HOVER ---
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  // --- MOCK DATA PENGELUARAN (DUMMY) ---
+  const chartData7Days = useMemo(() => {
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      data.push({
+        label: d.toLocaleDateString('id-ID', { weekday: 'short' }), // Sen, Sel, dll
+        value: Math.floor(Math.random() * 300000) + 50000, // Dummy Rp 50k - 350k
+      });
+    }
+    return data;
+  }, []);
+
+  const chartData30Days = useMemo(() => {
+    const data = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      data.push({
+        label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }), // 12 Mei
+        value: Math.floor(Math.random() * 500000) + 50000, // Dummy Rp 50k - 550k
+      });
+    }
+    return data;
+  }, []);
+
+  // --- LOGIKA PERHITUNGAN KOORDINAT LINE CHART ---
+  const activeData = chartPeriod === '7days' ? chartData7Days : chartData30Days;
+  const maxVal = Math.max(...activeData.map(d => d.value)); // Cari nilai tertinggi untuk skala chart
+
+  const svgPoints = useMemo(() => {
+    return activeData.map((d, index) => {
+      const x = (index / (activeData.length - 1)) * 1000; // Skala lebar 0 - 1000
+      // Skala tinggi 0 - 200, sisakan ruang 40px di atas agar tooltip tidak terpotong
+      const y = 200 - ((d.value / maxVal) * 160); 
+      return { x, y, ...d, index };
+    });
+  }, [activeData, maxVal]);
+
+  const polylineString = svgPoints.map(p => `${p.x},${p.y}`).join(' ');
+
+  // --- LOGIKA PAGINATION TRANSAKSI ---
+  const [currentTrxPage, setCurrentTrxPage] = useState(1);
+  const [isViewAll, setIsViewAll] = useState(false); // State baru untuk toggle Lihat Semua
+  const itemsPerTrxPage = 5; // Menampilkan 5 transaksi per halaman (sesuaikan selera)
+  const totalTrxPages = Math.ceil(transactions.length / itemsPerTrxPage);
+
+  // Memotong array transaksi sesuai halaman yang aktif
+  const currentTransactions = isViewAll 
+    ? transactions 
+    : transactions.slice(
+        (currentTrxPage - 1) * itemsPerTrxPage,
+        currentTrxPage * itemsPerTrxPage
+      );
+  
+
+  const handleDownloadCSV = () => {
+    // 1. Definisikan Header Tabel
+    const headers = ['No', 'Nama Transaksi', 'Tanggal', 'Nominal', 'Kategori', 'Tipe'];
+
+    // 2. Map data ke format baris CSV (Di sini saya pakai 'transactions' agar semua data ter-download)
+    // Jika ingin hanya halaman aktif, ganti dengan 'currentTransactions'
+    const csvRows = transactions.map((trx, index) => {
+      return [
+        index + 1,
+        `"${trx.title}"`, // Diberi tanda kutip ganda (") jaga-jaga jika ada koma di nama transaksi
+        `"${trx.date}"`,
+        `"${trx.amount}"`,
+        `"${trx.category}"`,
+        trx.type === 'income' ? 'Pemasukan' : 'Pengeluaran'
+      ].join(','); // Gabungkan per kolom dengan koma
+    });
+
+    // 3. Gabungkan Header dan Baris Data dengan enter (\n)
+    const csvString = [headers.join(','), ...csvRows].join('\n');
+
+    // 4. Buat File (Blob) dan paksa browser untuk mendownloadnya
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    link.href = url;
+    link.setAttribute('download', `Riwayat_Transaksi_FAST_${new Date().toISOString().slice(0, 10)}.csv`);
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   return (
     <div className="flex h-screen bg-[#FFFDF9] font-sans overflow-hidden relative">
       
@@ -59,19 +166,17 @@ const DashboardPage = () => {
         ></div>
       )}
 
-      {/* Sidebar Component (Responsive) */}
+      {/* Sidebar Component */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100 flex flex-col justify-between px-4 py-6 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div>
           {/* Logo Area */}
           <div className="flex flex-col items-center mb-10 relative">
-            {/* Close button for mobile inside sidebar */}
             <button 
               className="md:hidden absolute -right-2 -top-2 p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
               onClick={toggleSidebar}
             >
               <CloseIcon />
             </button>
-
             <div className="w-16 h-16 rounded-xl flex items-center justify-center mb-2">
               <img 
                 src="src/assets/logo/logo-fast-v1-bg-white.svg" 
@@ -86,7 +191,7 @@ const DashboardPage = () => {
             {navLinks.map((link) => (
               <a
                 key={link.id}
-                href={link.label.toLowerCase()}
+                href={`/${link.label.toLowerCase()}`}
                 className={`flex items-center px-4 py-3 rounded-xl transition-colors ${
                   link.active
                     ? 'bg-[#FFF8ED] text-[#963F71] font-semibold border-l-4 border-[#FFAD2D]'
@@ -102,7 +207,7 @@ const DashboardPage = () => {
 
         {/* Sidebar Footer */}
         <div className="space-y-4">
-          <Link to="/pengeluaran" className="">
+          <Link to="/pengeluaran" className="block">
             <button className="w-full bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-colors">
               New Transaction
             </button>
@@ -120,7 +225,6 @@ const DashboardPage = () => {
         {/* Header */}
         <header className="flex justify-between items-center px-6 md:px-10 py-6 bg-[#FFFDF9] sticky top-0 z-30">
           <div className="flex items-center">
-            {/* Hamburger Button for Mobile */}
             <button 
               className="md:hidden p-2 -ml-2 mr-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
               onClick={toggleSidebar}
@@ -132,11 +236,13 @@ const DashboardPage = () => {
             </h2>
           </div>
           <div className="w-10 h-10 rounded-full border-2 border-[#FFAD2D] overflow-hidden shrink-0">
-            <img 
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Baji" 
-              alt="Profile Avatar" 
-              className="w-full h-full object-cover bg-gray-100"
-            />
+            <Link to="/profile" className="w-full h-full block">
+              <img 
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Baji" 
+                alt="Profile Avatar" 
+                className="w-full h-full object-cover bg-gray-100"
+              />
+            </Link>
           </div>
         </header>
 
@@ -194,26 +300,93 @@ const DashboardPage = () => {
           {/* Middle Row: Charts & Scores */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             
-            {/* Spending Trend */}
+            {/* Spending Trend (DINAMIS BERDASARKAN STATE) */}
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 lg:col-span-2">
               <div className="flex justify-between items-center mb-6">
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">Tren Pengeluaran</h3>
-                  <p className="text-xs text-gray-500">Data real-time 7 hari terakhir</p>
+                  <p className="text-xs text-gray-500">
+                    Data real-time {chartPeriod === '7days' ? '7 hari' : '1 bulan'} terakhir
+                  </p>
                 </div>
-                <select className="bg-white border border-gray-200 text-gray-600 text-sm rounded-lg focus:ring-[#FFAD2D] focus:border-[#FFAD2D] block p-2">
-                  <option>7 days ago</option>
-                  <option>30 days ago</option>
+                <select 
+                  value={chartPeriod}
+                  onChange={(e) => setChartPeriod(e.target.value)}
+                  className="bg-white border border-gray-200 text-gray-900 font-medium text-sm rounded-lg focus:ring-[#FFAD2D] focus:border-[#FFAD2D] block p-2 cursor-pointer"
+                >
+                  <option value="7days">7 days ago</option>
+                  <option value="30days">1 Month ago</option>
                 </select>
               </div>
-              {/* Bar Chart Mockup */}
-              <div className="flex items-end justify-between h-48 pt-4">
-                {barChartData.map((bar, index) => (
-                  <div key={index} className="flex flex-col items-center w-full">
-                    <div className={`w-8 sm:w-16 rounded-t-lg ${bar.color} ${bar.height}`}></div>
-                    <span className="text-xs text-gray-500 mt-2">{bar.day}</span>
+              
+              {/* --- LINE CHART INTERAKTIF DENGAN HOVER TOOLTIP --- */}
+              <div 
+                className="w-full relative h-48 pt-4 mt-2" 
+                onMouseLeave={() => setHoveredPoint(null)} // Sembunyikan tooltip kalau mouse keluar area
+                >
+                {/* SVG Garis & Titik */}
+                <svg viewBox="0 0 1000 200" preserveAspectRatio="none" className="w-full h-full overflow-visible">
+                  {/* Garis Utama */}
+                  <polyline
+                    fill="none"
+                    stroke="#FFAD2D"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    points={polylineString}
+                    className="transition-all duration-500"
+                  />
+                  
+                  {/* Titik-titik (Circles) yang bisa di hover */}
+                  {svgPoints.map((point) => (
+                    <circle
+                      key={point.index}
+                      cx={point.x}
+                      cy={point.y}
+                      r={hoveredPoint?.index === point.index ? "8" : "5"}
+                      fill={hoveredPoint?.index === point.index ? "#8C3A7A" : "#FFFFFF"}
+                      stroke={hoveredPoint?.index === point.index ? "#8C3A7A" : "#FFAD2D"}
+                      strokeWidth="3"
+                      className="transition-all duration-200 cursor-pointer"
+                      onMouseEnter={() => setHoveredPoint(point)}
+                    />
+                  ))}
+                </svg>
+
+                {/* Tooltip HTML (Muncul saat hoveredPoint tidak null) */}
+                {hoveredPoint && (
+                  <div 
+                    className="absolute z-10 bg-gray-900 text-white text-xs rounded-xl shadow-lg p-2.5 pointer-events-none transform -translate-x-1/2 -translate-y-full transition-all duration-100 ease-in-out"
+                    style={{
+                      left: `${(hoveredPoint.x / 1000) * 100}%`,
+                      top: `calc(${(hoveredPoint.y / 200) * 100}% - 12px)`
+                    }}
+                  >
+                    <div className="text-gray-300 font-medium text-[10px] mb-1">{hoveredPoint.label}</div>
+                    <div className="font-bold text-[#FFAD2D] whitespace-nowrap">
+                      Rp {new Intl.NumberFormat('id-ID').format(hoveredPoint.value)}
+                    </div>
                   </div>
-                ))}
+                )}
+              </div>
+
+              {/* Label Sumbu X (Bawah Chart) */}
+              <div className="flex justify-between w-full mt-3 text-xs text-gray-400 font-medium">
+                {chartPeriod === '7days' ? (
+                  // Tampilkan semua nama hari jika mode 7 hari
+                  activeData.map((d, i) => (
+                    <span key={i} className={i === 6 ? 'font-bold text-[#8C3A7A]' : ''}>
+                      {d.label}
+                    </span>
+                  ))
+                ) : (
+                  // Tampilkan Awal, Tengah, Akhir saja jika mode 30 hari agar tidak sempit
+                  <>
+                    <span>{activeData[0].label}</span>
+                    <span>{activeData[14].label}</span>
+                    <span className="font-bold text-[#8C3A7A]">{activeData[29].label}</span>
+                  </>
+                )}
               </div>
             </div>
 
@@ -221,7 +394,6 @@ const DashboardPage = () => {
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
               <h3 className="text-md font-bold text-gray-900 mb-6">Skor Kesehatan Finansial</h3>
               <div className="relative w-32 h-32 mb-6">
-                {/* SVG Donut Chart */}
                 <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                   <path className="text-gray-100" strokeWidth="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                   <path className="text-[#FFAD2D]" strokeWidth="4" strokeDasharray="75, 100" strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
@@ -240,33 +412,113 @@ const DashboardPage = () => {
           {/* Bottom Row: Transactions & AI Insights */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* Recent Transactions */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 lg:col-span-2">
+          {/* Recent Transactions Woy Gemini bagian ini yang perlu anda Ubah*/}
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 lg:col-span-2 flex flex-col">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-gray-900">Transaksi Terbaru</h3>
-                <a href="#" className="text-sm font-semibold text-[#8C3A7A] hover:text-[#702e5c]">Lihat Semua</a>
+                
+                <div className="flex items-center gap-4">
+                  {/* Tombol Download */}
+                  <button 
+                    onClick={handleDownloadCSV}
+                    className="flex items-center text-xs font-bold bg-[#FFF8ED] text-[#FFAD2D] hover:bg-[#FFAD2D] hover:text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+                  >
+                    <DownloadIcon />
+                    Export CSV
+                  </button>
+
+                  {/* Tombol Toggle Lihat Semua */}
+                  <button 
+                    onClick={() => setIsViewAll(!isViewAll)}
+                    className="text-sm font-semibold text-[#8C3A7A] hover:text-[#702e5c] focus:outline-none transition-colors"
+                  >
+                    {isViewAll ? 'Lihat Sebagian' : 'Lihat Semua'}
+                  </button>
+                </div>
               </div>
-              <div className="space-y-4">
-                {transactions.map((trx) => (
-                  <div key={trx.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-xl transition-colors">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFF8ED] rounded-xl flex items-center justify-center text-[#FFAD2D] mr-3 sm:mr-4 shrink-0">
-                        {trx.icon}
+              
+              {/* List Transaksi */}
+              {/* Jika view all aktif, beri max-height dan overflow agar bisa di-scroll internal */}
+              {/* List Transaksi */}
+              <div className={`space-y-4 flex-1 ${isViewAll ? 'max-h-85 overflow-y-auto pr-2' : 'min-h-85'}`}>
+                {currentTransactions.map((trx, index) => {
+                  
+                  // --- LOGIKA NOMOR URUT DINAMIS ---
+                  // Jika Lihat Semua aktif, cukup index + 1. 
+                  // Jika tidak, hitung berdasarkan (Halaman Sebelumnya * Jumlah Item) + index lokal + 1
+                  const nomorUrut = isViewAll 
+                    ? index + 1 
+                    : (currentTrxPage - 1) * itemsPerTrxPage + index + 1;
+
+                  return (
+                    <div key={trx.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-xl transition-colors">
+                      <div className="flex items-center">
+                        
+                        {/* Render Nomor Urut */}
+                        <span className="text-sm font-bold text-gray-400 w-5 sm:w-7 text-left shrink-0">
+                          {nomorUrut}.
+                        </span>
+
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFF8ED] rounded-xl flex items-center justify-center text-[#FFAD2D] mr-3 sm:mr-4 shrink-0 text-xl">
+                          {trx.icon}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-gray-900">{trx.title}</h4>
+                          <p className="text-xs text-gray-500">{trx.date}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-gray-900">{trx.title}</h4>
-                        <p className="text-xs text-gray-500">{trx.date}</p>
+                      <div className="text-right">
+                        <h4 className={`text-sm font-bold ${trx.type === 'expense' ? 'text-red-600' : 'text-[#006C7A]'}`}>
+                          {trx.amount}
+                        </h4>
+                        <p className="text-xs text-[#006C7A]">{trx.category}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <h4 className={`text-sm font-bold ${trx.type === 'expense' ? 'text-red-600' : 'text-[#006C7A]'}`}>
-                        {trx.amount}
-                      </h4>
-                      <p className="text-xs text-[#006C7A]">{trx.category}</p>
-                    </div>
+                  );
+                })}
+              </div>
+
+              {/* --- PAGINATION CONTROLS DI BAWAH TRANSAKSI --- */}
+              {/* Hanya tampilkan navigasi halaman jika BUKAN dalam mode Lihat Semua */}
+              {!isViewAll && (
+                <div className="flex items-center justify-between pt-4 mt-2 border-t border-gray-100">
+                  <span className="text-xs text-gray-500 font-medium hidden sm:block">
+                    Menampilkan {(currentTrxPage - 1) * itemsPerTrxPage + 1} - {Math.min(currentTrxPage * itemsPerTrxPage, transactions.length)} dari {transactions.length}
+                  </span>
+                  
+                  <div className="flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-end">
+                    <button 
+                      onClick={() => setCurrentTrxPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentTrxPage === 1}
+                      className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronLeftIcon />
+                    </button>
+
+                    {[...Array(totalTrxPages)].map((_, idx) => (
+                      <button 
+                        key={idx}
+                        onClick={() => setCurrentTrxPage(idx + 1)}
+                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs font-bold transition-colors ${
+                          currentTrxPage === idx + 1 
+                            ? 'bg-[#FFAD2D] text-white shadow-sm' 
+                            : 'text-gray-600 hover:bg-gray-100'
+                        }`}
+                      >
+                        {idx + 1}
+                      </button>
+                    ))}
+
+                    <button 
+                      onClick={() => setCurrentTrxPage(prev => Math.min(prev + 1, totalTrxPages))}
+                      disabled={currentTrxPage === totalTrxPages}
+                      className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronRightIcon />
+                    </button>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* AI Insight */}
@@ -282,9 +534,8 @@ const DashboardPage = () => {
           </section>
 
         </main>
-        {/* Hehew */}
 
-        <button className="fixed md:hidden bottom-8 right-6 w-14 h-14 bg-[#FFAD2D] hover:bg-[#F29F25] text-white rounded-full shadow-lg flex items-center justify-center text-3xl font-light transition-transform hover:scale-105 z-40">
+        <button className="fixed md:hidden bottom-8 right-6 w-14 h-14 bg-[#FFAD2D] hover:bg-[#F29F25] text-white rounded-full shadow-lg flex items-center justify-center align-middle text-3xl font-light transition-transform hover:scale-105 z-40">
           +
         </button>
       </div>

@@ -115,11 +115,13 @@ const PemasukanPage = () => {
             </h2>
           </div>
           <div className="w-10 h-10 rounded-full border-2 border-[#FFAD2D] overflow-hidden shrink-0">
-            <img 
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Baji" 
-              alt="Profile Avatar" 
-              className="w-full h-full object-cover bg-gray-100"
-            />
+            <Link to="/profile" className="w-full h-full block">
+              <img 
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Baji" 
+                alt="Profile Avatar" 
+                className="w-full h-full object-cover bg-gray-100"
+              />
+            </Link>
           </div>
         </header>
 
@@ -286,12 +288,13 @@ const PemasukanPage = () => {
                             >
                               Per Minggu
                             </button>
+                            
                             <button
                               type="button"
                               onClick={() => setNabungPeriod('bulan')}
                               className={`px-4 py-1.5 rounded-full text-sm font-bold border transition-colors ${
                                 nabungPeriod === 'bulan'
-                                  ? 'bg-white text-gray-900 border-gray-300 hover:bg-gray-50' // Mengikuti desain gambar, tombol tidak aktif warnanya border abu text hitam
+                                  ? 'bg-[#FFAD2D] text-white border-[#FFAD2D]' // [DIPERBAIKI DI SINI]
                                   : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                               }`}
                             >

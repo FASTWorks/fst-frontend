@@ -1,4 +1,5 @@
 import React from 'react';
+import { TeamCard } from '../components/ui';
 
 // --- DATA DUMMY UNTUK MODULARITAS ---
 const teamMembers = [
@@ -6,37 +7,43 @@ const teamMembers = [
     name: 'Bagus Aji Fernando (Baji)',
     role: 'Full-Stack Web Developer',
     desc: 'Membangun arsitektur web yang responsif, aman, dan user-friendly dan Gacor.',
-    img: '/src/assets/our-team/fs-baji.svg'
+    img: '/src/assets/our-team/fs-baji.svg',
+    socials: {linkedin: "", github: "", instagram: ""}
   },
   {
     name: 'Abdurrahman Abdul Hamid',
     role: 'Full-Stack Web Developer',
     desc: 'Membangun arsitektur web yang responsif, aman, dan user-friendly.',
-    img: '/src/assets/our-team/dummy.svg'
+    img: '/src/assets/our-team/dummy.svg',
+    socials: {linkedin: "", github: "", instagram: ""}
   },
   {
     name: 'Ahmad Raja Fadhil',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: 'src/assets/our-team/ai-ahmad-raja-fadhil.svg'
+    img: 'src/assets/our-team/ai-ahmad-raja-fadhil.svg',
+    socials: {linkedin: "", github: "", instagram: ""}
   },
   {
     name: 'Putri Maharani Fetra',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: 'src/assets/our-team/ai-putri-maharani-fetra.svg'
+    img: 'src/assets/our-team/ai-putri-maharani-fetra.svg',
+    socials: {linkedin: "", github: "", instagram: ""}
   },
   {
     name: 'Devia',
     role: 'Data Scientist',
     desc: 'Mengolah data histori keuangan pengguna untuk menghasilkan prediksi pengeluaran dan grafik analitik yang akurat.',
-    img: 'src/assets/our-team/ds-devia.svg'
+    img: 'src/assets/our-team/ds-devia.svg',
+    socials: {linkedin: "", github: "", instagram: ""}
   },
   {
     name: 'Nalitha',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: 'src/assets/our-team/ds-nalitha.svg'
+    img: 'src/assets/our-team/ds-nalitha.svg',
+    socials: {linkedin: "https://linkedin.com/in/bagus-aji-fernando-466347286/", github: "https://github.com/bajiff", instagram: "https://instagram.com/_bajif"}
   }
 ];
 
@@ -56,10 +63,10 @@ const FastLandingPage = () => {
         </div>
         <div className="hidden md:flex gap-8 text-sm font-medium text-gray-600">
           <a href="#" className="hover:text-gray-900">Home</a>
-          <a href="#" className="hover:text-gray-900">Features</a>
-          <a href="#" className="hover:text-gray-900">About</a>
-          <a href="#" className="hover:text-gray-900">Our Team</a>
-          <a href="#" className="hover:text-gray-900">Contact Us</a>
+          <a href="#features" className="hover:text-gray-900">Features</a>
+          <a href="#about" className="hover:text-gray-900">About</a>
+          <a href="#our-team" className="hover:text-gray-900">Our Team</a>
+          <a href="#contact-us" className="hover:text-gray-900">Contact Us</a>
         </div>
         <div className="flex items-center gap-4 text-sm font-medium">
           <a href="/login" className="text-gray-600 hover:text-gray-900">Login</a>
@@ -95,7 +102,7 @@ const FastLandingPage = () => {
       </header>
 
       {/* FEATURES SECTION */}
-      <section className="max-w-6xl mx-auto px-8 py-20">
+      <section id="features" className="max-w-6xl mx-auto px-8 py-20">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Features</h2>
           <p className="text-gray-500">Everything you need to track, analyze, and optimize your spending.</p>
@@ -137,7 +144,7 @@ const FastLandingPage = () => {
       </section>
 
       {/* ABOUT SECTION */}
-      <section className="bg-white py-20 border-y border-gray-100">
+      <section id="about" className="bg-white py-20 border-y border-gray-100">
         <div className="max-w-3xl mx-auto px-8 text-center">
           <div className="w-12 h-12 mx-auto bg-purple-100 rounded-full flex items-center justify-center mb-6">
             <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
@@ -150,7 +157,7 @@ const FastLandingPage = () => {
       </section>
 
       {/* TEAM SECTION */}
-      <section className="max-w-6xl mx-auto px-8 py-20">
+      <section id="our-team" className="max-w-6xl mx-auto px-8 py-20">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Meet Our Team</h2>
           <p className="text-gray-500 text-sm">Kenali para inovator di balik teknologi finansial masa depan Anda.</p>
@@ -158,22 +165,13 @@ const FastLandingPage = () => {
 
         <div className="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2">
           {teamMembers.map((member, index) => (
-            <div key={index} className="min-w-65 md:min-w-0 bg-white border border-gray-100 rounded-xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow snap-start">
-              <img 
-                src={member.img} 
-                alt={member.role} 
-                className="w-16 h-16 rounded-full object-cover mb-4 ring-2 ring-gray-100"
-              />
-              {member.name && <h4 className="font-semibold text-gray-900 text-xs mb-1">{member.name}</h4>}
-              <h3 className="font-bold text-gray-900 text-sm mb-2">{member.role}</h3>
-              <p className="text-xs text-gray-500 leading-relaxed">{member.desc}</p>
-            </div>
+            <TeamCard key={index} member={member} />
           ))}
         </div>
       </section>
 
       {/* CONTACT SECTION */}
-      <section className="max-w-3xl mx-auto px-8 py-16 mb-16">
+      <section id="contact-us" className="max-w-3xl mx-auto px-8 py-16 mb-16">
         <div className="bg-white border border-gray-100 rounded-2xl p-10 shadow-sm">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Contact Us</h2>
           <p className="text-sm text-gray-500 mb-8">Have questions? Send us a message.</p>
