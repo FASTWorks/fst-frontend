@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom'; // Asumsi Anda menggunakan react-router-dom
 
 // --- Mock Icons (Sesuaikan dengan import Anda) ---
+const ChevronLeftIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>;
+const ChevronRightIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>;
 const CloseIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>;
 const MenuIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>;
 const LogoutIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>;
@@ -30,10 +32,33 @@ const DashboardPage = () => {
   ];
 
   // --- Transaksi Mock ---
+  // ! Contoh data dummy nya
   const transactions = [
     { id: 1, title: 'Kopi Kenangan', date: 'Hari ini', amount: 'Rp 45.000', category: 'Gaya Hidup', type: 'expense', icon: '☕' },
     { id: 2, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 3, title: 'Belanja Bulanan', date: '2 hari yang lalu', amount: 'Rp 2.000.000', category: 'Gaya Hidup', type: 'expense', icon: '�️' },
+    { id: 4, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 5, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 6, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 7, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 8, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 9, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 10, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 11, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 12, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 13, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 14, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 15, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 16, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 17, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 18, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 19, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 20, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 21, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 22, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
+    { id: 23, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
   ];
+
 
   // --- LOGIKA CHART DINAMIS ---
   
@@ -81,6 +106,21 @@ const DashboardPage = () => {
   }, [activeData, maxVal]);
 
   const polylineString = svgPoints.map(p => `${p.x},${p.y}`).join(' ');
+
+  // --- LOGIKA PAGINATION TRANSAKSI ---
+  const [currentTrxPage, setCurrentTrxPage] = useState(1);
+  const [isViewAll, setIsViewAll] = useState(false); // State baru untuk toggle Lihat Semua
+  const itemsPerTrxPage = 5; // Menampilkan 5 transaksi per halaman (sesuaikan selera)
+  const totalTrxPages = Math.ceil(transactions.length / itemsPerTrxPage);
+
+  // Memotong array transaksi sesuai halaman yang aktif
+  const currentTransactions = isViewAll 
+    ? transactions 
+    : transactions.slice(
+        (currentTrxPage - 1) * itemsPerTrxPage,
+        currentTrxPage * itemsPerTrxPage
+      );
+  
 
 
   return (
@@ -340,33 +380,101 @@ const DashboardPage = () => {
           {/* Bottom Row: Transactions & AI Insights */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* Recent Transactions */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 lg:col-span-2">
+          {/* Recent Transactions Woy Gemini bagian ini yang perlu anda Ubah*/}
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 lg:col-span-2 flex flex-col">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-gray-900">Transaksi Terbaru</h3>
-                <a href="#" className="text-sm font-semibold text-[#8C3A7A] hover:text-[#702e5c]">Lihat Semua</a>
+                {/* Tombol Toggle Lihat Semua / Lihat Sebagian */}
+                <button 
+                  onClick={() => setIsViewAll(!isViewAll)}
+                  className="text-sm font-semibold text-[#8C3A7A] hover:text-[#702e5c] focus:outline-none transition-colors"
+                >
+                  {isViewAll ? 'Lihat Sebagian' : 'Lihat Semua'}
+                </button>
               </div>
-              <div className="space-y-4">
-                {transactions.map((trx) => (
-                  <div key={trx.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-xl transition-colors">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFF8ED] rounded-xl flex items-center justify-center text-[#FFAD2D] mr-3 sm:mr-4 shrink-0 text-xl">
-                        {trx.icon}
+              
+              {/* List Transaksi */}
+              {/* Jika view all aktif, beri max-height dan overflow agar bisa di-scroll internal */}
+              {/* List Transaksi */}
+              <div className={`space-y-4 flex-1 ${isViewAll ? 'max-h-85 overflow-y-auto pr-2' : 'min-h-85'}`}>
+                {currentTransactions.map((trx, index) => {
+                  
+                  // --- LOGIKA NOMOR URUT DINAMIS ---
+                  // Jika Lihat Semua aktif, cukup index + 1. 
+                  // Jika tidak, hitung berdasarkan (Halaman Sebelumnya * Jumlah Item) + index lokal + 1
+                  const nomorUrut = isViewAll 
+                    ? index + 1 
+                    : (currentTrxPage - 1) * itemsPerTrxPage + index + 1;
+
+                  return (
+                    <div key={trx.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-xl transition-colors">
+                      <div className="flex items-center">
+                        
+                        {/* Render Nomor Urut */}
+                        <span className="text-sm font-bold text-gray-400 w-5 sm:w-7 text-left shrink-0">
+                          {nomorUrut}.
+                        </span>
+
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFF8ED] rounded-xl flex items-center justify-center text-[#FFAD2D] mr-3 sm:mr-4 shrink-0 text-xl">
+                          {trx.icon}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-gray-900">{trx.title}</h4>
+                          <p className="text-xs text-gray-500">{trx.date}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-gray-900">{trx.title}</h4>
-                        <p className="text-xs text-gray-500">{trx.date}</p>
+                      <div className="text-right">
+                        <h4 className={`text-sm font-bold ${trx.type === 'expense' ? 'text-red-600' : 'text-[#006C7A]'}`}>
+                          {trx.amount}
+                        </h4>
+                        <p className="text-xs text-[#006C7A]">{trx.category}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <h4 className={`text-sm font-bold ${trx.type === 'expense' ? 'text-red-600' : 'text-[#006C7A]'}`}>
-                        {trx.amount}
-                      </h4>
-                      <p className="text-xs text-[#006C7A]">{trx.category}</p>
-                    </div>
+                  );
+                })}
+              </div>
+
+              {/* --- PAGINATION CONTROLS DI BAWAH TRANSAKSI --- */}
+              {/* Hanya tampilkan navigasi halaman jika BUKAN dalam mode Lihat Semua */}
+              {!isViewAll && (
+                <div className="flex items-center justify-between pt-4 mt-2 border-t border-gray-100">
+                  <span className="text-xs text-gray-500 font-medium hidden sm:block">
+                    Menampilkan {(currentTrxPage - 1) * itemsPerTrxPage + 1} - {Math.min(currentTrxPage * itemsPerTrxPage, transactions.length)} dari {transactions.length}
+                  </span>
+                  
+                  <div className="flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-end">
+                    <button 
+                      onClick={() => setCurrentTrxPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentTrxPage === 1}
+                      className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronLeftIcon />
+                    </button>
+
+                    {[...Array(totalTrxPages)].map((_, idx) => (
+                      <button 
+                        key={idx}
+                        onClick={() => setCurrentTrxPage(idx + 1)}
+                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs font-bold transition-colors ${
+                          currentTrxPage === idx + 1 
+                            ? 'bg-[#FFAD2D] text-white shadow-sm' 
+                            : 'text-gray-600 hover:bg-gray-100'
+                        }`}
+                      >
+                        {idx + 1}
+                      </button>
+                    ))}
+
+                    <button 
+                      onClick={() => setCurrentTrxPage(prev => Math.min(prev + 1, totalTrxPages))}
+                      disabled={currentTrxPage === totalTrxPages}
+                      className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronRightIcon />
+                    </button>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* AI Insight */}
