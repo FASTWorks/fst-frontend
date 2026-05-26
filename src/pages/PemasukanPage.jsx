@@ -288,12 +288,13 @@ const PemasukanPage = () => {
                             >
                               Per Minggu
                             </button>
+                            
                             <button
                               type="button"
                               onClick={() => setNabungPeriod('bulan')}
                               className={`px-4 py-1.5 rounded-full text-sm font-bold border transition-colors ${
                                 nabungPeriod === 'bulan'
-                                  ? 'bg-white text-gray-900 border-gray-300 hover:bg-gray-50' // Mengikuti desain gambar, tombol tidak aktif warnanya border abu text hitam
+                                  ? 'bg-[#FFAD2D] text-white border-[#FFAD2D]' // [DIPERBAIKI DI SINI]
                                   : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                               }`}
                             >
