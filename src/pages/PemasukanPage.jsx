@@ -115,11 +115,13 @@ const PemasukanPage = () => {
             </h2>
           </div>
           <div className="w-10 h-10 rounded-full border-2 border-[#FFAD2D] overflow-hidden shrink-0">
-            <img 
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Baji" 
-              alt="Profile Avatar" 
-              className="w-full h-full object-cover bg-gray-100"
-            />
+            <Link to="/profile" className="w-full h-full block">
+              <img 
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Baji" 
+                alt="Profile Avatar" 
+                className="w-full h-full object-cover bg-gray-100"
+              />
+            </Link>
           </div>
         </header>
 

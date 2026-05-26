@@ -126,7 +126,13 @@ const PengeluaranPage = () => {
           </div>
           <div className="flex items-center gap-4">
             <div className="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-[#FFAD2D]">
-              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User Avatar" className="w-full h-full object-cover bg-gray-200" />
+              <Link to="/profile" className="w-full h-full block">
+                <img 
+                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=Baji" 
+                  alt="Profile Avatar" 
+                  className="w-full h-full object-cover bg-gray-100"
+                />
+              </Link>
             </div>
           </div>
         </header>

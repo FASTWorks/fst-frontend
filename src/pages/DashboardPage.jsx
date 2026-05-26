@@ -132,11 +132,13 @@ const DashboardPage = () => {
             </h2>
           </div>
           <div className="w-10 h-10 rounded-full border-2 border-[#FFAD2D] overflow-hidden shrink-0">
-            <img 
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Baji" 
-              alt="Profile Avatar" 
-              className="w-full h-full object-cover bg-gray-100"
-            />
+            <Link to="/profile" className="w-full h-full block">
+              <img 
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Baji" 
+                alt="Profile Avatar" 
+                className="w-full h-full object-cover bg-gray-100"
+              />
+            </Link>
           </div>
         </header>
 
@@ -284,7 +286,7 @@ const DashboardPage = () => {
         </main>
         {/* Hehew */}
 
-        <button className="fixed md:hidden bottom-8 right-6 w-14 h-14 bg-[#FFAD2D] hover:bg-[#F29F25] text-white rounded-full shadow-lg flex items-center justify-center text-3xl font-light transition-transform hover:scale-105 z-40">
+        <button className="fixed md:hidden bottom-8 right-6 w-14 h-14 bg-[#FFAD2D] hover:bg-[#F29F25] text-white rounded-full shadow-lg flex items-center justify-center align-middle text-3xl font-light transition-transform hover:scale-105 z-40">
           +
         </button>
       </div>
