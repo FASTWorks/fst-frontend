@@ -12,5 +12,6 @@ import BuatTabunganPage from "./BuatTabunganPage";
 import EditTabunganPage from "./EditTabunganPage";
 import ProfilePage from "./ProfilePage";
 import LupaKataSandiPage from "./LupaKataSandiPage";
+import KonfirmasiPage from "./KonfirmasiPage";
 
-export { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPage, UploadPage, PengeluaranPage, TabunganPage, CatatTabunganPage, BuatTabunganPage, EditTabunganPage, ProfilePage, LupaKataSandiPage };
+export { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPage, UploadPage, PengeluaranPage, TabunganPage, CatatTabunganPage, BuatTabunganPage, EditTabunganPage, ProfilePage, LupaKataSandiPage, KonfirmasiPage };
