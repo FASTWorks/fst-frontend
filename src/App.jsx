@@ -1,7 +1,7 @@
 // src/App.jsx
 import React from "react";
 
-import { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPage, UploadPage, PengeluaranPage, TabunganPage, CatatTabunganPage, BuatTabunganPage, EditTabunganPage, ProfilePage, LupaKataSandiPage, KonfirmasiPage} from "./pages/index.js";
+import { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPage, UploadPage, PengeluaranPage, TabunganPage, CatatTabunganPage, BuatTabunganPage, EditTabunganPage, ProfilePage, LupaKataSandiPage, KonfirmasiPage, AturUlangKataSandiPage} from "./pages/index.js";
 
 import { Routes, Route } from "react-router-dom";
 const App = () => {
@@ -19,9 +19,11 @@ const App = () => {
       <Route path="/tabungan/catat" element={<CatatTabunganPage/>}/>
       <Route path="/tabungan/edit" element={<EditTabunganPage/>}/>
       <Route path="/profile" element={<ProfilePage/>}/>
-      <Route path="/konfirmasi-page" element={<KonfirmasiPage/>}/>
       <Route path="/lupa-kata-sandi" element={<LupaKataSandiPage/>}/>
+      <Route path="/konfirmasi" element={<KonfirmasiPage/>}/>
+      <Route path="/atur-ulang-kata-sandi" element={<AturUlangKataSandiPage/>}/>
       <Route path="*" element={<NotFound/>}/>
+      
     </Routes>
   );
 };

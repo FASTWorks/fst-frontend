@@ -47,16 +47,17 @@ const KonfirmasiEmailPage = () => {
             Cek Email Kamu
           </h2>
           <p className="text-gray-500 text-sm md:text-base text-center mb-8 px-4 leading-relaxed max-w-sm">
-            Kami telah mengirimkan kode pengaturan ulang kata sandi ke <span className="font-bold text-gray-800">{userEmail}</span>. Silakan cek kotak masuk atau folder spam kamu.
+            Kami telah mengirimkan link verifikasi pengaturan ulang kata sandi ke <span className="font-bold text-gray-800">{userEmail}</span>. Silakan cek kotak masuk atau folder spam kamu.
           </p>
 
           {/* Action Button */}
           {/* Catatan: Di gambar teksnya terlihat seperti 'Simpan Kata Sandi', namun untuk UX biasanya ini adalah 'Buka Aplikasi Email' atau 'Kembali ke Login'. Anda bisa menyesuaikannya. */}
+
           <button 
             type="button"
             className="w-full max-w-sm bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3.5 rounded-xl shadow-[0_4px_14px_0_rgba(255,173,45,0.39)] transition-all active:scale-[0.98] mb-6"
           >
-            Simpan Kata Sandi
+            Buka Aplikasi Email
           </button>
 
           {/* Resend Code Link */}
