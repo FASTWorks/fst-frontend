@@ -26,8 +26,10 @@ const ProfilePage = () => {
   const [email] = useState('bagusaji@gmail.com');
   const [kataSandiLama, setKataSandiLama] = useState('');
   const [kataSandiBaru, setKataSandiBaru] = useState('');
+  const [isEditingNama, setIsEditingNama] = useState(false);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
 
   // Navigasi Sidebar
   const navLinks = [
@@ -137,18 +139,34 @@ const ProfilePage = () => {
               </div>
 
               {/* Form Input fields */}
-              <form onSubmit={(e) => e.preventDefault()} className="w-full max-w-xl space-y-5">
+              <form onSubmit={(e) => e.preventDefault()} className="w-full max-w-xl space-y-6">
                 
-                {/* Nama Input */}
-                <div>
-                  <label htmlFor="nama" className="block text-sm font-bold text-gray-900 mb-2">Nama</label>
-                  <input 
-                    type="text" 
-                    id="nama"
-                    value={nama}
-                    onChange={(e) => setNama(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700 bg-white"
-                  />
+                {/* Nama Input (Dengan Fitur Edit) */}
+                <div className="flex items-end gap-3">
+                  <div className="flex-1">
+                    <label htmlFor="nama" className="block text-sm font-bold text-gray-900 mb-2">Nama</label>
+                    <input 
+                      type="text" 
+                      id="nama"
+                      value={nama}
+                      onChange={(e) => setNama(e.target.value)}
+                      readOnly={!isEditingNama}
+                      className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700 transition-colors ${
+                        !isEditingNama ? 'bg-gray-100 border-gray-300 cursor-not-allowed' : 'bg-white border-gray-300'
+                      }`}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingNama(!isEditingNama)}
+                    className={`py-3 px-6 rounded-xl font-bold transition-colors border ${
+                      isEditingNama 
+                        ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' 
+                        : 'bg-[#FFF8ED] text-[#FFAD2D] border-[#FFAD2D]/20 hover:bg-[#FFAD2D] hover:text-white'
+                    }`}
+                  >
+                    {isEditingNama ? 'Batal' : 'Edit'}
+                  </button>
                 </div>
 
                 {/* Email Input (Disabled / Grayed out) */}
@@ -168,9 +186,9 @@ const ProfilePage = () => {
                   <h4 className="font-bold text-gray-900">Ubah Kata Sandi</h4>
                 </div>
 
-                {/* Password Fields Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+                {/* Password Fields Layout Baru (Sejajar dengan tombol di kanan) */}
+                <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
+                  <div className="flex-1 w-full">
                     <label htmlFor="password_lama" className="block text-sm font-bold text-gray-900 mb-2">Kata Sandi Lama</label>
                     <input 
                       type="password" 
@@ -187,33 +205,43 @@ const ProfilePage = () => {
                     </div>
                   </div>
                   
-                  <div className="flex flex-col justify-between">
-                    <div>
-                      <label htmlFor="password_baru" className="block text-sm font-bold text-gray-900 mb-2">Kata Sandi Baru</label>
-                      <input 
-                        type="password" 
-                        id="password_baru"
-                        placeholder="••••••••"
-                        value={kataSandiBaru}
-                        onChange={(e) => setKataSandiBaru(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700 bg-white"
-                      />
-                    </div>
-                    
-                    {/* Save Button */}
-                    <div className="mt-4 flex justify-end">
-                      <button 
-                        type="submit"
-                        className="w-full md:w-auto bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-2.5 px-8 rounded-xl shadow-sm transition-colors"
-                      >
-                        Save
-                      </button>
-                    </div>
+                  <div className="flex-1 w-full">
+                    <label htmlFor="password_baru" className="block text-sm font-bold text-gray-900 mb-2">Kata Sandi Baru</label>
+                    <input 
+                      type="password" 
+                      id="password_baru"
+                      placeholder="••••••••"
+                      value={kataSandiBaru}
+                      onChange={(e) => setKataSandiBaru(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700 bg-white"
+                    />
+                    {/* Spacer agar sejajar dengan link lupa kata sandi di layar besar */}
+                    <div className="mt-2 text-transparent hidden md:block select-none">&nbsp;</div>
+                  </div>
+
+                  {/* Tombol Perbarui Kata Sandi */}
+                  <div className="w-full md:w-auto mt-2 md:mt-0">
+                    <button 
+                      type="button"
+                      className="w-full md:w-auto bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3 px-6 rounded-xl shadow-sm transition-colors md:mb-7"
+                    >
+                      Perbarui
+                    </button>
                   </div>
                 </div>
 
+                {/* Save Button (Warna Hijau) */}
+                <div className="pt-4 flex justify-end">
+                  <button 
+                    type="submit"
+                    className="w-full md:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 px-8 rounded-xl shadow-sm transition-colors"
+                  >
+                    Save
+                  </button>
+                </div>
+
                 {/* Hapus Akun Action */}
-                <div className="pt-6 flex justify-center">
+                <div className="pt-2 flex justify-center">
                   <button 
                     type="button"
                     className="flex items-center gap-2 text-[#EF4444] font-semibold border border-[#FECDD3] bg-white hover:bg-red-50 px-6 py-2.5 rounded-full transition-colors shadow-sm"

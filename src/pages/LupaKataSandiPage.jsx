@@ -74,16 +74,6 @@ const LupaKataSandiPage = () => {
               Kirim Link Reset
             </button>
 
-            {/* Back to Login Link */}
-            <div className="text-center">
-              <button 
-                type="button" 
-                onClick={() => window.history.back()}
-                className="text-sm font-bold text-[#FFAD2D] hover:text-[#F29F25] transition-colors focus:outline-none"
-              >
-                Kembali ke Login
-              </button>
-            </div>
             
           </form>
 
