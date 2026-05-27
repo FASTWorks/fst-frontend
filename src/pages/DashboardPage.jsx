@@ -179,7 +179,7 @@ const DashboardPage = () => {
             </button>
             <div className="w-16 h-16 rounded-xl flex items-center justify-center mb-2">
               <img 
-                src="src/assets/logo/logo-fast-v1-bg-white.svg" 
+                src="/public/assets/logo/logo-fast-v1-bg-white.svg" 
                 alt="FAST Logo" 
                 className="w-full h-full object-contain"
               />
