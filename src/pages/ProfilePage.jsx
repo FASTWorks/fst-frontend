@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/lib/auth';
+import { authApi } from '@/api/auth';
 
 // --- Icons ---
 const CloseIcon = () => (
@@ -19,16 +21,93 @@ const DeleteAccountIcon = () => (
 );
 
 const ProfilePage = () => {
+  const navigate = useNavigate();
+  const { user, logout, updateUser } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Form States
-  const [nama, setNama] = useState('Bagus Aji Fernando');
-  const [email] = useState('bagusaji@gmail.com');
+  const [nama, setNama] = useState(user?.name || '');
+  const [email] = useState(user?.email || '');
   const [kataSandiLama, setKataSandiLama] = useState('');
   const [kataSandiBaru, setKataSandiBaru] = useState('');
   const [isEditingNama, setIsEditingNama] = useState(false);
 
+  // UI States
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  // Save profile name
+  const handleSaveName = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setIsSubmitting(true);
+    try {
+      await authApi.getProfile(); // Placeholder — backend may have updateProfile
+      updateUser({ name: nama });
+      setSuccess('Nama berhasil diperbarui!');
+      setIsEditingNama(false);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Gagal menyimpan perubahan.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Change password
+  const handleChangePassword = async () => {
+    setPasswordError('');
+    setPasswordSuccess('');
+    if (!kataSandiLama || !kataSandiBaru) {
+      setPasswordError('Semua field kata sandi wajib diisi.');
+      return;
+    }
+    if (kataSandiBaru.length < 8) {
+      setPasswordError('Kata sandi baru minimal 8 karakter.');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const { data } = await authApi.changePassword({
+        currentPassword: kataSandiLama,
+        newPassword: kataSandiBaru,
+      });
+      setPasswordSuccess(data.message || 'Kata sandi berhasil diperbarui!');
+      setKataSandiLama('');
+      setKataSandiBaru('');
+    } catch (err) {
+      setPasswordError(err.response?.data?.message || 'Gagal mengubah kata sandi.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Delete account
+  const handleDeleteAccount = async () => {
+    const confirmPassword = window.prompt('Masukkan password Anda untuk konfirmasi hapus akun:');
+    if (!confirmPassword) return;
+
+    setIsSubmitting(true);
+    try {
+      await authApi.deleteAccount(confirmPassword);
+      await logout();
+      navigate('/login');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Gagal menghapus akun.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
 
   // Navigasi Sidebar
@@ -82,7 +161,7 @@ const ProfilePage = () => {
               New Transaction
             </button>
           </Link>
-          <button className="flex items-center text-gray-500 hover:text-gray-900 px-4 py-2 w-full transition-colors">
+          <button onClick={handleLogout} className="flex items-center text-gray-500 hover:text-gray-900 px-4 py-2 w-full transition-colors">
             <LogoutIcon /><span className="ml-3 font-medium">Logout</span>
           </button>
         </div>
@@ -97,7 +176,7 @@ const ProfilePage = () => {
             <button onClick={toggleSidebar} className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-lg">
               <MenuIcon />
             </button>
-            <h2 className="text-lg font-bold text-gray-800 hidden md:block">Halo, Username 👋</h2>
+            <h2 className="text-lg font-bold text-gray-800 hidden md:block">Halo, {user?.name || 'User'} 👋</h2>
           </div>
           <div className="flex items-center gap-4">
             <h1 className="text-lg font-bold md:hidden">FAST</h1>
@@ -138,8 +217,20 @@ const ProfilePage = () => {
                 </div>
               </div>
 
+              {/* Feedback Alerts */}
+              {error && (
+                <div className="w-full max-w-xl mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
+                  {error}
+                </div>
+              )}
+              {success && (
+                <div className="w-full max-w-xl mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm font-medium">
+                  {success}
+                </div>
+              )}
+
               {/* Form Input fields */}
-              <form onSubmit={(e) => e.preventDefault()} className="w-full max-w-xl space-y-6">
+              <form onSubmit={handleSaveName} className="w-full max-w-xl space-y-6">
                 
                 {/* Nama Input (Dengan Fitur Edit) */}
                 <div className="flex items-end gap-3">
@@ -219,13 +310,27 @@ const ProfilePage = () => {
                     <div className="mt-2 text-transparent hidden md:block select-none">&nbsp;</div>
                   </div>
 
-                  {/* Tombol Perbarui Kata Sandi */}
-                  <div className="w-full md:w-auto mt-2 md:mt-0">
+                {/* Password Alerts */}
+                {passwordError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
+                    {passwordError}
+                  </div>
+                )}
+                {passwordSuccess && (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm font-medium">
+                    {passwordSuccess}
+                  </div>
+                )}
+
+                {/* Tombol Perbarui Kata Sandi */}
+                <div className="w-full md:w-auto mt-2 md:mt-0">
                     <button 
                       type="button"
-                      className="w-full md:w-auto bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3 px-6 rounded-xl shadow-sm transition-colors md:mb-7"
+                      onClick={handleChangePassword}
+                      disabled={isSubmitting}
+                      className="w-full md:w-auto bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3 px-6 rounded-xl shadow-sm transition-colors md:mb-7 disabled:opacity-60"
                     >
-                      Perbarui
+                      {isSubmitting ? 'Memproses...' : 'Perbarui'}
                     </button>
                   </div>
                 </div>
@@ -234,9 +339,10 @@ const ProfilePage = () => {
                 <div className="pt-4 flex justify-end">
                   <button 
                     type="submit"
-                    className="w-full md:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 px-8 rounded-xl shadow-sm transition-colors"
+                    disabled={isSubmitting}
+                    className="w-full md:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 px-8 rounded-xl shadow-sm transition-colors disabled:opacity-60"
                   >
-                    Save
+                    {isSubmitting ? 'Menyimpan...' : 'Save'}
                   </button>
                 </div>
 
@@ -244,7 +350,9 @@ const ProfilePage = () => {
                 <div className="pt-2 flex justify-center">
                   <button 
                     type="button"
-                    className="flex items-center gap-2 text-[#EF4444] font-semibold border border-[#FECDD3] bg-white hover:bg-red-50 px-6 py-2.5 rounded-full transition-colors shadow-sm"
+                    onClick={handleDeleteAccount}
+                    disabled={isSubmitting}
+                    className="flex items-center gap-2 text-[#EF4444] font-semibold border border-[#FECDD3] bg-white hover:bg-red-50 px-6 py-2.5 rounded-full transition-colors shadow-sm disabled:opacity-60"
                   >
                     <DeleteAccountIcon />
                     Hapus Akun

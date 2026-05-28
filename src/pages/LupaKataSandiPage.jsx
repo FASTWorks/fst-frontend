@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { authApi } from '@/api/auth';
 
 // --- Icons ---
 const ArrowLeftIcon = () => (
@@ -15,7 +17,27 @@ const ResetLockIcon = () => (
 );
 
 const LupaKataSandiPage = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setIsLoading(true);
+
+    try {
+      const { data } = await authApi.forgotPassword(email);
+      setSuccess(data.message || 'Link reset kata sandi telah dikirim ke email Anda.');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Gagal mengirim link reset. Periksa email Anda.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col relative bg-[#FAFAF8] font-sans">
@@ -23,7 +45,7 @@ const LupaKataSandiPage = () => {
       {/* Back Button (Absolute Top Left) */}
       <div className="absolute top-6 left-6 md:top-8 md:left-8">
         <button 
-          onClick={() => window.history.back()} 
+          onClick={() => navigate(-1)} 
           className="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none"
         >
           <ArrowLeftIcon />
@@ -48,7 +70,20 @@ const LupaKataSandiPage = () => {
           </p>
 
           {/* Form */}
-          <form className="w-full" onSubmit={(e) => e.preventDefault()}>
+          <form className="w-full" onSubmit={handleSubmit}>
+
+            {/* Error Alert */}
+            {error && (
+              <div className="w-full mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
+                {error}
+              </div>
+            )}
+            {/* Success Alert */}
+            {success && (
+              <div className="w-full mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm font-medium">
+                {success}
+              </div>
+            )}
             
             {/* Input Email */}
             <div className="mb-6">
@@ -63,15 +98,17 @@ const LupaKataSandiPage = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700 bg-white transition-shadow"
                 required
+                disabled={isLoading}
               />
             </div>
 
             {/* Submit Button */}
             <button 
               type="submit"
-              className="w-full bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3.5 rounded-xl shadow-[0_4px_14px_0_rgba(255,173,45,0.39)] transition-all active:scale-[0.98] mb-6"
+              disabled={isLoading}
+              className="w-full bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3.5 rounded-xl shadow-[0_4px_14px_0_rgba(255,173,45,0.39)] transition-all active:scale-[0.98] mb-6 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Kirim Link Reset
+              {isLoading ? 'Mengirim...' : 'Kirim Link Reset'}
             </button>
 
             

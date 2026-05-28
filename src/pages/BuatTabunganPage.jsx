@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/lib/auth';
+import { financeApi } from '@/api/finance';
 
 // --- Mock Icons (Sesuaikan dengan project Anda) ---
 const CloseIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>;
@@ -7,15 +9,47 @@ const LogoutIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentCol
 const MenuIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>;
 
 const BuatTabunganPage = () => {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // --- Form States ---
   const [namaTabungan, setNamaTabungan] = useState('');
   const [targetTabungan, setTargetTabungan] = useState(0);
-  const [nabungPeriod, setNabungPeriod] = useState('minggu'); // 'minggu' | 'bulan'
+  const [nabungPeriod, setNabungPeriod] = useState('minggu');
   const [nabungNominal, setNabungNominal] = useState(0);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setIsSubmitting(true);
+
+    try {
+      await financeApi.createSavingGoal({
+        goal_name: namaTabungan,
+        target_amount: targetTabungan,
+        saving_frequency: nabungPeriod === 'minggu' ? 'weekly' : 'monthly',
+        saving_amount: nabungNominal > 0 ? nabungNominal : undefined,
+      });
+      setSuccess('Tabungan berhasil dibuat!');
+      setTimeout(() => navigate('/tabungan'), 1500);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Gagal membuat tabungan.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Data Navigasi Sidebar (Label format lowercase untuk href)
   const navLinks = [
@@ -67,7 +101,7 @@ const BuatTabunganPage = () => {
           <button className="w-full bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-colors">
             New Transaction
           </button>
-          <button className="flex items-center text-gray-500 hover:text-gray-900 px-4 py-2 w-full transition-colors">
+          <button onClick={handleLogout} className="flex items-center text-gray-500 hover:text-gray-900 px-4 py-2 w-full transition-colors">
             <LogoutIcon /><span className="ml-3 font-medium">Logout</span>
           </button>
         </div>
@@ -82,7 +116,7 @@ const BuatTabunganPage = () => {
             <button onClick={toggleSidebar} className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-lg">
               <MenuIcon />
             </button>
-            <h2 className="text-lg font-bold text-gray-800 hidden md:block">Halo, Username 👋</h2>
+            <h2 className="text-lg font-bold text-gray-800 hidden md:block">Halo, {user?.name || 'User'} 👋</h2>
           </div>
           <div className="flex items-center gap-4">
             <h1 className="text-lg font-bold md:hidden">FAST</h1>
@@ -109,7 +143,19 @@ const BuatTabunganPage = () => {
               
               <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Buat Tabungan</h3>
 
-              <form className="w-full max-w-xl" onSubmit={(e) => e.preventDefault()}>
+              <form className="w-full max-w-xl" onSubmit={handleSubmit}>
+
+                {/* Alerts */}
+                {error && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
+                    {error}
+                  </div>
+                )}
+                {success && (
+                  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm font-medium">
+                    {success}
+                  </div>
+                )}
                 
                 {/* Nama Tabungan */}
                 <div className="mb-6">
@@ -217,9 +263,10 @@ const BuatTabunganPage = () => {
                   </Link>
                   <button
                     type="submit"
-                    className="px-8 py-2.5 rounded-xl bg-[#963F71] hover:bg-[#7a325b] text-white font-bold border-2 border-gray-900 shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] transition-transform active:translate-y-0.5 active:shadow-none"
+                    disabled={isSubmitting}
+                    className="px-8 py-2.5 rounded-xl bg-[#963F71] hover:bg-[#7a325b] text-white font-bold border-2 border-gray-900 shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] transition-transform active:translate-y-0.5 active:shadow-none disabled:opacity-60"
                   >
-                    Save
+                    {isSubmitting ? 'Menyimpan...' : 'Save'}
                   </button>
                 </div>
 

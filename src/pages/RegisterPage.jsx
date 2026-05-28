@@ -1,7 +1,9 @@
 // src/components/pages/RegisterPage.jsx
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/lib/auth';
 
-const InputField = ({ label, type, placeholder, id, icon, onIconClick }) => (
+const InputField = ({ label, type, placeholder, id, icon, onIconClick, value, onChange, disabled }) => (
   <div className="mb-4">
     <label htmlFor={id} className="block text-sm font-bold text-gray-900 mb-2">
       {label}
@@ -10,8 +12,11 @@ const InputField = ({ label, type, placeholder, id, icon, onIconClick }) => (
       <input
         type={type}
         id={id}
+        value={value}
+        onChange={onChange}
         className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FBA919] focus:border-transparent text-sm placeholder-gray-400 shadow-sm transition-all"
         placeholder={placeholder}
+        disabled={disabled}
       />
       {icon && (
         <button
@@ -27,9 +32,58 @@ const InputField = ({ label, type, placeholder, id, icon, onIconClick }) => (
 );
 
 export default function RegisterPage() {
-  // State untuk toggle visibilitas password (KISS: state sederhana, tidak perlu reducer kompleks)
+  const navigate = useNavigate();
+  const { register } = useAuth();
+
+  // State untuk toggle visibilitas password
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Form state
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+
+  // UI state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    if (password !== confirmPassword) {
+      setError('Kata sandi dan konfirmasi kata sandi tidak cocok.');
+      return;
+    }
+    if (password.length < 8) {
+      setError('Kata sandi minimal 8 karakter.');
+      return;
+    }
+    if (!agreedToTerms) {
+      setError('Anda harus menyetujui Syarat dan Ketentuan.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await register(name, email, password);
+      setSuccess('Registrasi berhasil! Silakan cek email Anda untuk verifikasi.');
+      setTimeout(() => navigate('/login'), 2000);
+    } catch (err) {
+      const message = err.response?.data?.message
+        || err.response?.data?.errors?.email?.[0]
+        || 'Registrasi gagal. Silakan coba lagi.';
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Icon SVG sederhana untuk UI
   const EyeIcon = (
@@ -58,20 +112,39 @@ export default function RegisterPage() {
           <p className="text-gray-500 text-sm">Lengkapi data di bawah untuk memulai perjalananmu.</p>
         </div>
 
+        {/* Error Alert */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
+            {error}
+          </div>
+        )}
+        {/* Success Alert */}
+        {success && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm font-medium">
+            {success}
+          </div>
+        )}
+
         {/* Form Inputs */}
-        <form className="space-y-1" onSubmit={(e) => e.preventDefault()}>
+        <form className="space-y-1" onSubmit={handleSubmit}>
           <InputField 
             label="Nama Lengkap" 
             id="name" 
             type="text" 
-            placeholder="Masukan Nama" 
+            placeholder="Masukan Nama"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            disabled={isLoading}
           />
           
           <InputField 
             label="Email" 
             id="email" 
             type="email" 
-            placeholder="email@gmail.com" 
+            placeholder="email@gmail.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
           />
           
           <InputField 
@@ -81,6 +154,9 @@ export default function RegisterPage() {
             placeholder="Minimal 8 karakter" 
             icon={EyeIcon}
             onIconClick={() => setShowPassword(!showPassword)}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={isLoading}
           />
           
           <InputField 
@@ -90,6 +166,9 @@ export default function RegisterPage() {
             placeholder="Ulangi kata sandi" 
             icon={UserIcon}
             onIconClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            disabled={isLoading}
           />
 
           {/* Checkbox Syarat & Ketentuan */}
@@ -98,7 +177,10 @@ export default function RegisterPage() {
               <input
                 id="terms"
                 type="checkbox"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
                 className="w-5 h-5 bg-white border-gray-300 rounded focus:ring-[#FBA919] text-[#FBA919]"
+                disabled={isLoading}
               />
             </div>
             <label htmlFor="terms" className="ml-3 text-sm text-gray-700 leading-snug">
@@ -109,9 +191,20 @@ export default function RegisterPage() {
           {/* Tombol Submit */}
           <button
             type="submit"
-            className="w-full bg-[#FBA919] hover:bg-[#e59815] text-black font-bold py-3.5 px-4 rounded-lg shadow-sm transition-colors duration-200"
+            disabled={isLoading}
+            className="w-full bg-[#FBA919] hover:bg-[#e59815] text-black font-bold py-3.5 px-4 rounded-lg shadow-sm transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Daftar Sekarang
+            {isLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Memproses...
+              </span>
+            ) : (
+              'Daftar Sekarang'
+            )}
           </button>
         </form>
 
@@ -137,7 +230,7 @@ export default function RegisterPage() {
 
         {/* Footer Links */}
         <p className="text-center text-sm text-gray-700 mb-12">
-          Sudah punya akun? <a href="/login" className="text-[#32829E] font-semibold hover:underline">Login di sini</a>
+          Sudah punya akun? <Link to="/login" className="text-[#32829E] font-semibold hover:underline">Login di sini</Link>
         </p>
 
         {/* Copyright */}

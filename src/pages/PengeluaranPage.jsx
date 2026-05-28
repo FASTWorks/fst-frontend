@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/lib/auth';
+import { financeApi } from '@/api/finance';
 
 // --- Mock Icons ---
 const CloseIcon = () => (
@@ -16,6 +18,8 @@ const TrashIcon = () => (
 );
 
 const PengeluaranPage = () => {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Data State
@@ -28,6 +32,11 @@ const PengeluaranPage = () => {
   ]);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   // Fungsi Logika Form
   const handleItemChange = (id, field, value) => {
@@ -47,6 +56,41 @@ const PengeluaranPage = () => {
 
   const calculateTotal = () => {
     return items.reduce((total, item) => total + (item.qty * item.price), 0);
+  };
+
+  // Form submission
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState('');
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitError('');
+    setSubmitSuccess('');
+    setIsSubmitting(true);
+
+    try {
+      // Create a transaction for each item
+      const transactionPromises = items.map((item) =>
+        financeApi.createTransaction({
+          type: 'expense',
+          amount: item.qty * item.price,
+          name: item.name || 'Item',
+          source: 'manual',
+          parent_category: 'kebutuhan_primer',
+          transaction_date: new Date(date).toISOString(),
+          note: `Dari ${storeName}`,
+        })
+      );
+
+      await Promise.all(transactionPromises);
+      setSubmitSuccess('Pengeluaran berhasil disimpan!');
+      setTimeout(() => navigate('/dashboard'), 1500);
+    } catch (err) {
+      setSubmitError(err.response?.data?.message || 'Gagal menyimpan pengeluaran.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Navigasi Sidebar (href sudah disesuaikan dengan label)
@@ -103,7 +147,7 @@ const PengeluaranPage = () => {
               New Transaction
             </button>
           </Link>
-          <button className="flex items-center text-gray-500 hover:text-gray-900 px-4 py-2 w-full transition-colors">
+          <button onClick={handleLogout} className="flex items-center text-gray-500 hover:text-gray-900 px-4 py-2 w-full transition-colors">
             <LogoutIcon />
             <span className="ml-3 font-medium">Logout</span>
           </button>
@@ -121,7 +165,7 @@ const PengeluaranPage = () => {
             </button>
 
             <h2 className="text-lg md:text-xl font-bold text-gray-900">
-              Halo, Username <span className="text-xl md:text-2xl">👋</span>
+              Halo, {user?.name || 'User'} <span className="text-xl md:text-2xl">👋</span>
             </h2>
           </div>
           <div className="flex items-center gap-4">
@@ -158,7 +202,19 @@ const PengeluaranPage = () => {
               {/* Form Container (Centered like a receipt/ticket) */}
               <div className="p-6 md:p-10 flex flex-col items-center flex-1 bg-white">
                 
-                <form className="w-full max-w-xl bg-[#FCFBFA] border border-gray-200 rounded-2xl overflow-hidden shadow-sm flex flex-col" onSubmit={(e) => e.preventDefault()}>
+                <form className="w-full max-w-xl bg-[#FCFBFA] border border-gray-200 rounded-2xl overflow-hidden shadow-sm flex flex-col" onSubmit={handleFormSubmit}>
+
+                  {/* Alerts */}
+                  {submitError && (
+                    <div className="mx-6 mt-6 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
+                      {submitError}
+                    </div>
+                  )}
+                  {submitSuccess && (
+                    <div className="mx-6 mt-6 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm font-medium">
+                      {submitSuccess}
+                    </div>
+                  )}
                   
                   {/* Top Form Section */}
                   <div className="p-6 md:p-8">
@@ -267,9 +323,10 @@ const PengeluaranPage = () => {
                         </button>
                         <button 
                           type="submit"
-                          className="flex-1 py-3 rounded-lg bg-[#F59E0B] hover:bg-[#d98205] text-white font-bold shadow-sm transition-colors"
+                          disabled={isSubmitting}
+                          className="flex-1 py-3 rounded-lg bg-[#F59E0B] hover:bg-[#d98205] text-white font-bold shadow-sm transition-colors disabled:opacity-60"
                         >
-                          SAVE RECEIPT
+                          {isSubmitting ? 'Menyimpan...' : 'SAVE RECEIPT'}
                         </button>
                       </div>
                     </div>

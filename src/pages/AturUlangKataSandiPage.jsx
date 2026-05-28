@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { authApi } from '@/api/auth';
 
 // --- Icons ---
 const ArrowLeftIcon = () => (
@@ -27,16 +29,55 @@ const CheckIcon = ({ active }) => (
 );
 
 const AturUlangKataSandiPage = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const tokenFromUrl = searchParams.get('token') || '';
+  const emailFromUrl = searchParams.get('email') || '';
+
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   // Logika Validasi Sederhana
   const hasMinChar = password.length >= 8;
   const hasNumber = /\d/.test(password);
   const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    if (password !== confirmPassword) {
+      setError('Kata sandi dan konfirmasi tidak cocok.');
+      return;
+    }
+    if (!hasMinChar || !hasNumber || !hasSymbol) {
+      setError('Kata sandi belum memenuhi persyaratan keamanan.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { data } = await authApi.resetPassword({
+        token: tokenFromUrl,
+        email: emailFromUrl,
+        password,
+      });
+      setSuccess(data.message || 'Kata sandi berhasil diubah!');
+      setTimeout(() => navigate('/login'), 2000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Gagal mengatur ulang kata sandi. Token mungkin sudah kadaluarsa.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col relative bg-[#FAFAF8] font-sans">
@@ -44,7 +85,7 @@ const AturUlangKataSandiPage = () => {
       {/* Back Button */}
       <div className="absolute top-6 left-6 md:top-8 md:left-8">
         <button 
-          onClick={() => window.history.back()} 
+          onClick={() => navigate(-1)} 
           className="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none"
         >
           <ArrowLeftIcon />
@@ -69,7 +110,20 @@ const AturUlangKataSandiPage = () => {
           </p>
 
           {/* Form */}
-          <form className="w-full space-y-6" onSubmit={(e) => e.preventDefault()}>
+          <form className="w-full space-y-6" onSubmit={handleSubmit}>
+
+            {/* Error Alert */}
+            {error && (
+              <div className="w-full mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
+                {error}
+              </div>
+            )}
+            {/* Success Alert */}
+            {success && (
+              <div className="w-full mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm font-medium">
+                {success}
+              </div>
+            )}
             
             {/* Input Kata Sandi Baru */}
             <div>
@@ -83,6 +137,7 @@ const AturUlangKataSandiPage = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700 bg-white transition-all"
+                  disabled={isLoading}
                 />
                 <button 
                   type="button"
@@ -106,6 +161,7 @@ const AturUlangKataSandiPage = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full px-4 py-3.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700 bg-white transition-all"
+                  disabled={isLoading}
                 />
                 <button 
                   type="button"
@@ -139,9 +195,10 @@ const AturUlangKataSandiPage = () => {
             {/* Submit Button */}
             <button 
               type="submit"
-              className="w-full bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-4 rounded-xl shadow-[0_4px_14px_0_rgba(255,173,45,0.39)] transition-all active:scale-[0.98]"
+              disabled={isLoading}
+              className="w-full bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-4 rounded-xl shadow-[0_4px_14px_0_rgba(255,173,45,0.39)] transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Simpan Kata Sandi
+              {isLoading ? 'Menyimpan...' : 'Simpan Kata Sandi'}
             </button>
             
           </form>

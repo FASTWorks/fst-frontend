@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/lib/auth';
+import { financeApi } from '@/api/finance';
 
 // --- Mock Icons ---
 const CloseIcon = () => (
@@ -19,10 +21,17 @@ const TrashIcon = () => (
 );
 
 const UploadPage = () => {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
-  // State untuk mengontrol tampilan (sebelum vs sesudah upload)
-  const [isUploaded, setIsUploaded] = useState(true);
+  const [isUploaded, setIsUploaded] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [saveError, setSaveError] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState('');
+  const [receiptId, setReceiptId] = useState(null);
 
   // State untuk data ekstraksi
   const [storeName, setStoreName] = useState('Baji Cafe Store');
@@ -56,6 +65,71 @@ const UploadPage = () => {
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  // OCR Upload handler
+  const handleFileUpload = async (file) => {
+    if (!file) return;
+    setIsUploading(true);
+    setUploadError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await financeApi.createReceiptOCR(formData);
+      const receipt = data.data;
+
+      setReceiptId(receipt.id);
+      setStoreName(receipt.store_name || 'Unknown Store');
+      setDate(receipt.receipt_date ? receipt.receipt_date.split('T')[0] : new Date().toISOString().split('T')[0]);
+      setItems(
+        (receipt.items || []).map((item, idx) => ({
+          id: idx + 1,
+          name: item.item_name || '',
+          qty: item.qty || 1,
+          price: item.unit_price || 0,
+        }))
+      );
+      setIsUploaded(true);
+    } catch (err) {
+      setUploadError(err.response?.data?.message || 'Gagal mengupload struk. Coba lagi.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Save receipt handler
+  const handleSaveReceipt = async () => {
+    setSaveError('');
+    setSaveSuccess('');
+    setIsSaving(true);
+
+    try {
+      if (receiptId) {
+        await financeApi.confirmReceipt(receiptId, {
+          store_name: storeName,
+          receipt_date: new Date(date).toISOString(),
+          total: calculateTotal(),
+          items: items.map((item) => ({
+            item_name: item.name,
+            qty: item.qty,
+            unit_price: item.price,
+            total_price: item.qty * item.price,
+          })),
+        });
+      }
+      setSaveSuccess('Struk berhasil disimpan!');
+      setTimeout(() => navigate('/dashboard'), 1500);
+    } catch (err) {
+      setSaveError(err.response?.data?.message || 'Gagal menyimpan struk.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleItemChange = (id, field, value) => {
     setItems(items.map(item => 
       item.id === id ? { ...item, [field]: value } : item
@@ -107,7 +181,7 @@ const UploadPage = () => {
               New Transaction
             </button>
           </Link>
-          <button className="flex items-center text-gray-500 hover:text-gray-900 px-4 py-2 w-full transition-colors">
+          <button onClick={handleLogout} className="flex items-center text-gray-500 hover:text-gray-900 px-4 py-2 w-full transition-colors">
             <LogoutIcon /><span className="ml-3 font-medium">Logout</span>
           </button>
         </div>
@@ -119,7 +193,7 @@ const UploadPage = () => {
             <button onClick={toggleSidebar} className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-lg"><MenuIcon /></button>
 
             <h2 className="text-lg md:text-xl font-bold text-gray-900">
-              Halo, Username <span className="text-xl md:text-2xl">👋</span>
+              Halo, {user?.name || 'User'} <span className="text-xl md:text-2xl">👋</span>
             </h2>
           </div>
           <div className="flex items-center gap-4">
@@ -151,14 +225,23 @@ const UploadPage = () => {
                   <div className="w-16 h-16 bg-[#FFF8ED] rounded-full flex items-center justify-center mb-4">
                     <CloudUploadIcon />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Drag and drop files here</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{isUploading ? 'Mengupload...' : 'Drag and drop files here'}</h3>
                   <p className="text-gray-500 mb-8 font-medium">Support for PDF, JPG, PNG (Max 10MB)</p>
-                  <button 
-                    onClick={() => setIsUploaded(true)}
-                    className="px-8 py-2.5 rounded-lg bg-[#963F71] hover:bg-[#7a325b] text-white font-bold border-2 border-gray-900 shadow-sm transition-colors"
-                  >
-                    Pilih File
-                  </button>
+                  {uploadError && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
+                      {uploadError}
+                    </div>
+                  )}
+                  <label className="px-8 py-2.5 rounded-lg bg-[#963F71] hover:bg-[#7a325b] text-white font-bold border-2 border-gray-900 shadow-sm transition-colors cursor-pointer">
+                    {isUploading ? 'Mengupload...' : 'Pilih File'}
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      className="hidden"
+                      disabled={isUploading}
+                      onChange={(e) => handleFileUpload(e.target.files?.[0])}
+                    />
+                  </label>
                 </div>
               </div>
             ) : (
@@ -302,9 +385,11 @@ const UploadPage = () => {
                             DISCARD
                           </button>
                           <button 
-                            className="flex-1 py-3 rounded-xl bg-[#F59E0B] hover:bg-[#d98205] text-white font-bold shadow-sm transition-colors"
+                            onClick={handleSaveReceipt}
+                            disabled={isSaving}
+                            className="flex-1 py-3 rounded-xl bg-[#F59E0B] hover:bg-[#d98205] text-white font-bold shadow-sm transition-colors disabled:opacity-60"
                           >
-                            SAVE RECEIPT
+                            {isSaving ? 'Menyimpan...' : 'SAVE RECEIPT'}
                           </button>
                         </div>
                       </div>

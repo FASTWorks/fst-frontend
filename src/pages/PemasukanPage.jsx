@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/lib/auth';
+import { financeApi } from '@/api/finance';
 
 // --- 1. Minimal SVG Icons Components ---
 const DashboardIcon = () => <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>;
@@ -25,13 +27,53 @@ const navLinks = [
 
 // --- 3. Main Component ---
 const PemasukanPage = () => {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  // State untuk toggle 'Yes/No'
   const [isTabunganActive, setIsTabunganActive] = useState(false); 
-  // Tambahkan baris ini untuk menyimpan state "Per Minggu" atau "Per Bulan"
   const [nabungPeriod, setNabungPeriod] = useState('minggu');
 
+  // Form submission state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState('');
+
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitError('');
+    setSubmitSuccess('');
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData(e.target);
+      const parseNumber = (val) => parseInt((val || '0').toString().replace(/[^0-9]/g, '')) || 0;
+
+      const incomeData = {
+        amount: parseNumber(formData.get('nominal_pemasukan')),
+        alloc_kebutuhan_primer: parseNumber(formData.get('kebutuhan_primer')),
+        alloc_kebutuhan_sekunder: parseNumber(formData.get('kebutuhan_sekunder')),
+        alloc_dana_darurat: parseNumber(formData.get('dana_darurat')),
+        alloc_tabungan: isTabunganActive ? parseNumber(formData.get('nabung_otomatis')) : 0,
+        is_saving_active: isTabunganActive,
+        income_date: new Date().toISOString(),
+      };
+
+      await financeApi.createIncome(incomeData);
+      setSubmitSuccess('Pemasukan berhasil disimpan!');
+      setTimeout(() => navigate('/dashboard'), 1500);
+    } catch (err) {
+      setSubmitError(err.response?.data?.message || 'Gagal menyimpan pemasukan.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex h-screen bg-[#FFFDF9] font-sans overflow-hidden relative">
@@ -91,7 +133,7 @@ const PemasukanPage = () => {
               New Transaction
             </button>
           </Link>
-          <button className="flex items-center text-gray-500 hover:text-gray-900 px-4 py-2 w-full transition-colors">
+          <button onClick={handleLogout} className="flex items-center text-gray-500 hover:text-gray-900 px-4 py-2 w-full transition-colors">
             <LogoutIcon />
             <span className="ml-3 font-medium">Logout</span>
           </button>
@@ -111,7 +153,7 @@ const PemasukanPage = () => {
               <MenuIcon />
             </button>
             <h2 className="text-lg md:text-xl font-bold text-gray-900">
-              Halo, Username <span className="text-xl md:text-2xl">👋</span>
+              Halo, {user?.name || 'User'} <span className="text-xl md:text-2xl">👋</span>
             </h2>
           </div>
           <div className="w-10 h-10 rounded-full border-2 border-[#FFAD2D] overflow-hidden shrink-0">
@@ -148,7 +190,19 @@ const PemasukanPage = () => {
                 Input Pemasukan
               </h2>
 
-              <form onsubmit={(e) => e.preventdefault()} classname="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+
+                {/* Alerts */}
+                {submitError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
+                    {submitError}
+                  </div>
+                )}
+                {submitSuccess && (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm font-medium">
+                    {submitSuccess}
+                  </div>
+                )}
                 
                 {/* Nominal Pemasukan */}
                 <div>
@@ -323,9 +377,10 @@ const PemasukanPage = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 rounded-lg bg-[#8C3A7A] hover:bg-[#702e5c] text-white font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8C3A7A] focus:ring-offset-2 transition-colors"
+                    disabled={isSubmitting}
+                    className="px-6 py-2.5 rounded-lg bg-[#8C3A7A] hover:bg-[#702e5c] text-white font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8C3A7A] focus:ring-offset-2 transition-colors disabled:opacity-60"
                   >
-                    Save
+                    {isSubmitting ? 'Menyimpan...' : 'Save'}
                   </button>
                 </div>
 

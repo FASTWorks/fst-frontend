@@ -1,5 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom'; // Asumsi Anda menggunakan react-router-dom
+import React, { useState, useMemo, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/lib/auth';
+import { aggregatorApi } from '@/api/aggregator';
+import { analyticsApi } from '@/api/analytics';
 
 // --- Mock Icons (Sesuaikan dengan import Anda) ---
 const DownloadIcon = () => <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>;
@@ -15,12 +18,48 @@ const ArrowDownRightIcon = () => <svg className="w-6 h-6" fill="none" stroke="cu
 const SparklesIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>;
 
 const DashboardPage = () => {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
-  // State untuk periode chart ('7days' atau '30days')
   const [chartPeriod, setChartPeriod] = useState('7days');
 
+  // State untuk data dari API
+  const [dashboardData, setDashboardData] = useState(null);
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [aiInsight, setAiInsight] = useState(null);
+
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  // Fetch dashboard data dari aggregator
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const { data } = await aggregatorApi.getDashboardData();
+        setDashboardData(data.data);
+      } catch (err) {
+        console.warn('Dashboard data fetch failed, using fallback:', err.message);
+      } finally {
+        setIsDataLoading(false);
+      }
+    };
+
+    const fetchAiInsight = async () => {
+      try {
+        const { data } = await analyticsApi.getInsight();
+        setAiInsight(data.data?.insight);
+      } catch {
+        // AI insight is optional, fail silently
+      }
+    };
+
+    fetchDashboardData();
+    fetchAiInsight();
+  }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   // --- Nav Links Mock ---
   const navLinks = [
@@ -212,7 +251,7 @@ const DashboardPage = () => {
               New Transaction
             </button>
           </Link>
-          <button className="flex items-center text-gray-500 hover:text-gray-900 px-4 py-2 w-full transition-colors">
+          <button onClick={handleLogout} className="flex items-center text-gray-500 hover:text-gray-900 px-4 py-2 w-full transition-colors">
             <LogoutIcon />
             <span className="ml-3 font-medium">Logout</span>
           </button>
@@ -232,7 +271,7 @@ const DashboardPage = () => {
               <MenuIcon />
             </button>
             <h2 className="text-lg md:text-xl font-bold text-gray-900">
-              Halo, Username <span className="text-xl md:text-2xl">👋</span>
+              Halo, {user?.name || 'User'} <span className="text-xl md:text-2xl">👋</span>
             </h2>
           </div>
           <div className="w-10 h-10 rounded-full border-2 border-[#FFAD2D] overflow-hidden shrink-0">
@@ -528,7 +567,7 @@ const DashboardPage = () => {
                 <h3 className="ml-2 font-bold text-sm">Insight Jago AI</h3>
               </div>
               <p className="text-sm text-gray-800 leading-relaxed italic">
-                "Infokan Pengeluaran kopi Anda meningkat <span className="text-[#FFAD2D] font-bold">20%</span> minggu ini. Pertimbangkan untuk membatasi budget 'Gaya Hidup' agar target <span className="font-semibold">Umroh</span> tetap tercapai."
+                {aiInsight || '"Insight AI sedang dimuat... Data keuangan Anda akan dianalisis oleh Jago AI untuk memberikan rekomendasi personal."'}
               </p>
             </div>
           </section>

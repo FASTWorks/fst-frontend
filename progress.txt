@@ -34,3 +34,34 @@
 
 ### Homepage
 - Created `src/pages/HomePage.jsx` - Halaman utama dengan hero section dan navigasi
+
+## 2026-05-29
+
+### API Integration — Phase 1: Foundation
+- Created `src/lib/axios.js` - Axios instance dengan JWT interceptors, auto-refresh token, queue mechanism
+- Created `src/lib/auth.jsx` - AuthContext + AuthProvider + useAuth hook untuk global auth state
+- Created `src/components/ProtectedRoute.jsx` - Route guard component dengan branded spinner
+
+### API Integration — Phase 2: API Modules
+- Created `src/api/auth.js` - Auth API service (11 endpoint: login, register, profile, password, dll)
+- Created `src/api/finance.js` - Finance API service (14 endpoint: income, transaction, receipt, saving, budget)
+- Created `src/api/analytics.js` - Analytics API service (4 endpoint: summary, health, recent, insight)
+- Created `src/api/aggregator.js` - Aggregator API service (1 endpoint: dashboard data)
+
+### API Integration — Phase 3: Routing & Auth Pages
+- Modified `src/App.jsx` - Wrap AuthProvider + ProtectedRoute guard untuk semua halaman terproteksi
+- Modified `src/pages/LoginPage.jsx` - Integrasi form login ke API, loading/error states, redirect
+- Modified `src/pages/RegisterPage.jsx` - Integrasi form register ke API, validasi client-side
+- Modified `src/pages/LupaKataSandiPage.jsx` - Integrasi forgot-password API
+- Modified `src/pages/AturUlangKataSandiPage.jsx` - Integrasi reset-password API dengan URL params
+- Modified `src/pages/KonfirmasiPage.jsx` - Integrasi verify email + resend verification API
+
+### API Integration — Phase 4: Dashboard & Profile
+- Modified `src/pages/DashboardPage.jsx` - Fetch aggregator + AI insight, dynamic user name, logout
+- Modified `src/pages/ProfilePage.jsx` - Change password, delete account, edit name, logout
+
+### API Integration — Phase 5: Finance Pages
+- Modified `src/pages/PemasukanPage.jsx` - Create income via financeApi, form submission
+- Modified `src/pages/PengeluaranPage.jsx` - Create transaction via financeApi, batch submit
+- Modified `src/pages/UploadPage.jsx` - OCR upload via FormData + confirm receipt API
+- Modified `src/pages/BuatTabunganPage.jsx` - Create saving goal via financeApi

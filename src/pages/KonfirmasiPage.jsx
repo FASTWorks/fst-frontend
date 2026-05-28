@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
+import { authApi } from '@/api/auth';
 
 // --- Icons ---
 const ArrowLeftIcon = () => (
@@ -14,9 +16,42 @@ const EnvelopeIcon = () => (
 );
 
 const KonfirmasiEmailPage = () => {
-  // Dalam implementasi nyata, email ini bisa didapatkan dari state management (Redux/Zustand) 
-  // atau dari URL parameter/location state yang dikirim dari halaman Lupa Kata Sandi.
-  const userEmail = "youremail@gmail.com";
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const userEmail = location.state?.email || 'youremail@gmail.com';
+  const tokenFromUrl = searchParams.get('token');
+
+  const [isResending, setIsResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
+  const [verifyMessage, setVerifyMessage] = useState('');
+
+  // Auto-verify jika ada token di URL
+  useEffect(() => {
+    if (tokenFromUrl) {
+      const verify = async () => {
+        try {
+          const { data } = await authApi.verifyEmail(tokenFromUrl);
+          setVerifyMessage(data.message || 'Email berhasil diverifikasi!');
+        } catch (err) {
+          setVerifyMessage(err.response?.data?.message || 'Token verifikasi tidak valid.');
+        }
+      };
+      verify();
+    }
+  }, [tokenFromUrl]);
+
+  const handleResend = async () => {
+    setIsResending(true);
+    setResendMessage('');
+    try {
+      const { data } = await authApi.resendVerification(userEmail);
+      setResendMessage(data.message || 'Email verifikasi berhasil dikirim ulang!');
+    } catch (err) {
+      setResendMessage(err.response?.data?.message || 'Gagal mengirim ulang.');
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col relative bg-[#FAFAF8] font-sans">
@@ -60,15 +95,29 @@ const KonfirmasiEmailPage = () => {
             Buka Aplikasi Email
           </button>
 
+          {/* Status Messages */}
+          {verifyMessage && (
+            <div className="w-full max-w-sm mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm font-medium text-center">
+              {verifyMessage}
+            </div>
+          )}
+          {resendMessage && (
+            <div className="w-full max-w-sm mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm font-medium text-center">
+              {resendMessage}
+            </div>
+          )}
+
           {/* Resend Code Link */}
           <div className="text-center">
             <p className="text-sm font-medium text-gray-500">
               Belum menerima kode?{' '}
               <button 
-                type="button" 
-                className="font-bold text-[#FFAD2D] hover:text-[#F29F25] transition-colors focus:outline-none"
+                type="button"
+                onClick={handleResend}
+                disabled={isResending}
+                className="font-bold text-[#FFAD2D] hover:text-[#F29F25] transition-colors focus:outline-none disabled:opacity-60"
               >
-                Kirim ulang
+                {isResending ? 'Mengirim...' : 'Kirim ulang'}
               </button>
             </p>
           </div>
