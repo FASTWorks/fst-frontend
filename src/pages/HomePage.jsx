@@ -7,42 +7,43 @@ const teamMembers = [
     name: 'Bagus Aji Fernando (Baji)',
     role: 'Full-Stack Web Developer',
     desc: 'Membangun arsitektur web yang responsif, aman, dan user-friendly dan Gacor.',
-    img: '/public/assets/our-team/fs-baji.svg',
+    img: '/assets/our-team/fs-baji.svg',
     socials: {linkedin: "", github: "", instagram: ""}
   },
   {
     name: 'Abdurrahman Abdul Hamid',
     role: 'Full-Stack Web Developer',
     desc: 'Membangun arsitektur web yang responsif, aman, dan user-friendly.',
-    img: '/public/assets/our-team/dummy.svg',
+    img: '/assets/our-team/dummy.svg',
     socials: {linkedin: "", github: "", instagram: ""}
   },
   {
     name: 'Ahmad Raja Fadhil',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: '/public/assets/our-team/ai-ahmad-raja-fadhil.svg',
+    img: '/assets/our-team/ai-ahmad-raja-fadhil.svg',
     socials: {linkedin: "", github: "", instagram: ""}
   },
+
   {
     name: 'Putri Maharani Fetra',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: '/public/assets/our-team/ai-putri-maharani-fetra.svg',
+    img: '/assets/our-team/ai-putri-maharani-fetra.svg',
     socials: {linkedin: "", github: "", instagram: ""}
   },
   {
     name: 'Devia',
     role: 'Data Scientist',
     desc: 'Mengolah data histori keuangan pengguna untuk menghasilkan prediksi pengeluaran dan grafik analitik yang akurat.',
-    img: '/public/assets/our-team/ds-devia.svg',
+    img: '/assets/our-team/ds-devia.svg',
     socials: {linkedin: "", github: "", instagram: ""}
   },
   {
     name: 'Nalitha',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: '/public/assets/our-team/ds-nalitha.svg',
+    img: '/assets/our-team/ds-nalitha.svg',
     socials: {linkedin: "https://linkedin.com/in/bagus-aji-fernando-466347286/", github: "https://github.com/bajiff", instagram: "https://instagram.com/_bajif"}
   }
 ];
