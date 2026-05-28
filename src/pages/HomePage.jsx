@@ -21,28 +21,28 @@ const teamMembers = [
     name: 'Ahmad Raja Fadhil',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: 'src/assets/our-team/ai-ahmad-raja-fadhil.svg',
+    img: '/public/assets/our-team/ai-ahmad-raja-fadhil.svg',
     socials: {linkedin: "", github: "", instagram: ""}
   },
   {
     name: 'Putri Maharani Fetra',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: 'src/assets/our-team/ai-putri-maharani-fetra.svg',
+    img: '/public/assets/our-team/ai-putri-maharani-fetra.svg',
     socials: {linkedin: "", github: "", instagram: ""}
   },
   {
     name: 'Devia',
     role: 'Data Scientist',
     desc: 'Mengolah data histori keuangan pengguna untuk menghasilkan prediksi pengeluaran dan grafik analitik yang akurat.',
-    img: 'src/assets/our-team/ds-devia.svg',
+    img: '/public/assets/our-team/ds-devia.svg',
     socials: {linkedin: "", github: "", instagram: ""}
   },
   {
     name: 'Nalitha',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
-    img: 'src/assets/our-team/ds-nalitha.svg',
+    img: '/public/assets/our-team/ds-nalitha.svg',
     socials: {linkedin: "https://linkedin.com/in/bagus-aji-fernando-466347286/", github: "https://github.com/bajiff", instagram: "https://instagram.com/_bajif"}
   }
 ];
