@@ -65,6 +65,15 @@ const PemasukanPage = () => {
         income_date: new Date().toISOString(),
       };
 
+      if (isTabunganActive) {
+        incomeData.new_saving_goal = {
+          goal_name: formData.get('nama_tabungan') || 'Tabungan Baru',
+          target_amount: parseNumber(formData.get('target_tabungan')),
+          saving_frequency: nabungPeriod === 'minggu' ? 'weekly' : 'monthly',
+          saving_amount: parseNumber(formData.get('nabung_otomatis')),
+        };
+      }
+
       await financeApi.createIncome(incomeData);
       setSubmitSuccess('Pemasukan berhasil disimpan!');
       setTimeout(() => navigate('/dashboard'), 1500);
@@ -212,6 +221,7 @@ const PemasukanPage = () => {
                   <input
                     type="text"
                     id="nominal_pemasukan"
+                    name="nominal_pemasukan"
                     placeholder="Rp5.000.000"
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
                   />
@@ -259,6 +269,7 @@ const PemasukanPage = () => {
                     <input
                       type="text"
                       id="kebutuhan_primer"
+                      name="kebutuhan_primer"
                       placeholder="Rp3.000.000"
                       className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
                       required
@@ -273,6 +284,7 @@ const PemasukanPage = () => {
                     <input
                       type="text"
                       id="kebutuhan_sekunder"
+                      name="kebutuhan_sekunder"
                       placeholder="Rp1.000.000"
                       className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
                       required
@@ -287,6 +299,7 @@ const PemasukanPage = () => {
                     <input
                       type="text"
                       id="dana_darurat"
+                      name="dana_darurat"
                       placeholder="Rp1.000.000"
                       className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
                       required
@@ -304,6 +317,7 @@ const PemasukanPage = () => {
                         <input
                           type="text"
                           id="nama_tabungan"
+                          name="nama_tabungan"
                           placeholder="McLaren 750S"
                           className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
                           required
@@ -318,6 +332,7 @@ const PemasukanPage = () => {
                         <input
                           type="text"
                           id="target_tabungan"
+                          name="target_tabungan"
                           placeholder="Rp13.000.000.000"
                           className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
                           required
@@ -357,6 +372,7 @@ const PemasukanPage = () => {
                           </div>
                           <input
                             type="text"
+                            name="nabung_otomatis"
                             placeholder="Rp10.000.000"
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
                             required
