@@ -6,6 +6,7 @@ import { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPa
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import PublicRoute from "@/components/PublicRoute";
 
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
@@ -17,12 +18,12 @@ const App = () => {
       <AuthProvider>
         <Routes>
           {/* ─── Public Routes ─── */}
-          <Route path="/" element={<HomePage/>}/>
-          <Route path="/login" element={<LoginPage/>}/>
-          <Route path="/register" element={<RegisterPage/>}/>
-          <Route path="/lupa-kata-sandi" element={<LupaKataSandiPage/>}/>
-          <Route path="/konfirmasi" element={<KonfirmasiPage/>}/>
-          <Route path="/atur-ulang-kata-sandi" element={<AturUlangKataSandiPage/>}/>
+          <Route path="/" element={<PublicRoute><HomePage/></PublicRoute>}/>
+          <Route path="/login" element={<PublicRoute><LoginPage/></PublicRoute>}/>
+          <Route path="/register" element={<PublicRoute><RegisterPage/></PublicRoute>}/>
+          <Route path="/lupa-kata-sandi" element={<PublicRoute><LupaKataSandiPage/></PublicRoute>}/>
+          <Route path="/konfirmasi" element={<PublicRoute><KonfirmasiPage/></PublicRoute>}/>
+          <Route path="/atur-ulang-kata-sandi" element={<PublicRoute><AturUlangKataSandiPage/></PublicRoute>}/>
 
           {/* ─── Protected Routes ─── */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage/></ProtectedRoute>}/>
