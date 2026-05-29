@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
 
       try {
         const { data } = await authApi.getProfile();
-        const userData = data.data;
+        const userData = data.data.user;
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
         setIsAuthenticated(true);
@@ -62,7 +62,8 @@ export const AuthProvider = ({ children }) => {
   // ─── Actions ───
   const login = useCallback(async (email, password) => {
     const { data } = await authApi.login({ email, password });
-    const { accessToken, refreshToken, user: userData } = data.data;
+    const { user: userData, tokens } = data.data;
+    const { accessToken, refreshToken } = tokens;
 
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
