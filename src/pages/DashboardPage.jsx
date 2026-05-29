@@ -71,62 +71,57 @@ const DashboardPage = () => {
     { id: 6, label: 'Profile', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>, active: false },
   ];
 
-  // --- Transaksi Mock ---
-  // ! Contoh data dummy nya
-  const transactions = [
-    { id: 1, title: 'Kopi Kenangan', date: 'Hari ini', amount: 'Rp 45.000', category: 'Gaya Hidup', type: 'expense', icon: '☕' },
-    { id: 2, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 3, title: 'Belanja Bulanan', date: '2 hari yang lalu', amount: 'Rp 2.000.000', category: 'Gaya Hidup', type: 'expense', icon: '�️' },
-    { id: 4, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 5, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 6, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 7, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 8, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 9, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 10, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 11, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 12, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 13, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 14, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 15, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 16, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 17, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 18, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 19, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 20, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 21, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 22, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-    { id: 23, title: 'Gaji Bulanan', date: 'Kemarin', amount: 'Rp 5.000.000', category: 'Pendapatan', type: 'income', icon: '💰' },
-  ];
+  // --- Transaksi ---
+  // Menggunakan data transaksi dari backend, atau kosong jika belum ada (user baru)
+  const summary = dashboardData || {};
+  const transactions = summary?.transactions || [];
 
+  const totalAsset = summary?.totalAsset || 0;
+  const totalIncome = summary?.totalIncome || 0;
+  const totalExpense = summary?.totalExpense || 0;
+  
+  const healthScore = summary?.score || 0;
+  const healthStatus = summary?.status || 'BELUM ADA DATA';
 
   // --- LOGIKA CHART DINAMIS ---
-  
-// --- STATE UNTUK TOOLTIP HOVER ---
+  // --- STATE UNTUK TOOLTIP HOVER ---
   const [hoveredPoint, setHoveredPoint] = useState(null);
 
-  // --- MOCK DATA PENGELUARAN (DUMMY) ---
+  // Menggunakan data cashflowTrend dari backend (akumulasi pemasukan - pengeluaran 7 hari)
   const chartData7Days = useMemo(() => {
-    const data = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      data.push({
-        label: d.toLocaleDateString('id-ID', { weekday: 'short' }), // Sen, Sel, dll
-        value: Math.floor(Math.random() * 300000) + 50000, // Dummy Rp 50k - 350k
-      });
+    const rawTrend = summary?.cashflowTrend || [];
+    
+    // Jika data kosong, buat array 7 hari dengan value 0 sebagai empty state
+    if (rawTrend.length === 0) {
+      const emptyData = [];
+      const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        emptyData.push({
+          label: days[d.getDay()],
+          value: 0
+        });
+      }
+      return emptyData;
     }
-    return data;
-  }, []);
 
+    // Jika ada data, mapping ke format yang dibutuhkan chart
+    return rawTrend.map(t => ({
+      label: t.day,
+      value: t.amount
+    }));
+  }, [summary?.cashflowTrend]);
+
+  // Untuk 30 hari, sementara kita gunakan data 7 hari (atau mock 0) sampai backend support 30 hari
   const chartData30Days = useMemo(() => {
     const data = [];
     for (let i = 29; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       data.push({
-        label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }), // 12 Mei
-        value: Math.floor(Math.random() * 500000) + 50000, // Dummy Rp 50k - 550k
+        label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+        value: 0,
       });
     }
     return data;
@@ -297,7 +292,7 @@ const DashboardPage = () => {
                 <WalletIcon />
                 <span className="ml-2 font-medium">Asset</span>
               </div>
-              <h3 className="text-3xl font-bold mb-6">Rp 10.000.000</h3>
+              <h3 className="text-3xl font-bold mb-6">Rp {new Intl.NumberFormat('id-ID').format(totalAsset)}</h3>
               <div className="inline-flex items-center bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium">
                 <TrendingUpIcon />
                 <span className="ml-1">+12.5% dari bulan lalu</span>
@@ -314,7 +309,7 @@ const DashboardPage = () => {
               </div>
               <div>
                 <p className="text-gray-500 text-sm mb-1">Uang Masuk</p>
-                <h3 className="text-2xl font-bold text-[#8C3A7A]">Rp 7.000.000</h3>
+                <h3 className="text-2xl font-bold text-[#8C3A7A]">Rp {new Intl.NumberFormat('id-ID').format(totalIncome)}</h3>
               </div>
             </div>
 
@@ -328,7 +323,7 @@ const DashboardPage = () => {
               </div>
               <div>
                 <p className="text-gray-500 text-sm mb-1">Uang Keluar</p>
-                <h3 className="text-2xl font-bold text-red-600 mb-3">Rp 3.000.000</h3>
+                <h3 className="text-2xl font-bold text-red-600 mb-3">Rp {new Intl.NumberFormat('id-ID').format(totalExpense)}</h3>
                 <div className="w-full bg-orange-100 rounded-full h-2">
                   <div className="bg-[#8C3A7A] h-2 rounded-full" style={{ width: '60%' }}></div>
                 </div>
@@ -343,7 +338,7 @@ const DashboardPage = () => {
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 lg:col-span-2">
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Tren Pengeluaran</h3>
+                  <h3 className="text-lg font-bold text-gray-900">Tren Saldo (Cashflow)</h3>
                   <p className="text-xs text-gray-500">
                     Data real-time {chartPeriod === '7days' ? '7 hari' : '1 bulan'} terakhir
                   </p>
@@ -438,8 +433,8 @@ const DashboardPage = () => {
                   <path className="text-[#FFAD2D]" strokeWidth="4" strokeDasharray="75, 100" strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-3xl font-extrabold text-[#8C3A7A]">75</span>
-                  <span className="text-[10px] font-bold text-gray-500 tracking-widest">SEHAT</span>
+                  <span className="text-3xl font-extrabold text-[#8C3A7A]">{healthScore}</span>
+                  <span className="text-[10px] font-bold text-gray-500 tracking-widest">{healthStatus}</span>
                 </div>
               </div>
               <p className="text-xs text-gray-500 leading-relaxed px-4">
@@ -479,47 +474,57 @@ const DashboardPage = () => {
               {/* List Transaksi */}
               {/* Jika view all aktif, beri max-height dan overflow agar bisa di-scroll internal */}
               {/* List Transaksi */}
-              <div className={`space-y-4 flex-1 ${isViewAll ? 'max-h-85 overflow-y-auto pr-2' : 'min-h-85'}`}>
-                {currentTransactions.map((trx, index) => {
-                  
-                  // --- LOGIKA NOMOR URUT DINAMIS ---
-                  // Jika Lihat Semua aktif, cukup index + 1. 
-                  // Jika tidak, hitung berdasarkan (Halaman Sebelumnya * Jumlah Item) + index lokal + 1
-                  const nomorUrut = isViewAll 
-                    ? index + 1 
-                    : (currentTrxPage - 1) * itemsPerTrxPage + index + 1;
+              {transactions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-center flex-1 min-h-85">
+                  <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 mb-4 text-2xl">
+                    💸
+                  </div>
+                  <p className="text-gray-500 font-medium">Belum ada transaksi</p>
+                  <p className="text-xs text-gray-400 mt-1">Catat pemasukan atau pengeluaran pertamamu!</p>
+                </div>
+              ) : (
+                <div className={`space-y-4 flex-1 ${isViewAll ? 'max-h-85 overflow-y-auto pr-2' : 'min-h-85'}`}>
+                  {currentTransactions.map((trx, index) => {
+                    
+                    // --- LOGIKA NOMOR URUT DINAMIS ---
+                    // Jika Lihat Semua aktif, cukup index + 1. 
+                    // Jika tidak, hitung berdasarkan (Halaman Sebelumnya * Jumlah Item) + index lokal + 1
+                    const nomorUrut = isViewAll 
+                      ? index + 1 
+                      : (currentTrxPage - 1) * itemsPerTrxPage + index + 1;
 
-                  return (
-                    <div key={trx.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-xl transition-colors">
-                      <div className="flex items-center">
-                        
-                        {/* Render Nomor Urut */}
-                        <span className="text-sm font-bold text-gray-400 w-5 sm:w-7 text-left shrink-0">
-                          {nomorUrut}.
-                        </span>
+                    return (
+                      <div key={trx.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-xl transition-colors">
+                        <div className="flex items-center">
+                          
+                          {/* Render Nomor Urut */}
+                          <span className="text-sm font-bold text-gray-400 w-5 sm:w-7 text-left shrink-0">
+                            {nomorUrut}.
+                          </span>
 
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFF8ED] rounded-xl flex items-center justify-center text-[#FFAD2D] mr-3 sm:mr-4 shrink-0 text-xl">
-                          {trx.icon}
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFF8ED] rounded-xl flex items-center justify-center text-[#FFAD2D] mr-3 sm:mr-4 shrink-0 text-xl">
+                            {trx.icon}
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-bold text-gray-900">{trx.title}</h4>
+                            <p className="text-xs text-gray-500">{trx.date}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="text-sm font-bold text-gray-900">{trx.title}</h4>
-                          <p className="text-xs text-gray-500">{trx.date}</p>
+                        <div className="text-right">
+                          <h4 className={`text-sm font-bold ${trx.type === 'expense' ? 'text-red-600' : 'text-[#006C7A]'}`}>
+                            {trx.amount}
+                          </h4>
+                          <p className="text-xs text-[#006C7A]">{trx.category}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <h4 className={`text-sm font-bold ${trx.type === 'expense' ? 'text-red-600' : 'text-[#006C7A]'}`}>
-                          {trx.amount}
-                        </h4>
-                        <p className="text-xs text-[#006C7A]">{trx.category}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* --- PAGINATION CONTROLS DI BAWAH TRANSAKSI --- */}
               {/* Hanya tampilkan navigasi halaman jika BUKAN dalam mode Lihat Semua */}
-              {!isViewAll && (
+              {!isViewAll && transactions.length > 0 && (
                 <div className="flex items-center justify-between pt-4 mt-2 border-t border-gray-100">
                   <span className="text-xs text-gray-500 font-medium hidden sm:block">
                     Menampilkan {(currentTrxPage - 1) * itemsPerTrxPage + 1} - {Math.min(currentTrxPage * itemsPerTrxPage, transactions.length)} dari {transactions.length}
@@ -564,10 +569,10 @@ const DashboardPage = () => {
             <div className="bg-[#FFFDF9] border-2 border-dashed border-[#FFAD2D] rounded-3xl p-6 relative">
               <div className="flex items-center mb-4 text-[#8C3A7A]">
                 <SparklesIcon />
-                <h3 className="ml-2 font-bold text-sm">Insight Jago AI</h3>
+                <h3 className="ml-2 font-bold text-sm">Insight FAST AI</h3>
               </div>
               <p className="text-sm text-gray-800 leading-relaxed italic">
-                {aiInsight || '"Insight AI sedang dimuat... Data keuangan Anda akan dianalisis oleh Jago AI untuk memberikan rekomendasi personal."'}
+                {aiInsight || '"Belum ada data yang cukup. FAST AI akan menganalisis pola pemasukan dan pengeluaran Anda untuk memberikan rekomendasi yang berguna agar Anda semakin JAGO dalam mengatur keuangan!"'}
               </p>
             </div>
           </section>

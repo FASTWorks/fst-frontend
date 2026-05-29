@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 
+import { useGoogleLogin } from '@react-oauth/google';
+
 const InputField = ({ label, type, placeholder, id, icon, onIconClick, value, onChange, disabled }) => (
   <div className="mb-4">
     <label htmlFor={id} className="block text-sm font-bold text-gray-900 mb-2">
@@ -33,7 +35,7 @@ const InputField = ({ label, type, placeholder, id, icon, onIconClick, value, on
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, googleLogin } = useAuth();
 
   // State untuk toggle visibilitas password
   const [showPassword, setShowPassword] = useState(false);
@@ -50,6 +52,24 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const handleGoogleRegister = useGoogleLogin({
+    flow: 'auth-code',
+    onSuccess: async (codeResponse) => {
+      setIsLoading(true);
+      setError('');
+      setSuccess('');
+      try {
+        await googleLogin(codeResponse.code, 'register');
+        navigate('/dashboard', { replace: true });
+      } catch (err) {
+        setError(err.response?.data?.message || 'Registrasi Google gagal.');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    onError: () => setError('Registrasi Google dibatalkan atau gagal.'),
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -218,7 +238,9 @@ export default function RegisterPage() {
         {/* Tombol Google */}
         <button
           type="button"
-          className="w-full flex items-center justify-center bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-4 rounded-full shadow-sm transition-colors duration-200 mb-8"
+          onClick={() => handleGoogleRegister()}
+          disabled={isLoading}
+          className="w-full flex items-center justify-center bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-4 rounded-full shadow-sm transition-colors duration-200 mb-8 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <img 
             src="https://www.svgrepo.com/show/475656/google-color.svg" 

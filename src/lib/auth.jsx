@@ -80,6 +80,21 @@ export const AuthProvider = ({ children }) => {
     return data;
   }, []);
 
+  const googleLogin = useCallback(async (code, auth_type) => {
+    const { data } = await authApi.googleAuth(code, auth_type);
+    const { user: userData, tokens } = data.data;
+    const { accessToken, refreshToken } = tokens;
+
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('refreshToken', refreshToken);
+    localStorage.setItem('user', JSON.stringify(userData));
+
+    setUser(userData);
+    setIsAuthenticated(true);
+
+    return data;
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
@@ -111,6 +126,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     login,
     register,
+    googleLogin,
     logout,
     updateUser,
   };

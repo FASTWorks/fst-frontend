@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 
+import { useGoogleLogin } from '@react-oauth/google';
+
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,6 +15,23 @@ const LoginPage = () => {
   const [error, setError] = useState('');
 
   const from = location.state?.from?.pathname || '/dashboard';
+
+  const handleGoogleLogin = useGoogleLogin({
+    flow: 'auth-code',
+    onSuccess: async (codeResponse) => {
+      setIsLoading(true);
+      setError('');
+      try {
+        await googleLogin(codeResponse.code, 'login');
+        navigate(from, { replace: true });
+      } catch (err) {
+        setError(err.response?.data?.message || 'Login dengan Google gagal.');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    onError: () => setError('Login dengan Google dibatalkan atau gagal.'),
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -161,7 +180,9 @@ const LoginPage = () => {
         <div className="mt-8">
           <button
             type="button"
-            className="w-full flex items-center justify-center py-2.5 px-4 border border-gray-300 rounded-full shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition duration-150 ease-in-out max-w-60 mx-auto"
+            onClick={() => handleGoogleLogin()}
+            disabled={isLoading}
+            className="w-full flex items-center justify-center py-2.5 px-4 border border-gray-300 rounded-full shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition duration-150 ease-in-out max-w-60 mx-auto disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
