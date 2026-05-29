@@ -23,12 +23,11 @@ const PengeluaranPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Data State
-  const [storeName, setStoreName] = useState('Baji Cafe Store');
-  const [date, setDate] = useState('2026-01-01');
+  const [storeName, setStoreName] = useState('');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [category, setCategory] = useState('kebutuhan_primer');
   const [items, setItems] = useState([
-    { id: 1, name: 'Avocado Toast', qty: 1, price: 10000 },
-    { id: 2, name: 'Baji Creamy Latte', qty: 1, price: 10000 },
-    { id: 3, name: 'Baji Avocado', qty: 1, price: 10000 },
+    { id: Date.now(), name: '', qty: 1, price: 0 },
   ]);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -71,17 +70,19 @@ const PengeluaranPage = () => {
 
     try {
       // Create a transaction for each item
-      const transactionPromises = items.map((item) =>
-        financeApi.createTransaction({
-          type: 'expense',
-          amount: item.qty * item.price,
-          name: item.name || 'Item',
-          source: 'manual',
-          parent_category: 'kebutuhan_primer',
-          transaction_date: new Date(date).toISOString(),
-          note: `Dari ${storeName}`,
-        })
-      );
+      const transactionPromises = items
+        .filter((item) => item.name && item.price > 0)
+        .map((item) =>
+          financeApi.createTransaction({
+            type: 'expense',
+            amount: item.qty * item.price,
+            name: item.name,
+            source: 'manual',
+            parent_category: category,
+            transaction_date: new Date(date).toISOString(),
+            note: storeName ? `Dari ${storeName}` : undefined,
+          })
+        );
 
       await Promise.all(transactionPromises);
       setSubmitSuccess('Pengeluaran berhasil disimpan!');
@@ -228,6 +229,7 @@ const PengeluaranPage = () => {
                           type="text" 
                           value={storeName}
                           onChange={(e) => setStoreName(e.target.value)}
+                          placeholder="Nama toko/merchant"
                           className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] text-sm font-medium bg-white"
                         />
                       </div>
@@ -242,6 +244,23 @@ const PengeluaranPage = () => {
                           className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] text-sm font-medium bg-white"
                         />
                       </div>
+                    </div>
+
+                    {/* Category Selector */}
+                    <div className="mb-8">
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                        Kategori Pengeluaran
+                      </label>
+                      <select
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] text-sm font-medium bg-white"
+                      >
+                        <option value="kebutuhan_primer">Kebutuhan Primer</option>
+                        <option value="kebutuhan_sekunder">Kebutuhan Sekunder</option>
+                        <option value="dana_darurat">Dana Darurat</option>
+                        <option value="tabungan">Tabungan</option>
+                      </select>
                     </div>
 
                     {/* Items List Section */}
@@ -317,6 +336,14 @@ const PengeluaranPage = () => {
                       <div className="flex gap-4">
                         <button 
                           type="button"
+                          onClick={() => {
+                            setStoreName('');
+                            setDate(new Date().toISOString().split('T')[0]);
+                            setCategory('kebutuhan_primer');
+                            setItems([{ id: Date.now(), name: '', qty: 1, price: 0 }]);
+                            setSubmitError('');
+                            setSubmitSuccess('');
+                          }}
                           className="flex-1 py-3 rounded-lg border border-gray-900 text-gray-900 font-bold hover:bg-gray-50 transition-colors bg-white shadow-sm"
                         >
                           DISCARD

@@ -25,6 +25,14 @@ const navLinks = [
   { id: 6, label: 'Profile', icon: <UserIcon />, active: false },
 ];
 
+// --- Helper: Format angka ke Rupiah (titik ribuan) ---
+const formatRupiah = (num) => {
+  if (!num || num === 0) return '';
+  return new Intl.NumberFormat('id-ID').format(num);
+};
+
+const parseRupiah = (val) => parseInt((val || '0').toString().replace(/[^0-9]/g, '')) || 0;
+
 // --- 3. Main Component ---
 const PemasukanPage = () => {
   const navigate = useNavigate();
@@ -33,10 +41,24 @@ const PemasukanPage = () => {
   const [isTabunganActive, setIsTabunganActive] = useState(false); 
   const [nabungPeriod, setNabungPeriod] = useState('minggu');
 
+  // Controlled currency input states (raw numbers)
+  const [nominalPemasukan, setNominalPemasukan] = useState(0);
+  const [kebutuhanPrimer, setKebutuhanPrimer] = useState(0);
+  const [kebutuhanSekunder, setKebutuhanSekunder] = useState(0);
+  const [danaDarurat, setDanaDarurat] = useState(0);
+  const [namaTabungan, setNamaTabungan] = useState('');
+  const [targetTabungan, setTargetTabungan] = useState(0);
+  const [nabungOtomatis, setNabungOtomatis] = useState(0);
+
   // Form submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState('');
+
+  // Allocation validation
+  const totalAlokasi = kebutuhanPrimer + kebutuhanSekunder + danaDarurat + (isTabunganActive ? nabungOtomatis : 0);
+  const isOverAllocated = nominalPemasukan > 0 && totalAlokasi > nominalPemasukan;
+  const sisaAlokasi = nominalPemasukan - totalAlokasi;
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -45,32 +67,44 @@ const PemasukanPage = () => {
     navigate('/login');
   };
 
+  const handleCancel = () => {
+    navigate('/dashboard');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError('');
     setSubmitSuccess('');
+
+    // Validasi alokasi
+    if (nominalPemasukan <= 0) {
+      setSubmitError('Nominal pemasukan harus lebih dari 0.');
+      return;
+    }
+    if (isOverAllocated) {
+      setSubmitError(`Total alokasi (Rp${formatRupiah(totalAlokasi)}) melebihi nominal pemasukan (Rp${formatRupiah(nominalPemasukan)}). Harap sesuaikan.`);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const formData = new FormData(e.target);
-      const parseNumber = (val) => parseInt((val || '0').toString().replace(/[^0-9]/g, '')) || 0;
-
       const incomeData = {
-        amount: parseNumber(formData.get('nominal_pemasukan')),
-        alloc_kebutuhan_primer: parseNumber(formData.get('kebutuhan_primer')),
-        alloc_kebutuhan_sekunder: parseNumber(formData.get('kebutuhan_sekunder')),
-        alloc_dana_darurat: parseNumber(formData.get('dana_darurat')),
-        alloc_tabungan: isTabunganActive ? parseNumber(formData.get('nabung_otomatis')) : 0,
+        amount: nominalPemasukan,
+        alloc_kebutuhan_primer: kebutuhanPrimer,
+        alloc_kebutuhan_sekunder: kebutuhanSekunder,
+        alloc_dana_darurat: danaDarurat,
+        alloc_tabungan: isTabunganActive ? nabungOtomatis : 0,
         is_saving_active: isTabunganActive,
         income_date: new Date().toISOString(),
       };
 
       if (isTabunganActive) {
         incomeData.new_saving_goal = {
-          goal_name: formData.get('nama_tabungan') || 'Tabungan Baru',
-          target_amount: parseNumber(formData.get('target_tabungan')),
+          goal_name: namaTabungan || 'Tabungan Baru',
+          target_amount: targetTabungan,
           saving_frequency: nabungPeriod === 'minggu' ? 'weekly' : 'monthly',
-          saving_amount: parseNumber(formData.get('nabung_otomatis')),
+          saving_amount: nabungOtomatis,
         };
       }
 
@@ -222,7 +256,9 @@ const PemasukanPage = () => {
                     type="text"
                     id="nominal_pemasukan"
                     name="nominal_pemasukan"
-                    placeholder="Rp5.000.000"
+                    placeholder="5.000.000"
+                    value={nominalPemasukan === 0 ? '' : formatRupiah(nominalPemasukan)}
+                    onChange={(e) => setNominalPemasukan(parseRupiah(e.target.value))}
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
                   />
                 </div>
@@ -270,7 +306,9 @@ const PemasukanPage = () => {
                       type="text"
                       id="kebutuhan_primer"
                       name="kebutuhan_primer"
-                      placeholder="Rp3.000.000"
+                      placeholder="3.000.000"
+                      value={kebutuhanPrimer === 0 ? '' : formatRupiah(kebutuhanPrimer)}
+                      onChange={(e) => setKebutuhanPrimer(parseRupiah(e.target.value))}
                       className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
                       required
                     />
@@ -285,7 +323,9 @@ const PemasukanPage = () => {
                       type="text"
                       id="kebutuhan_sekunder"
                       name="kebutuhan_sekunder"
-                      placeholder="Rp1.000.000"
+                      placeholder="1.000.000"
+                      value={kebutuhanSekunder === 0 ? '' : formatRupiah(kebutuhanSekunder)}
+                      onChange={(e) => setKebutuhanSekunder(parseRupiah(e.target.value))}
                       className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
                       required
                     />
@@ -300,7 +340,9 @@ const PemasukanPage = () => {
                       type="text"
                       id="dana_darurat"
                       name="dana_darurat"
-                      placeholder="Rp1.000.000"
+                      placeholder="1.000.000"
+                      value={danaDarurat === 0 ? '' : formatRupiah(danaDarurat)}
+                      onChange={(e) => setDanaDarurat(parseRupiah(e.target.value))}
                       className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
                       required
                     />
@@ -319,6 +361,8 @@ const PemasukanPage = () => {
                           id="nama_tabungan"
                           name="nama_tabungan"
                           placeholder="McLaren 750S"
+                          value={namaTabungan}
+                          onChange={(e) => setNamaTabungan(e.target.value)}
                           className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
                           required
                         />
@@ -333,7 +377,9 @@ const PemasukanPage = () => {
                           type="text"
                           id="target_tabungan"
                           name="target_tabungan"
-                          placeholder="Rp13.000.000.000"
+                          placeholder="13.000.000.000"
+                          value={targetTabungan === 0 ? '' : formatRupiah(targetTabungan)}
+                          onChange={(e) => setTargetTabungan(parseRupiah(e.target.value))}
                           className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
                           required
                         />
@@ -373,7 +419,9 @@ const PemasukanPage = () => {
                           <input
                             type="text"
                             name="nabung_otomatis"
-                            placeholder="Rp10.000.000"
+                            placeholder="10.000.000"
+                            value={nabungOtomatis === 0 ? '' : formatRupiah(nabungOtomatis)}
+                            onChange={(e) => setNabungOtomatis(parseRupiah(e.target.value))}
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
                             required
                           />
@@ -383,17 +431,46 @@ const PemasukanPage = () => {
                   )}
                 </div>
 
+                {/* Allocation Summary */}
+                {nominalPemasukan > 0 && (
+                  <div className={`p-4 rounded-xl border-2 transition-colors ${
+                    isOverAllocated 
+                      ? 'bg-red-50 border-red-200' 
+                      : 'bg-green-50 border-green-200'
+                  }`}>
+                    <div className="flex justify-between items-center text-sm font-bold">
+                      <span className="text-gray-700">Total Alokasi</span>
+                      <span className={isOverAllocated ? 'text-red-600' : 'text-green-600'}>
+                        Rp{formatRupiah(totalAlokasi)} / Rp{formatRupiah(nominalPemasukan)}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-500 ${isOverAllocated ? 'bg-red-500' : 'bg-green-500'}`}
+                        style={{ width: `${Math.min((totalAlokasi / nominalPemasukan) * 100, 100)}%` }}
+                      />
+                    </div>
+                    <p className={`text-xs mt-1.5 font-medium ${isOverAllocated ? 'text-red-600' : 'text-green-600'}`}>
+                      {isOverAllocated 
+                        ? `⚠️ Melebihi Rp${formatRupiah(Math.abs(sisaAlokasi))}` 
+                        : `✅ Sisa Rp${formatRupiah(sisaAlokasi)}`
+                      }
+                    </p>
+                  </div>
+                )}
+
                 {/* Action Buttons */}
                 <div className="flex justify-end gap-3 pt-4">
                   <button
                     type="button"
+                    onClick={handleCancel}
                     className="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-bold hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors bg-white"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isOverAllocated}
                     className="px-6 py-2.5 rounded-lg bg-[#8C3A7A] hover:bg-[#702e5c] text-white font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8C3A7A] focus:ring-offset-2 transition-colors disabled:opacity-60"
                   >
                     {isSubmitting ? 'Menyimpan...' : 'Save'}

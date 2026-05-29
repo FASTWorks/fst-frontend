@@ -65,3 +65,17 @@
 - Modified `src/pages/PengeluaranPage.jsx` - Create transaction via financeApi, batch submit
 - Modified `src/pages/UploadPage.jsx` - OCR upload via FormData + confirm receipt API
 - Modified `src/pages/BuatTabunganPage.jsx` - Create saving goal via financeApi
+
+### FASE 2: Pemasukan — Finalisasi
+- Modified `src/pages/PemasukanPage.jsx` - Auto-format Rupiah (titik ribuan) real-time di semua input currency
+- Modified `src/pages/PemasukanPage.jsx` - Controlled state untuk semua input (nominalPemasukan, kebutuhanPrimer, dll)
+- Modified `src/pages/PemasukanPage.jsx` - Validasi total alokasi ≤ nominal pemasukan dengan visual progress bar
+- Modified `src/pages/PemasukanPage.jsx` - Cancel button navigasi ke dashboard, Save disabled saat over-allocated
+- Modified `src/pages/PemasukanPage.jsx` - Payload `new_saving_goal` langsung dari state, bukan FormData
+
+### FASE 3: Pengeluaran — Hapus Dummy + Category
+- Modified `src/pages/PengeluaranPage.jsx` - Hapus dummy items (Avocado Toast, dll), init form kosong
+- Modified `src/pages/PengeluaranPage.jsx` - Hapus hardcoded storeName & date, default hari ini
+- Modified `src/pages/PengeluaranPage.jsx` - Tambah dropdown kategori (primer/sekunder/darurat/tabungan)
+- Modified `src/pages/PengeluaranPage.jsx` - DISCARD button reset semua form state
+- Modified `src/pages/PengeluaranPage.jsx` - Filter items kosong sebelum submit ke API
