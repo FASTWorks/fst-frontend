@@ -17,6 +17,20 @@ const ArrowUpRightIcon = () => <svg className="w-6 h-6" fill="none" stroke="curr
 const ArrowDownRightIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17L7 7M17 17V7M17 17H7"></path></svg>;
 const SparklesIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>;
 
+const formatRupiah = (number) => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
+  }).format(number || 0);
+};
+
+const formatDate = (isoString) => {
+  if (!isoString) return '';
+  const d = new Date(isoString);
+  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
 const DashboardPage = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -73,15 +87,15 @@ const DashboardPage = () => {
 
   // --- Transaksi ---
   // Menggunakan data transaksi dari backend, atau kosong jika belum ada (user baru)
-  const summary = dashboardData || {};
-  const transactions = summary?.transactions || [];
+  const summary = dashboardData?.dashboard || {};
+  const transactions = summary?.recentTransactions || [];
 
-  const totalAsset = summary?.totalAsset || 0;
-  const totalIncome = summary?.totalIncome || 0;
-  const totalExpense = summary?.totalExpense || 0;
+  const totalAsset = summary?.asset?.total || 0;
+  const totalIncome = summary?.income?.total || 0;
+  const totalExpense = summary?.expense?.total || 0;
   
-  const healthScore = summary?.score || 0;
-  const healthStatus = summary?.status || 'BELUM ADA DATA';
+  const healthScore = summary?.financialHealth?.score || 0;
+  const healthStatus = summary?.financialHealth?.status || 'BELUM ADA DATA';
 
   // Target income dinamis: Kelipatan 10 juta (minimal 10 juta) agar bar bisa bertahap penuh
   const incomeTarget = Math.max(Math.ceil(totalIncome / 10000000) * 10000000, 10000000);
@@ -552,16 +566,16 @@ const DashboardPage = () => {
                           </span>
 
                           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFF8ED] rounded-xl flex items-center justify-center text-[#FFAD2D] mr-3 sm:mr-4 shrink-0 text-xl">
-                            {trx.icon}
+                            {trx.type === 'income' ? <TrendingUpIcon /> : <WalletIcon />}
                           </div>
                           <div>
-                            <h4 className="text-sm font-bold text-gray-900">{trx.title}</h4>
-                            <p className="text-xs text-gray-500">{trx.date}</p>
+                            <h4 className="text-sm font-bold text-gray-900">{trx.name || trx.title || 'Transaksi'}</h4>
+                            <p className="text-xs text-gray-500">{formatDate(trx.date)}</p>
                           </div>
                         </div>
                         <div className="text-right">
                           <h4 className={`text-sm font-bold ${trx.type === 'expense' ? 'text-red-600' : 'text-[#006C7A]'}`}>
-                            {trx.amount}
+                            {trx.type === 'expense' ? '-' : '+'}{formatRupiah(trx.amount)}
                           </h4>
                           <p className="text-xs text-[#006C7A]">{trx.category}</p>
                         </div>
