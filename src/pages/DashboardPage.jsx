@@ -165,29 +165,38 @@ const DashboardPage = () => {
     }));
   }, [summary?.cashflowTrend]);
 
-  // Untuk 30 hari, sementara kita gunakan data 7 hari (atau mock 0) sampai backend support 30 hari
   const chartData30Days = useMemo(() => {
-    const data = [];
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      data.push({
-        label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
-        value: 0,
-      });
+    const rawTrend30 = summary?.cashflowTrend30Days || [];
+    
+    if (rawTrend30.length === 0) {
+      const emptyData = [];
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        emptyData.push({
+          label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+          value: 0
+        });
+      }
+      return emptyData;
     }
-    return data;
-  }, []);
+
+    return rawTrend30.map(t => ({
+      label: t.day,
+      value: t.amount
+    }));
+  }, [summary?.cashflowTrend30Days]);
 
   // --- LOGIKA PERHITUNGAN KOORDINAT LINE CHART ---
   const activeData = chartPeriod === '7days' ? chartData7Days : chartData30Days;
   const maxVal = Math.max(...activeData.map(d => d.value)); // Cari nilai tertinggi untuk skala chart
+  const safeMaxVal = maxVal === 0 ? 1 : maxVal; // Hindari pembagian dengan 0 (NaN)
 
   const svgPoints = useMemo(() => {
     return activeData.map((d, index) => {
       const x = (index / (activeData.length - 1)) * 1000; // Skala lebar 0 - 1000
       // Skala tinggi 0 - 200, sisakan ruang 40px di atas agar tooltip tidak terpotong
-      const y = 200 - ((d.value / maxVal) * 160); 
+      const y = 200 - ((d.value / safeMaxVal) * 160); 
       return { x, y, ...d, index };
     });
   }, [activeData, maxVal]);
