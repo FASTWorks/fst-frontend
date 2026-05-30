@@ -182,7 +182,7 @@ const TabunganPage = () => {
             {/* Banner Saldo Utama */}
             <div className="bg-linear-to-r from-[#8C3A7A] to-[#A2448F] rounded-3xl p-6 md:p-10 flex flex-col md:flex-row justify-between md:items-center shadow-md text-white gap-6">
               <div>
-                <p className="text-sm font-medium opacity-90 mb-1">Total Saldo Tabungan</p>
+                <p className="text-sm font-medium opacity-90 mb-1">Kantong Tabungan Utama</p>
                 <h3 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
                   Rp{formatRupiah(totalSaldoTabungan)}
                 </h3>

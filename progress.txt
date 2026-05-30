@@ -156,3 +156,7 @@
 
 ### FASE 13: Refinement UI & Pagination
 - Modified Frontend `DashboardPage.jsx` - Mengimplementasikan *Dynamic Pagination* pada daftar Transaksi Terbaru. Jika halaman melebihi 4, maka nomor halaman yang tampil hanya disederhanakan menjadi 3 nomor terdepan (relatif terhadap *current page*) dan nomor paling akhir dipisahkan dengan elipsis (`...`) agar tampilan tetap rapi.
+
+### FASE 14: Bug Fix Sinkronisasi Asset vs Status Budget
+- Database Manual Fix - Memperbaiki *desync* sebesar Rp 94.000.000 pada riwayat pemasukan lama (sebelum validasi mutlak diterapkan) yang menyebabkan "uang nganggur" (uang masuk yang tidak dialokasikan ke kategori manapun). Uang tersebut telah dialihkan otomatis ke `alloc_tabungan` (`budget_allocations`) agar sinkron.
+- System Insight - Mengonfirmasi bahwa selisih Rp 50.000.000 antara **Asset** dan **Status Budget** adalah normal secara logika akuntansi, karena nilai tersebut adalah uang yang sudah "dikunci/ditransfer" ke wadah Saving Goals (Tabungan Pecahan), sehingga mengurangi *Status Budget* namun tetap menjadi bagian dari *Asset*.
