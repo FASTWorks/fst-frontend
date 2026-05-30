@@ -134,3 +134,7 @@
 - Modified `src/pages/EditTabunganPage.jsx` & `BuatTabunganPage.jsx` - Menambahkan validasi ketat batas panjang nama tabungan (maks 38 karakter) disertai indikator sisa karakter.
 - Modified `src/pages/EditTabunganPage.jsx` & `BuatTabunganPage.jsx` - Menambahkan pembatasan maksimal saldo target tabungan hingga 1 Miliar Rupiah secara *real-time*.
 - Fix Frontend `EditTabunganPage.jsx` - Menyesuaikan nama parameter API payload dari *camelCase* (`goalName`) ke *snake_case* (`goal_name`) sesuai *schema* API Backend agar data tersimpan dengan benar.
+- Modified `src/pages/TabunganPage.jsx` - Mengganti *alert* hapus tabungan bawaan *browser* menjadi *custom modal* elegan sesuai dengan tema Bank Jago (efek blur, warna khas, *card rounded-3xl*).
+- Modified `src/pages/CatatTabunganPage.jsx` - Menerapkan validasi dinamis agar nominal penambahan tidak bisa melebihi target tabungan dan keterangan dibatasi maksimal 15 karakter dengan *live counter*.
+- Modified `src/pages/CatatTabunganPage.jsx` - Menambahkan proteksi *frontend* dengan mem-*fetch* sisa *budget* agar saldo "Total Saldo Tabungan" tidak minus saat menambah dana tabungan.
+- Modified Backend `saving-goal.service.ts` - Membangun validasi lapis kedua (*backend security*) untuk memblokir transaksi penambahan tabungan apabila melebihi sisa *budget* yang dialokasikan, guna menjamin "Total Saldo Tabungan" tidak pernah minus.

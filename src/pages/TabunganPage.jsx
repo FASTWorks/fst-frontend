@@ -45,6 +45,7 @@ const TabunganPage = () => {
   const [tabunganData, setTabunganData] = useState([]);
   const [totalSaldoTabungan, setTotalSaldoTabungan] = useState(0);
   const [viewMode, setViewMode] = useState('grid');
+  const [deleteModalData, setDeleteModalData] = useState(null); // { id, name }
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchData = async () => {
@@ -78,16 +79,20 @@ const TabunganPage = () => {
     navigate('/login');
   };
 
-  const handleDeleteTabungan = async (id) => {
-    const isConfirm = window.confirm('Apakah Anda yakin ingin menghapus tabungan ini?');
-    if (isConfirm) {
-      try {
-        await financeApi.deleteSavingGoal(id);
-        fetchData(); // Refresh data setelah delete
-      } catch (err) {
-        console.error("Gagal menghapus tabungan:", err);
-        alert(err.response?.data?.message || "Gagal menghapus tabungan.");
-      }
+  const handleDeleteTabungan = (id, goalName) => {
+    setDeleteModalData({ id, name: goalName });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteModalData) return;
+    try {
+      await financeApi.deleteSavingGoal(deleteModalData.id);
+      fetchData(); // Refresh data setelah delete
+    } catch (err) {
+      console.error("Gagal menghapus tabungan:", err);
+      alert(err.response?.data?.message || "Gagal menghapus tabungan.");
+    } finally {
+      setDeleteModalData(null);
     }
   };
 
@@ -249,7 +254,7 @@ const TabunganPage = () => {
                             <div className="flex items-center gap-2 border border-gray-300 rounded-full px-3 py-1.5">
                               <Link to={`/tabungan/edit/${data.id}`}><PencilIcon /></Link>
                               <div className="w-px h-4 bg-gray-300"></div>
-                              <button type="button" onClick={() => handleDeleteTabungan(data.id)} className="focus:outline-none">
+                              <button type="button" onClick={() => handleDeleteTabungan(data.id, data.goalName)} className="focus:outline-none hover:text-red-500 transition-colors">
                                 <TrashIcon />
                               </button>
                             </div>
@@ -301,7 +306,7 @@ const TabunganPage = () => {
                         <div className="flex items-center gap-2 border border-gray-300 rounded-xl px-3 py-2.5 h-full">
                           <Link to={`/tabungan/edit/${data.id}`}><PencilIcon /></Link>
                           <div className="w-px h-4 bg-gray-300"></div>
-                          <button type="button" onClick={() => handleDeleteTabungan(data.id)} className="focus:outline-none">
+                          <button type="button" onClick={() => handleDeleteTabungan(data.id, data.goalName)} className="focus:outline-none hover:text-red-500 transition-colors">
                             <TrashIcon />
                           </button>
                         </div>
@@ -315,6 +320,35 @@ const TabunganPage = () => {
           </div>
         </main>
       </div>
+
+      {/* Delete Confirmation Modal (Jago Theme) */}
+      {deleteModalData && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[32px] w-full max-w-sm p-6 shadow-2xl transform transition-all text-center">
+            <div className="w-16 h-16 bg-[#FFF8ED] rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm">
+              <svg className="w-8 h-8 text-[#FFAD2D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </div>
+            <h3 className="text-xl font-extrabold text-gray-900 mb-2">Hapus Tabungan?</h3>
+            <p className="text-gray-500 font-medium text-sm mb-6">
+              Apakah Anda yakin ingin menghapus <span className="font-bold text-gray-900">"{deleteModalData.name}"</span>? Saldo yang tersimpan akan dikembalikan ke budget tabungan utama.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setDeleteModalData(null)}
+                className="flex-1 py-3 rounded-2xl font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={confirmDelete}
+                className="flex-1 py-3 rounded-2xl font-bold text-white bg-[#FFAD2D] hover:bg-[#F29F25] shadow-lg shadow-orange-200 transition-colors"
+              >
+                Ya, Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

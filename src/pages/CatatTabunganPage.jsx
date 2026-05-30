@@ -57,27 +57,36 @@ const CatatTabunganPage = () => {
   const [keterangan, setKeterangan] = useState('');
 
   const [savingGoal, setSavingGoal] = useState(null);
+  const [totalSaldoTabungan, setTotalSaldoTabungan] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState('');
 
   useEffect(() => {
     // Fetch detail tabungan untuk header dan validasi saldo (khusus tarik dana)
-    const fetchGoal = async () => {
+    const fetchData = async () => {
       try {
-        const res = await financeApi.listSavingGoals();
-        const goals = res.data?.data || [];
+        const [goalsRes, budgetRes] = await Promise.all([
+          financeApi.listSavingGoals(),
+          financeApi.getBudgetSummary()
+        ]);
+        const goals = goalsRes.data?.data || [];
         const goal = goals.find(g => g.id === id);
         if (goal) {
           setSavingGoal(goal);
         } else {
           setSubmitError("Tabungan tidak ditemukan");
         }
+
+        const budget = budgetRes.data?.data;
+        const allocTabungan = budget?.categories?.tabungan?.allocated || 0;
+        const spentTabungan = budget?.categories?.tabungan?.spent || 0;
+        setTotalSaldoTabungan(allocTabungan - spentTabungan);
       } catch (err) {
         console.error("Gagal memuat detail tabungan:", err);
       }
     };
-    if (id) fetchGoal();
+    if (id) fetchData();
   }, [id]);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -88,7 +97,9 @@ const CatatTabunganPage = () => {
   };
 
   const handleNominalChange = (e) => {
-    const val = parseRupiah(e.target.value);
+    let val = parseRupiah(e.target.value);
+    const maxLimit = savingGoal ? savingGoal.targetAmount : 1000000000;
+    if (val > maxLimit) val = maxLimit;
     setNominal(val);
   };
 
@@ -99,6 +110,11 @@ const CatatTabunganPage = () => {
     
     if (nominal <= 0) {
       setSubmitError('Nominal harus lebih dari 0.');
+      return;
+    }
+    const maxLimit = savingGoal ? savingGoal.targetAmount : 1000000000;
+    if (nominal > maxLimit) {
+      setSubmitError(`Nominal maksimal adalah Rp${formatRupiah(maxLimit)}.`);
       return;
     }
     if (!keterangan.trim()) {
@@ -112,8 +128,12 @@ const CatatTabunganPage = () => {
       return;
     }
 
-    // Jika tambah dana, pastikan wadah tidak pecah (tidak melebihi target)
+    // Jika tambah dana, pastikan wadah tidak pecah (tidak melebihi target) dan saldo cukup
     if (jenisTransaksi === 'tambah' && savingGoal) {
+      if (nominal > totalSaldoTabungan) {
+        setSubmitError(`Saldo tabungan utama tidak cukup. Sisa Saldo Total Tabungan Anda: Rp${formatRupiah(totalSaldoTabungan)}`);
+        return;
+      }
       const sisaTarget = savingGoal.targetAmount - savingGoal.currentAmount;
       if (nominal > sisaTarget) {
         setSubmitError(`Waduh wadahnya bisa pecah! Maksimal yang bisa ditambahkan adalah Rp${formatRupiah(sisaTarget)}`);
@@ -284,6 +304,9 @@ const CatatTabunganPage = () => {
                   className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700"
                 />
               </div>
+              <p className="text-xs text-gray-500 mt-2 font-medium">
+                Maksimal nominal input: Rp{savingGoal ? formatRupiah(savingGoal.targetAmount) : '1.000.000.000'}.
+              </p>
             </div>
 
             {/* Input Keterangan */}
@@ -299,9 +322,19 @@ const CatatTabunganPage = () => {
                   type="text"
                   placeholder="Habis Gajian"
                   value={keterangan}
-                  onChange={(e) => setKeterangan(e.target.value)}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 15) {
+                      setKeterangan(e.target.value);
+                    }
+                  }}
+                  maxLength={15}
                   className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700"
                 />
+              </div>
+              <div className="flex justify-end mt-1">
+                <span className={`text-xs font-medium ${keterangan.length === 15 ? 'text-orange-500' : 'text-gray-400'}`}>
+                  {keterangan.length}/15 karakter
+                </span>
               </div>
             </div>
 
