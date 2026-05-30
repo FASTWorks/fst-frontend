@@ -111,3 +111,6 @@
 - Modified Backend `income.schema.ts` - Memperkuat validasi Zod untuk API `/incomes`. Sekarang backend akan menolak pemasukan (400 Bad Request) jika total alokasi melebihi nominal pemasukan, atau jika tabungan diaktifkan tetapi alokasi tabungannya 0.
 - Modified Backend `income.schema.ts` & `income.service.ts` - Mengubah logika validasi agar total alokasi harus **persis sama (mutlak)** dengan nominal pemasukan agar data lebih presisi dan tidak ada "uang nganggur".
 - Modified Frontend `PemasukanPage.jsx` - Menyesuaikan indikator *progress bar* di halaman Pemasukan untuk menuntut pengguna mendistribusikan 100% dananya, memblokir pengiriman (*submit*) jika ada sisa, beserta perubahan *alert* status.
+
+### FASE 6.2: Refinement UI & Pagination
+- Modified Frontend `DashboardPage.jsx` - Mengimplementasikan *Dynamic Pagination* pada daftar Transaksi Terbaru. Jika halaman melebihi 4, maka nomor halaman yang tampil hanya disederhanakan menjadi 3 nomor terdepan (relatif terhadap *current page*) dan nomor paling akhir dipisahkan dengan elipsis (`...`) agar tampilan tetap rapi.

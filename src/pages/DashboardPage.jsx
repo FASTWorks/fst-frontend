@@ -693,19 +693,39 @@ const DashboardPage = () => {
                       <ChevronLeftIcon />
                     </button>
 
-                    {[...Array(totalTrxPages)].map((_, idx) => (
-                      <button 
-                        key={idx}
-                        onClick={() => setCurrentTrxPage(idx + 1)}
-                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs font-bold transition-colors ${
-                          currentTrxPage === idx + 1 
-                            ? 'bg-[#FFAD2D] text-white shadow-sm' 
-                            : 'text-gray-600 hover:bg-gray-100'
-                        }`}
-                      >
-                        {idx + 1}
-                      </button>
-                    ))}
+                    {(() => {
+                      const pages = [];
+                      if (totalTrxPages <= 4) {
+                        for (let i = 1; i <= totalTrxPages; i++) pages.push(i);
+                      } else {
+                        if (currentTrxPage <= 2) {
+                          pages.push(1, 2, 3, '...', totalTrxPages);
+                        } else if (currentTrxPage >= totalTrxPages - 1) {
+                          pages.push(1, '...', totalTrxPages - 2, totalTrxPages - 1, totalTrxPages);
+                        } else {
+                          pages.push(1, '...', currentTrxPage - 1, currentTrxPage, currentTrxPage + 1, '...', totalTrxPages);
+                        }
+                      }
+                      
+                      return pages.map((page, idx) => {
+                        if (page === '...') {
+                          return <span key={`ellipsis-${idx}`} className="px-1 text-gray-400 text-xs font-bold">...</span>;
+                        }
+                        return (
+                          <button 
+                            key={`page-${page}`}
+                            onClick={() => setCurrentTrxPage(page)}
+                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs font-bold transition-colors ${
+                              currentTrxPage === page 
+                                ? 'bg-[#FFAD2D] text-white shadow-sm' 
+                                : 'text-gray-600 hover:bg-gray-100'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        );
+                      });
+                    })()}
 
                     <button 
                       onClick={() => setCurrentTrxPage(prev => Math.min(prev + 1, totalTrxPages))}
