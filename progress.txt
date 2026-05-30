@@ -79,3 +79,20 @@
 - Modified `src/pages/PengeluaranPage.jsx` - Tambah dropdown kategori (primer/sekunder/darurat/tabungan)
 - Modified `src/pages/PengeluaranPage.jsx` - DISCARD button reset semua form state
 - Modified `src/pages/PengeluaranPage.jsx` - Filter items kosong sebelum submit ke API
+
+### FASE 4: Dashboard & Backend Fixes
+- Modified `src/pages/DashboardPage.jsx` - Perbaikan path mapping dari `dashboardData` ke `dashboardData?.dashboard` sesuai respons API.
+- Modified `src/pages/DashboardPage.jsx` - Memisahkan `chartData7Days` dan `chartData30Days` dengan data asli dari API (`cashflowTrend` dan `cashflowTrend30Days`).
+- Modified `src/pages/DashboardPage.jsx` - Menambahkan utilitas `formatRupiah` dan `formatDate` untuk mempercantik list riwayat transaksi.
+- Modified `src/components/PublicRoute.jsx` - Dibuat untuk me-redirect user yang sudah login jika mencoba mengakses halaman Home, Login, dan Register.
+- Modified `src/App.jsx` - Membungkus rute `/`, `/login`, `/register`, dan halaman lupa kata sandi dengan `PublicRoute`.
+- Modified `fst-aggregator-service` (Backend) - Meneruskan header `x-user-email` secara internal untuk menyelesaikan isu `401 Unauthorized`.
+- Modified `fst-analytics-service` (Backend) - Memperbaiki kalkulasi `cashflowTrend` (7 hari & 30 hari) serta meningkatkan jumlah *recent transactions* yang dikirim ke frontend dari 3 menjadi 50 item.
+- Modified `fst-gateway-service` (Backend) - Mengatur `rateLimitMiddleware` untuk dilewati (skip) selama berada di environment `development` untuk mencegah error HTTP 429 "Terlalu banyak permintaan".
+
+## 2026-05-30
+
+### FASE 4: Dashboard & Backend Fixes (Lanjutan)
+- Modified `fst-analytics-service/src/services/dashboard.service.ts` - Mengubah kalkulasi grafik `cashflowTrend` dan `cashflowTrend30Days` dari akumulatif menjadi harian (*daily net*) murni.
+- Modified `fst-analytics-service/src/services/dashboard.service.ts` - Mengubah kalkulasi status budget untuk mengakumulasi nilai seluruh bulan (*all-time*), serta menambahkan respons `allocTabungan`.
+- Modified `src/pages/DashboardPage.jsx` - Menambahkan *progress bar* untuk kategori "Tabungan" pada area Status Budget, mengubah teks "Status Budget Bulan Ini" menjadi "Status Budget Anda".

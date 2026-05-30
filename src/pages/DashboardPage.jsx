@@ -496,9 +496,90 @@ const DashboardPage = () => {
               </div>
             </div>
 
-            {/* Financial Health Score */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
-              <h3 className="text-md font-bold text-gray-900 mb-6">Skor Kesehatan Finansial</h3>
+            {/* Budget Allocation Bars & Financial Health Score */}
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col">
+              <h3 className="text-md font-bold text-gray-900 mb-4 text-center">Status Budget Anda</h3>
+              
+              {/* Progress Bars */}
+              <div className="space-y-4 mb-6">
+                {/* Primer */}
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="font-semibold text-gray-700">Kebutuhan Primer</span>
+                    <span className="text-gray-500 font-medium">
+                      {formatRupiah(summary?.budgetAllocation?.allocKebutuhanPrimer || 0)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div 
+                      className="h-2 rounded-full transition-all duration-500 bg-[#FFAD2D]"
+                      style={{ 
+                        width: `${Math.min(100, ((summary?.budgetAllocation?.allocKebutuhanPrimer || 0) / (summary?.income?.total || 1)) * 100)}%` 
+                      }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Sekunder */}
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="font-semibold text-gray-700">Kebutuhan Sekunder</span>
+                    <span className="text-gray-500 font-medium">
+                      {formatRupiah(summary?.budgetAllocation?.allocKebutuhanSekunder || 0)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div 
+                      className="h-2 rounded-full transition-all duration-500 bg-[#8C3A7A]"
+                      style={{ 
+                        width: `${Math.min(100, ((summary?.budgetAllocation?.allocKebutuhanSekunder || 0) / (summary?.income?.total || 1)) * 100)}%` 
+                      }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Darurat */}
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="font-semibold text-gray-700">Dana Darurat</span>
+                    <span className="text-gray-500 font-medium">
+                      {formatRupiah(summary?.budgetAllocation?.allocDanaDarurat || 0)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div 
+                      className="h-2 rounded-full bg-green-500 transition-all duration-500"
+                      style={{ 
+                        width: `${Math.min(100, ((summary?.budgetAllocation?.allocDanaDarurat || 0) / (summary?.income?.total || 1)) * 100)}%` 
+                      }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Tabungan */}
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="font-semibold text-gray-700">Tabungan</span>
+                    <span className="text-gray-500 font-medium">
+                      {formatRupiah(summary?.budgetAllocation?.allocTabungan || 0)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div 
+                      className="h-2 rounded-full bg-blue-500 transition-all duration-500"
+                      style={{ 
+                        width: `${Math.min(100, ((summary?.budgetAllocation?.allocTabungan || 0) / (summary?.income?.total || 1)) * 100)}%` 
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="w-full h-px bg-gray-100 mb-6"></div>
+
+              {/* Health Score Circle */}
+              <div className="flex flex-col items-center justify-center text-center">
+                <h3 className="text-md font-bold text-gray-900 mb-6">Skor Kesehatan Finansial</h3>
               <div className="relative w-32 h-32 mb-6">
                 <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                   <path className="text-gray-100" strokeWidth="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
@@ -512,6 +593,7 @@ const DashboardPage = () => {
               <p className="text-xs text-gray-500 leading-relaxed px-4">
                 Bagus! Kamu berada di jalur yang benar untuk mencapai tujuan tabunganmu.
               </p>
+            </div>
             </div>
           </section>
 
