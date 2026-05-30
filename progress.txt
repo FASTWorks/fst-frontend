@@ -120,3 +120,10 @@
 - Modified Backend `saving-goal.service.ts` - Modifikasi `deleteSavingGoal` untuk me-refund `currentAmount` ke `spentTabungan` menggunakan Prisma Transaction.
 - Database Manual Fix - Menjalankan script `sync-spent-tabungan.js` untuk mengembalikan saldo yang hilang karena container docker belum di-rebuild.
 - System - Me-rebuild dan merestart kontainer docker `fst-finance-service` agar semua update service dapat berjalan di lokal.
+
+### FASE 9: Perbaikan Estetika Dashboard & Logika Transaksi
+- Modified `src/pages/DashboardPage.jsx` - Merapikan format tampilan daftar transaksi (menghilangkan prefix Rp ganda).
+- Modified `src/pages/DashboardPage.jsx` - Mengganti ikon dan warna dinamis untuk setiap jenis transaksi (Pemasukan, Pengeluaran, Tarik Tabungan, Tambah Tabungan).
+- Modified `src/pages/DashboardPage.jsx` - Menambahkan format waktu yang lebih detail (jam & menit) beserta UI catatan (note) transaksi yang rapi.
+- Modified Backend `dashboard.service.ts` - Memperbaiki *analytics service* agar memasukkan *field* `note` saat me- *return* daftar riwayat transaksi terbaru.
+- System - Me-rebuild dan merestart kontainer docker `fst-analytics-service` agar payload transaksi menyertakan keterangan.

@@ -28,7 +28,7 @@ const formatRupiah = (number) => {
 const formatDate = (isoString) => {
   if (!isoString) return '';
   const d = new Date(isoString);
-  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(/\./g, ':');
 };
 
 const DashboardPage = () => {
@@ -647,6 +647,40 @@ const DashboardPage = () => {
                       ? index + 1 
                       : (currentTrxPage - 1) * itemsPerTrxPage + index + 1;
 
+                    // --- LOGIKA STYLING TRANSAKSI DINAMIS ---
+                    let icon, iconBg, iconColor, amountColor, sign, displayCategory;
+                    
+                    if (trx.type === 'income') {
+                      icon = <TrendingUpIcon />;
+                      iconBg = 'bg-green-100';
+                      iconColor = 'text-green-600';
+                      amountColor = 'text-green-600';
+                      sign = '+';
+                      displayCategory = trx.category || 'Pemasukan';
+                    } else if (trx.type === 'expense') {
+                      icon = <WalletIcon />;
+                      iconBg = 'bg-red-100';
+                      iconColor = 'text-red-600';
+                      amountColor = 'text-red-600';
+                      sign = '-';
+                      displayCategory = trx.category || 'Pengeluaran';
+                    } else if (trx.type === 'saving_transfer') {
+                      const isDeposit = trx.amount > 0;
+                      icon = <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>; // Piggy bank icon
+                      iconBg = isDeposit ? 'bg-blue-100' : 'bg-orange-100';
+                      iconColor = isDeposit ? 'text-blue-600' : 'text-orange-600';
+                      amountColor = isDeposit ? 'text-blue-600' : 'text-orange-600';
+                      sign = isDeposit ? '+' : '-';
+                      displayCategory = 'Tabungan';
+                    } else {
+                      icon = <WalletIcon />;
+                      iconBg = 'bg-gray-100';
+                      iconColor = 'text-gray-600';
+                      amountColor = 'text-gray-900';
+                      sign = '';
+                      displayCategory = trx.category || 'Lainnya';
+                    }
+
                     return (
                       <div key={trx.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-xl transition-colors">
                         <div className="flex items-center">
@@ -656,19 +690,29 @@ const DashboardPage = () => {
                             {nomorUrut}.
                           </span>
 
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFF8ED] rounded-xl flex items-center justify-center text-[#FFAD2D] mr-3 sm:mr-4 shrink-0 text-xl">
-                            {trx.type === 'income' ? <TrendingUpIcon /> : <WalletIcon />}
+                          <div className={`w-10 h-10 sm:w-12 sm:h-12 ${iconBg} rounded-xl flex items-center justify-center ${iconColor} mr-3 sm:mr-4 shrink-0 text-xl`}>
+                            {icon}
                           </div>
                           <div>
                             <h4 className="text-sm font-bold text-gray-900">{trx.name || trx.title || 'Transaksi'}</h4>
-                            <p className="text-xs text-gray-500">{formatDate(trx.date)}</p>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 mt-0.5">
+                              <p className="text-xs text-gray-500">{formatDate(trx.date)}</p>
+                              {trx.note && (
+                                <>
+                                  <span className="hidden sm:inline text-gray-300 text-xs">•</span>
+                                  <p className="text-xs text-gray-600 font-medium italic truncate max-w-[150px] sm:max-w-[200px]">
+                                    "{trx.note}"
+                                  </p>
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <div className="text-right">
-                          <h4 className={`text-sm font-bold ${trx.type === 'expense' ? 'text-red-600' : 'text-[#006C7A]'}`}>
-                            {trx.type === 'expense' ? '-' : '+'}{formatRupiah(trx.amount)}
+                          <h4 className={`text-sm font-bold ${amountColor}`}>
+                            {sign}{formatRupiah(Math.abs(trx.amount))}
                           </h4>
-                          <p className="text-xs text-[#006C7A]">{trx.category}</p>
+                          <p className={`text-xs ${amountColor} opacity-80`}>{displayCategory}</p>
                         </div>
                       </div>
                     );
