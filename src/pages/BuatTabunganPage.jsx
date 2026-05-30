@@ -15,8 +15,6 @@ const BuatTabunganPage = () => {
 
   const [namaTabungan, setNamaTabungan] = useState('');
   const [targetTabungan, setTargetTabungan] = useState(0);
-  const [nabungPeriod, setNabungPeriod] = useState('minggu');
-  const [nabungNominal, setNabungNominal] = useState(0);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -38,9 +36,7 @@ const BuatTabunganPage = () => {
     try {
       await financeApi.createSavingGoal({
         goal_name: namaTabungan,
-        target_amount: targetTabungan,
-        saving_frequency: nabungPeriod === 'minggu' ? 'weekly' : 'monthly',
-        saving_amount: nabungNominal > 0 ? nabungNominal : undefined,
+        target_amount: targetTabungan
       });
       setSuccess('Tabungan berhasil dibuat!');
       setTimeout(() => navigate('/tabungan'), 1500);
@@ -193,63 +189,10 @@ const BuatTabunganPage = () => {
                   </div>
                 </div>
 
-                {/* Nabung Otomatis Section */}
-                <div className="mb-8">
-                  <label className="block text-sm font-bold text-gray-900 mb-2">
-                    Nabung Otomatis <span className="text-red-500">**</span>
-                  </label>
-                  
-                  {/* Toggle Per Minggu / Per Bulan */}
-                  <div className="flex gap-2 mb-3">
-                    <button
-                      type="button"
-                      onClick={() => setNabungPeriod('minggu')}
-                      className={`flex-1 py-2 rounded-full text-sm font-bold border transition-colors ${
-                        nabungPeriod === 'minggu'
-                          ? 'bg-[#FFAD2D] text-white border-[#FFAD2D]'
-                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      Per Minggu
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setNabungPeriod('bulan')}
-                      className={`flex-1 py-2 rounded-full text-sm font-bold border transition-colors ${
-                        nabungPeriod === 'bulan'
-                          ? 'bg-[#FFAD2D] text-white border-[#FFAD2D]'
-                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      Per Bulan
-                    </button>
-                  </div>
-
-                  {/* Input Nominal Nabung Otomatis */}
-                  <div className="relative">
-                    <span className="absolute left-4 top-3 text-gray-500 font-medium pointer-events-none">
-                      Rp
-                    </span>
-                    <input
-                      type="text"
-                      placeholder="10.000.000"
-                      value={nabungNominal === 0 ? '' : new Intl.NumberFormat('id-ID').format(nabungNominal)}
-                      onChange={(e) => {
-                        const rawValue = e.target.value.replace(/[^0-9]/g, '');
-                        setNabungNominal(Number(rawValue));
-                      }}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700"
-                    />
-                  </div>
-                </div>
-
                 {/* Footnotes */}
                 <div className="mb-8 space-y-1">
                   <p className="text-xs text-gray-700 font-medium">
-                    • Wajib di isi<span className="text-red-500">*</span>
-                  </p>
-                  <p className="text-xs text-gray-700 font-medium">
-                    • Setiap minggu/bulan saldo anda akan otomatis di pindah ke tabungan<span className="text-red-500">**</span>
+                    <span className="text-red-500">*</span> Wajib diisi
                   </p>
                 </div>
 

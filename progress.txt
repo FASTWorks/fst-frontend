@@ -96,3 +96,12 @@
 - Modified `fst-analytics-service/src/services/dashboard.service.ts` - Mengubah kalkulasi grafik `cashflowTrend` dan `cashflowTrend30Days` dari akumulatif menjadi harian (*daily net*) murni.
 - Modified `fst-analytics-service/src/services/dashboard.service.ts` - Mengubah kalkulasi status budget untuk mengakumulasi nilai seluruh bulan (*all-time*), serta menambahkan respons `allocTabungan`.
 - Modified `src/pages/DashboardPage.jsx` - Menambahkan *progress bar* untuk kategori "Tabungan" pada area Status Budget, mengubah teks "Status Budget Bulan Ini" menjadi "Status Budget Anda".
+
+### FASE 5: Integrasi Tabungan (Pemasukan)
+- Modified `src/pages/BuatTabunganPage.jsx` - Menyederhanakan form dan menghapus fitur nabung otomatis. Form hanya menerima input `Nama Tabungan` dan `Target Tabungan`.
+- Modified `src/pages/PemasukanPage.jsx` - Menambahkan dropdown semantic `<select>` untuk mengambil `tabunganList` via API agar pengguna bisa memilih target tabungan spesifik atau memilih opsi default "Total Saldo Tabungan".
+
+### FASE 6: Perbaikan Sinkronisasi Pemasukan & Tabungan
+- Modified `src/pages/PemasukanPage.jsx` - Mengembalikan toggle `isTabunganActive` dan merestorasi *state* `kebutuhanPrimer` dll yang sempat hilang.
+- Modified `src/pages/PemasukanPage.jsx` - Memastikan variabel `is_saving_active` dikirim kembali di *payload* agar *backend* tidak me-reset nilai alokasi tabungan menjadi 0.
+- Database Manual Fix - Memperbaiki dua row `incomes` lama dan menambah nilai tabungan di `budget_allocations` sebesar 2.050.000 untuk sinkronisasi nilai Asset vs Budget.

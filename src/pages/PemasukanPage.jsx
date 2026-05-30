@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { financeApi } from '@/api/finance';
@@ -38,25 +38,32 @@ const PemasukanPage = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isTabunganActive, setIsTabunganActive] = useState(false); 
-  const [nabungPeriod, setNabungPeriod] = useState('minggu');
 
-  // Controlled currency input states (raw numbers)
+  // Controlled currency input states
   const [nominalPemasukan, setNominalPemasukan] = useState(0);
   const [kebutuhanPrimer, setKebutuhanPrimer] = useState(0);
   const [kebutuhanSekunder, setKebutuhanSekunder] = useState(0);
   const [danaDarurat, setDanaDarurat] = useState(0);
-  const [namaTabungan, setNamaTabungan] = useState('');
-  const [targetTabungan, setTargetTabungan] = useState(0);
-  const [nabungOtomatis, setNabungOtomatis] = useState(0);
+  const [alokasiTabungan, setAlokasiTabungan] = useState(0);
+  const [isTabunganActive, setIsTabunganActive] = useState(false);
+  
+  // Tabungan specific states
+  const [selectedTabunganId, setSelectedTabunganId] = useState('default');
+  const [tabunganList, setTabunganList] = useState([]);
 
   // Form submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState('');
 
+  useEffect(() => {
+    financeApi.listSavingGoals()
+      .then(res => setTabunganList(res.data?.data || []))
+      .catch(console.error);
+  }, []);
+
   // Allocation validation
-  const totalAlokasi = kebutuhanPrimer + kebutuhanSekunder + danaDarurat + (isTabunganActive ? nabungOtomatis : 0);
+  const totalAlokasi = kebutuhanPrimer + kebutuhanSekunder + danaDarurat + (isTabunganActive ? alokasiTabungan : 0);
   const isOverAllocated = nominalPemasukan > 0 && totalAlokasi > nominalPemasukan;
   const sisaAlokasi = nominalPemasukan - totalAlokasi;
 
@@ -94,19 +101,11 @@ const PemasukanPage = () => {
         alloc_kebutuhan_primer: kebutuhanPrimer,
         alloc_kebutuhan_sekunder: kebutuhanSekunder,
         alloc_dana_darurat: danaDarurat,
-        alloc_tabungan: isTabunganActive ? nabungOtomatis : 0,
+        alloc_tabungan: isTabunganActive ? alokasiTabungan : 0,
         is_saving_active: isTabunganActive,
+        saving_goal_id: (isTabunganActive && selectedTabunganId !== 'default') ? selectedTabunganId : undefined,
         income_date: new Date().toISOString(),
       };
-
-      if (isTabunganActive) {
-        incomeData.new_saving_goal = {
-          goal_name: namaTabungan || 'Tabungan Baru',
-          target_amount: targetTabungan,
-          saving_frequency: nabungPeriod === 'minggu' ? 'weekly' : 'monthly',
-          saving_amount: nabungOtomatis,
-        };
-      }
 
       await financeApi.createIncome(incomeData);
       setSubmitSuccess('Pemasukan berhasil disimpan!');
@@ -294,7 +293,7 @@ const PemasukanPage = () => {
                   </div>
                 </div>
 
-                {/* --- Grid Layout untuk Form di bawahnya --- */}
+                {/* Grid Layout untuk Alokasi */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   
                   {/* Kebutuhan Primer */}
@@ -351,81 +350,39 @@ const PemasukanPage = () => {
                   {/* Render Field Tambahan Jika Tabungan Aktif */}
                   {isTabunganActive && (
                     <>
-                      {/* Nama Tabungan */}
+                      {/* Alokasi Tabungan */}
                       <div>
-                        <label htmlFor="nama_tabungan" className="block text-sm font-bold text-gray-900 mb-2">
-                          Nama Tabungan<span className="text-red-500">*</span>
+                        <label htmlFor="alokasi_tabungan" className="block text-sm font-bold text-gray-900 mb-2">
+                          Alokasi Tabungan
                         </label>
                         <input
                           type="text"
-                          id="nama_tabungan"
-                          name="nama_tabungan"
-                          placeholder="McLaren 750S"
-                          value={namaTabungan}
-                          onChange={(e) => setNamaTabungan(e.target.value)}
+                          id="alokasi_tabungan"
+                          name="alokasi_tabungan"
+                          placeholder="500.000"
+                          value={alokasiTabungan === 0 ? '' : formatRupiah(alokasiTabungan)}
+                          onChange={(e) => setAlokasiTabungan(parseRupiah(e.target.value))}
                           className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
-                          required
                         />
                       </div>
-
-                      {/* Target Tabungan */}
-                      <div>
-                        <label htmlFor="target_tabungan" className="block text-sm font-bold text-gray-900 mb-2">
-                          Target Tabungan<span className="text-red-500">*</span>
+                      
+                      {/* Pilih Tabungan Tujuan */}
+                      <div className="md:col-span-2">
+                        <label htmlFor="pilih_tabungan" className="block text-sm font-bold text-gray-900 mb-2">
+                          Tabungan Tujuan
                         </label>
-                        <input
-                          type="text"
-                          id="target_tabungan"
-                          name="target_tabungan"
-                          placeholder="13.000.000.000"
-                          value={targetTabungan === 0 ? '' : formatRupiah(targetTabungan)}
-                          onChange={(e) => setTargetTabungan(parseRupiah(e.target.value))}
-                          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
-                          required
-                        />
-                      </div>
-
-                      {/* Nabung Otomatis */}
-                      <div>
-                        <label className="block text-sm font-bold text-gray-900 mb-2">
-                          Nabung Otomatis<span className="text-red-500">**</span>
-                        </label>
-                        <div className="flex flex-col gap-3">
-                          <div className="flex gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setNabungPeriod('minggu')}
-                              className={`px-4 py-1.5 rounded-full text-sm font-bold border transition-colors ${
-                                nabungPeriod === 'minggu'
-                                  ? 'bg-[#FFAD2D] text-white border-[#FFAD2D]' 
-                                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                              }`}
-                            >
-                              Per Minggu
-                            </button>
-                            
-                            <button
-                              type="button"
-                              onClick={() => setNabungPeriod('bulan')}
-                              className={`px-4 py-1.5 rounded-full text-sm font-bold border transition-colors ${
-                                nabungPeriod === 'bulan'
-                                  ? 'bg-[#FFAD2D] text-white border-[#FFAD2D]' // [DIPERBAIKI DI SINI]
-                                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                              }`}
-                            >
-                              Per Bulan
-                            </button>
-                          </div>
-                          <input
-                            type="text"
-                            name="nabung_otomatis"
-                            placeholder="10.000.000"
-                            value={nabungOtomatis === 0 ? '' : formatRupiah(nabungOtomatis)}
-                            onChange={(e) => setNabungOtomatis(parseRupiah(e.target.value))}
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
-                            required
-                          />
-                        </div>
+                        <select
+                          id="pilih_tabungan"
+                          name="pilih_tabungan"
+                          value={selectedTabunganId}
+                          onChange={(e) => setSelectedTabunganId(e.target.value)}
+                          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 bg-white"
+                        >
+                          <option value="default">Total Saldo Tabungan (Default)</option>
+                          {tabunganList.map(t => (
+                            <option key={t.id} value={t.id}>{t.goalName}</option>
+                          ))}
+                        </select>
                       </div>
                     </>
                   )}
@@ -480,13 +437,8 @@ const PemasukanPage = () => {
                 {/* Info Text */}
                 <div className="pt-2 flex flex-col gap-1">
                   <p className="text-xs text-gray-700 font-medium">
-                    • Wajib di isi<span className="text-red-500">*</span>
+                    <span className="text-red-500">*</span> Wajib diisi
                   </p>
-                  {isTabunganActive && (
-                    <p className="text-xs text-gray-700 font-medium">
-                      • Setiap minggu/bulan saldo Anda akan otomatis di pindah ke tabungan<span className="text-red-500">**</span>
-                    </p>
-                  )}
                 </div>
 
               </form>
