@@ -147,3 +147,12 @@
 - Modified `src/pages/PengeluaranPage.jsx` - Memperbaiki manipulasi zona waktu (timezone) pada `transaction_date` untuk menjaga agar transaksi baru pada tanggal hari ini selalu mendapatkan stamp waktu terkini, sehingga menempati urutan teratas pada log transaksi alih-alih tenggelam karena terhitung sebagai 00:00:00.
 - Modified `src/pages/ *Page.jsx` - Merevisi (revert) menu sidebar agar kembali menggunakan teks 'Tabungan' sesuai permintaan user, sementara halaman dan komponen lain tetap 'Kantong Tabungan Utama'.
 - Modified Backend `dashboard.service.ts` - Memperbaiki kalkulasi skor kesehatan finansial dengan meningkatkan penalti untuk bar yang 0 (perbedaan alokasi), agar skor benar-benar merespons proporsi 40/30/20/10 dengan akurat.
+
+### FASE 12: Validasi API Pemasukan (Backend & Frontend)
+- Modified `src/pages/PemasukanPage.jsx` - Menambahkan indikator bintang (*) wajib pada label Alokasi Tabungan ketika opsi tabungan diaktifkan.
+- Modified Backend `income.schema.ts` - Memperkuat validasi Zod untuk API `/incomes`. Sekarang backend akan menolak pemasukan (400 Bad Request) jika total alokasi melebihi nominal pemasukan, atau jika tabungan diaktifkan tetapi alokasi tabungannya 0.
+- Modified Backend `income.schema.ts` & `income.service.ts` - Mengubah logika validasi agar total alokasi harus **persis sama (mutlak)** dengan nominal pemasukan agar data lebih presisi dan tidak ada "uang nganggur".
+- Modified Frontend `PemasukanPage.jsx` - Menyesuaikan indikator *progress bar* di halaman Pemasukan untuk menuntut pengguna mendistribusikan 100% dananya, memblokir pengiriman (*submit*) jika ada sisa, beserta perubahan *alert* status.
+
+### FASE 13: Refinement UI & Pagination
+- Modified Frontend `DashboardPage.jsx` - Mengimplementasikan *Dynamic Pagination* pada daftar Transaksi Terbaru. Jika halaman melebihi 4, maka nomor halaman yang tampil hanya disederhanakan menjadi 3 nomor terdepan (relatif terhadap *current page*) dan nomor paling akhir dipisahkan dengan elipsis (`...`) agar tampilan tetap rapi.
