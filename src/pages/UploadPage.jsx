@@ -37,9 +37,9 @@ const UploadPage = () => {
   const [storeName, setStoreName] = useState('Baji Cafe Store');
   const [date, setDate] = useState('01/01/2026');
   const [items, setItems] = useState([
-    { id: 1, name: 'Avocado Toast', qty: 1, price: 10000 },
-    { id: 2, name: 'Baji Creamy Latte', qty: 1, price: 10000 },
-    { id: 3, name: 'Baji Avocado', qty: 1, price: 10000 },
+    { id: 1, name: 'Avocado Toast', qty: 1, price: 10000, category: 'kebutuhan_primer' },
+    { id: 2, name: 'Baji Creamy Latte', qty: 1, price: 10000, category: 'kebutuhan_sekunder' },
+    { id: 3, name: 'Baji Avocado', qty: 1, price: 10000, category: 'kebutuhan_sekunder' },
   ]);
 
   // [TAMBAHKAN KODE INI] - Fungsi untuk menambah baris item baru
@@ -48,7 +48,8 @@ const UploadPage = () => {
       id: Date.now(), // Generate ID unik
       name: '',
       qty: 1,
-      price: 0
+      price: 0,
+      category: 'kebutuhan_sekunder'
     };
     setItems([...items, newItem]);
   };
@@ -79,23 +80,45 @@ const UploadPage = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      
+      // 1. Submit for OCR (Async)
       const { data } = await financeApi.createReceiptOCR(formData);
-      const receipt = data.data;
+      const { receiptId: newReceiptId } = data.data;
 
-      setReceiptId(receipt.id);
-      setStoreName(receipt.store_name || 'Unknown Store');
-      setDate(receipt.receipt_date ? receipt.receipt_date.split('T')[0] : new Date().toISOString().split('T')[0]);
+      // 2. Polling for results
+      let receiptData = null;
+      for (let i = 0; i < 30; i++) { // Max 60 seconds
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const res = await financeApi.getReceipt(newReceiptId);
+        if (res.data.data.status !== 'processing') {
+          receiptData = res.data.data;
+          break;
+        }
+      }
+
+      if (!receiptData) {
+        throw new Error('Waktu pemrosesan struk habis. Silakan coba lagi.');
+      }
+      
+      if (receiptData.status === 'failed' || receiptData.status === 'rejected') {
+        throw new Error(receiptData.categorySummary || 'AI gagal membaca struk ini. Coba foto ulang dengan lebih jelas.');
+      }
+
+      setReceiptId(receiptData.id);
+      setStoreName(receiptData.storeName || 'Unknown Store');
+      setDate(receiptData.receiptDate ? receiptData.receiptDate.split('T')[0] : new Date().toISOString().split('T')[0]);
       setItems(
-        (receipt.items || []).map((item, idx) => ({
-          id: idx + 1,
-          name: item.item_name || '',
+        (receiptData.items || []).map((item, idx) => ({
+          id: item.id || idx + 1,
+          name: item.itemName || '',
           qty: item.qty || 1,
-          price: item.unit_price || 0,
+          price: item.unitPrice || 0,
+          category: item.overrideParentCategory || item.aiParentCategory || 'kebutuhan_sekunder',
         }))
       );
       setIsUploaded(true);
     } catch (err) {
-      setUploadError(err.response?.data?.message || 'Gagal mengupload struk. Coba lagi.');
+      setUploadError(err.response?.data?.message || err.message || 'Gagal mengupload struk. Coba lagi.');
     } finally {
       setIsUploading(false);
     }
@@ -114,10 +137,12 @@ const UploadPage = () => {
           receipt_date: new Date(date).toISOString(),
           total: calculateTotal(),
           items: items.map((item) => ({
+            id: typeof item.id === 'string' ? item.id : undefined,
             item_name: item.name,
             qty: item.qty,
             unit_price: item.price,
             total_price: item.qty * item.price,
+            override_parent_category: item.category,
           })),
         });
       }
@@ -319,49 +344,68 @@ const UploadPage = () => {
                       {/* Dynamic Editable Items Array */}
                       <div className="space-y-3">
                         {items.map((item) => (
-                          <div key={item.id} className="flex gap-3 items-center">
-                            {/* Input Nama Item */}
-                            <input 
-                              type="text" 
-                              value={item.name}
-                              onChange={(e) => handleItemChange(item.id, 'name', e.target.value)}
-                              placeholder="Nama Item"
-                              className="flex-1 px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium focus:outline-none focus:border-[#FFAD2D] focus:ring-1 focus:ring-[#FFAD2D]"
-                            />
-                            {/* Input Quantity (Menggunakan type="number") */}
-                            <input 
-                              type="number" 
-                              value={item.qty}
-                              onChange={(e) => handleItemChange(item.id, 'qty', e.target.value)}
-                              min="1"
-                              className="w-16 text-center px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium focus:outline-none focus:border-[#FFAD2D] focus:ring-1 focus:ring-[#FFAD2D]"
-                            />
-                            {/* Input Harga */}
-                            <div className="relative w-32">
-                                <span className="absolute left-3 top-2 text-sm font-medium text-gray-500">
-                                  Rp
-                                </span>
-                                <input 
-                                  type="text" 
-                                  value={item.price === 0 ? '' : new Intl.NumberFormat('id-ID').format(item.price)}
-                                  onChange={(e) => {
-                                    // Hapus semua karakter selain angka agar murni numerik
-                                    const rawValue = e.target.value.replace(/[^0-9]/g, '');
-                                    handleItemChange(item.id, 'price', Number(rawValue));
-                                  }}
-                                  placeholder="0"
-                                  className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-300 text-sm font-medium focus:outline-none focus:border-[#FFAD2D] focus:ring-1 focus:ring-[#FFAD2D]"
-                                />
-                              </div>
+                          <div key={item.id} className="flex flex-col gap-2 p-3 bg-[#F9FAFB] rounded-xl border border-gray-100 shadow-sm">
+                            <div className="flex gap-3 items-center">
+                              {/* Input Nama Item */}
+                              <input 
+                                type="text" 
+                                value={item.name}
+                                onChange={(e) => handleItemChange(item.id, 'name', e.target.value)}
+                                placeholder="Nama Item"
+                                className="flex-1 px-3 py-2 bg-white rounded-lg border border-gray-300 text-sm font-medium focus:outline-none focus:border-[#FFAD2D] focus:ring-1 focus:ring-[#FFAD2D]"
+                              />
+                              {/* Input Quantity (Menggunakan type="number") */}
+                              <input 
+                                type="number" 
+                                value={item.qty}
+                                onChange={(e) => handleItemChange(item.id, 'qty', e.target.value)}
+                                min="1"
+                                className="w-16 text-center bg-white px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium focus:outline-none focus:border-[#FFAD2D] focus:ring-1 focus:ring-[#FFAD2D]"
+                              />
+                              {/* Input Harga */}
+                              <div className="relative w-32">
+                                  <span className="absolute left-3 top-2 text-sm font-medium text-gray-500">
+                                    Rp
+                                  </span>
+                                  <input 
+                                    type="text" 
+                                    value={item.price === 0 ? '' : new Intl.NumberFormat('id-ID').format(item.price)}
+                                    onChange={(e) => {
+                                      // Hapus semua karakter selain angka agar murni numerik
+                                      const rawValue = e.target.value.replace(/[^0-9]/g, '');
+                                      handleItemChange(item.id, 'price', Number(rawValue));
+                                    }}
+                                    placeholder="0"
+                                    className="w-full pl-8 bg-white pr-3 py-2 rounded-lg border border-gray-300 text-sm font-medium focus:outline-none focus:border-[#FFAD2D] focus:ring-1 focus:ring-[#FFAD2D]"
+                                  />
+                                </div>
 
-                              {/* Tombol Hapus */}
-                              <button 
-                                type="button" 
-                                onClick={() => handleDeleteItem(item.id)} 
-                                className="p-1"
+                                {/* Tombol Hapus */}
+                                <button 
+                                  type="button" 
+                                  onClick={() => handleDeleteItem(item.id)} 
+                                  className="p-1"
+                                >
+                                  <TrashIcon />
+                                </button>
+                            </div>
+                            
+                            {/* Baris Kategori Item */}
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                                Kategori:
+                              </span>
+                              <select
+                                value={item.category}
+                                onChange={(e) => handleItemChange(item.id, 'category', e.target.value)}
+                                className="flex-1 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-lg focus:ring-[#FFAD2D] focus:border-[#FFAD2D] block p-2 cursor-pointer"
                               >
-                                <TrashIcon />
-                              </button>
+                                <option value="kebutuhan_primer">Kebutuhan Primer</option>
+                                <option value="kebutuhan_sekunder">Kebutuhan Sekunder</option>
+                                <option value="dana_darurat">Dana Darurat</option>
+                                <option value="tabungan">Kantong Tabungan Utama</option>
+                              </select>
+                            </div>
                           </div>
                         ))}
                       </div>
