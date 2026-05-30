@@ -32,6 +32,7 @@ const UploadPage = () => {
   const [saveError, setSaveError] = useState('');
   const [saveSuccess, setSaveSuccess] = useState('');
   const [receiptId, setReceiptId] = useState(null);
+  const [isDragActive, setIsDragActive] = useState(false);
 
   // State untuk data ekstraksi
   const [storeName, setStoreName] = useState('Baji Cafe Store');
@@ -79,7 +80,7 @@ const UploadPage = () => {
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('image', file); // Backend expects 'image'
       
       // 1. Submit for OCR (Async)
       const { data } = await financeApi.createReceiptOCR(formData);
@@ -171,6 +172,25 @@ const UploadPage = () => {
     { id: 6, label: 'Profile', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>, active: false },
   ];
 
+  // Drag and drop handlers
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragActive(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragActive(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileUpload(e.dataTransfer.files[0]);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-[#FFFDF9] font-sans text-gray-800 overflow-hidden">
       
@@ -245,19 +265,24 @@ const UploadPage = () => {
             </div>
 
             {!isUploaded ? (
-              <div className="flex-1 flex items-center justify-center p-6 bg-[#FCFBFA] border-2 border-dashed border-gray-300 rounded-3xl min-h-100">
-                <div className="flex flex-col items-center text-center">
+              <div 
+                className={`flex-1 flex items-center justify-center p-6 bg-[#FCFBFA] border-2 border-dashed ${isDragActive ? 'border-[#FFAD2D] bg-[#FFF8ED]' : 'border-gray-300'} rounded-3xl min-h-100 transition-colors`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <div className="flex flex-col items-center text-center pointer-events-none">
                   <div className="w-16 h-16 bg-[#FFF8ED] rounded-full flex items-center justify-center mb-4">
                     <CloudUploadIcon />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{isUploading ? 'Mengupload...' : 'Drag and drop files here'}</h3>
                   <p className="text-gray-500 mb-8 font-medium">Support for PDF, JPG, PNG (Max 10MB)</p>
                   {uploadError && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium pointer-events-auto">
                       {uploadError}
                     </div>
                   )}
-                  <label className="px-8 py-2.5 rounded-lg bg-[#963F71] hover:bg-[#7a325b] text-white font-bold border-2 border-gray-900 shadow-sm transition-colors cursor-pointer">
+                  <label className="px-8 py-2.5 rounded-lg bg-[#963F71] hover:bg-[#7a325b] text-white font-bold border-2 border-gray-900 shadow-sm transition-colors cursor-pointer pointer-events-auto">
                     {isUploading ? 'Mengupload...' : 'Pilih File'}
                     <input
                       type="file"
