@@ -64,7 +64,7 @@ const PemasukanPage = () => {
 
   // Allocation validation
   const totalAlokasi = kebutuhanPrimer + kebutuhanSekunder + danaDarurat + (isTabunganActive ? alokasiTabungan : 0);
-  const isOverAllocated = nominalPemasukan > 0 && totalAlokasi > nominalPemasukan;
+  const isMismatch = nominalPemasukan > 0 && totalAlokasi !== nominalPemasukan;
   const sisaAlokasi = nominalPemasukan - totalAlokasi;
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -88,8 +88,8 @@ const PemasukanPage = () => {
       setSubmitError('Nominal pemasukan harus lebih dari 0.');
       return;
     }
-    if (isOverAllocated) {
-      setSubmitError(`Total alokasi (Rp${formatRupiah(totalAlokasi)}) melebihi nominal pemasukan (Rp${formatRupiah(nominalPemasukan)}). Harap sesuaikan.`);
+    if (totalAlokasi !== nominalPemasukan) {
+      setSubmitError(`Total alokasi (Rp${formatRupiah(totalAlokasi)}) harus persis sama dengan nominal pemasukan (Rp${formatRupiah(nominalPemasukan)}). Selisih: Rp${formatRupiah(Math.abs(sisaAlokasi))}`);
       return;
     }
 
@@ -353,7 +353,7 @@ const PemasukanPage = () => {
                       {/* Alokasi Tabungan */}
                       <div>
                         <label htmlFor="alokasi_tabungan" className="block text-sm font-bold text-gray-900 mb-2">
-                          Alokasi Tabungan
+                          Alokasi Tabungan <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -391,26 +391,28 @@ const PemasukanPage = () => {
                 {/* Allocation Summary */}
                 {nominalPemasukan > 0 && (
                   <div className={`p-4 rounded-xl border-2 transition-colors ${
-                    isOverAllocated 
+                    isMismatch 
                       ? 'bg-red-50 border-red-200' 
                       : 'bg-green-50 border-green-200'
                   }`}>
                     <div className="flex justify-between items-center text-sm font-bold">
                       <span className="text-gray-700">Total Alokasi</span>
-                      <span className={isOverAllocated ? 'text-red-600' : 'text-green-600'}>
+                      <span className={isMismatch ? 'text-red-600' : 'text-green-600'}>
                         Rp{formatRupiah(totalAlokasi)} / Rp{formatRupiah(nominalPemasukan)}
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                       <div 
-                        className={`h-2 rounded-full transition-all duration-500 ${isOverAllocated ? 'bg-red-500' : 'bg-green-500'}`}
+                        className={`h-2 rounded-full transition-all duration-500 ${totalAlokasi > nominalPemasukan ? 'bg-red-500' : (totalAlokasi === nominalPemasukan ? 'bg-green-500' : 'bg-orange-400')}`}
                         style={{ width: `${Math.min((totalAlokasi / nominalPemasukan) * 100, 100)}%` }}
                       />
                     </div>
-                    <p className={`text-xs mt-1.5 font-medium ${isOverAllocated ? 'text-red-600' : 'text-green-600'}`}>
-                      {isOverAllocated 
+                    <p className={`text-xs mt-1.5 font-medium ${isMismatch ? 'text-red-600' : 'text-green-600'}`}>
+                      {totalAlokasi > nominalPemasukan 
                         ? `⚠️ Melebihi Rp${formatRupiah(Math.abs(sisaAlokasi))}` 
-                        : `✅ Sisa Rp${formatRupiah(sisaAlokasi)}`
+                        : (totalAlokasi < nominalPemasukan 
+                            ? `⚠️ Sisa Rp${formatRupiah(sisaAlokasi)} belum dialokasikan`
+                            : `✅ Seluruh dana telah dialokasikan`)
                       }
                     </p>
                   </div>
@@ -427,7 +429,7 @@ const PemasukanPage = () => {
                   </button>
                   <button
                     type="submit"
-                    disabled={isSubmitting || isOverAllocated}
+                    disabled={isSubmitting || isMismatch}
                     className="px-6 py-2.5 rounded-lg bg-[#8C3A7A] hover:bg-[#702e5c] text-white font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8C3A7A] focus:ring-offset-2 transition-colors disabled:opacity-60"
                   >
                     {isSubmitting ? 'Menyimpan...' : 'Save'}

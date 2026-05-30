@@ -105,3 +105,9 @@
 - Modified `src/pages/PemasukanPage.jsx` - Mengembalikan toggle `isTabunganActive` dan merestorasi *state* `kebutuhanPrimer` dll yang sempat hilang.
 - Modified `src/pages/PemasukanPage.jsx` - Memastikan variabel `is_saving_active` dikirim kembali di *payload* agar *backend* tidak me-reset nilai alokasi tabungan menjadi 0.
 - Database Manual Fix - Memperbaiki dua row `incomes` lama dan menambah nilai tabungan di `budget_allocations` sebesar 2.050.000 untuk sinkronisasi nilai Asset vs Budget.
+
+### FASE 6.1: Validasi API Pemasukan (Backend & Frontend)
+- Modified `src/pages/PemasukanPage.jsx` - Menambahkan indikator bintang (*) wajib pada label Alokasi Tabungan ketika opsi tabungan diaktifkan.
+- Modified Backend `income.schema.ts` - Memperkuat validasi Zod untuk API `/incomes`. Sekarang backend akan menolak pemasukan (400 Bad Request) jika total alokasi melebihi nominal pemasukan, atau jika tabungan diaktifkan tetapi alokasi tabungannya 0.
+- Modified Backend `income.schema.ts` & `income.service.ts` - Mengubah logika validasi agar total alokasi harus **persis sama (mutlak)** dengan nominal pemasukan agar data lebih presisi dan tidak ada "uang nganggur".
+- Modified Frontend `PemasukanPage.jsx` - Menyesuaikan indikator *progress bar* di halaman Pemasukan untuk menuntut pengguna mendistribusikan 100% dananya, memblokir pengiriman (*submit*) jika ada sisa, beserta perubahan *alert* status.
