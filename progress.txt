@@ -111,3 +111,12 @@
 - Modified `src/pages/TabunganPage.jsx` - Fetch data asli dari `financeApi.listSavingGoals()` untuk menggantikan data dummy.
 - Modified `src/pages/TabunganPage.jsx` - Menghitung "Total Saldo Tabungan" dinamis berdasarkan *budget allocation* yang belum ditransfer.
 - Modified `src/pages/TabunganPage.jsx` - Menghubungkan fungsi *Delete* tabungan ke backend API beserta *state refresh*.
+
+### FASE 8: Integrasi API Catat Tabungan & Hotfix Backend
+- Modified `src/pages/CatatTabunganPage.jsx` - Mengintegrasikan fungsi Tambah & Kurang (withdraw) ke `financeApi.addMoney`.
+- Modified `src/pages/CatatTabunganPage.jsx` - Menambahkan UI validasi "Wadah Pecah" (Top-up dilarang melebihi target) dan pencegah tarik dana berlebih.
+- Modified `src/api/finance.js` - Mengupdate endpoint `addMoney` agar menerima parameter `note` (keterangan).
+- Modified Backend `saving-goal.service.ts` - Menambahkan kapabilitas transaksi minus (tarik tunai) serta validasi *over-target*.
+- Modified Backend `saving-goal.service.ts` - Modifikasi `deleteSavingGoal` untuk me-refund `currentAmount` ke `spentTabungan` menggunakan Prisma Transaction.
+- Database Manual Fix - Menjalankan script `sync-spent-tabungan.js` untuk mengembalikan saldo yang hilang karena container docker belum di-rebuild.
+- System - Me-rebuild dan merestart kontainer docker `fst-finance-service` agar semua update service dapat berjalan di lokal.

@@ -70,6 +70,6 @@ export const financeApi = {
   deleteSavingGoal: (id) =>
     api.delete(`/api/finance/saving-goals/${id}`),
 
-  addMoney: (id, amount) =>
-    api.post(`/api/finance/saving-goals/${id}/add-money`, { amount }),
+  addMoney: (id, amount, note) =>
+    api.post(`/api/finance/saving-goals/${id}/add-money`, { amount, note }),
 };
