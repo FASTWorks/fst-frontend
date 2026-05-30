@@ -33,6 +33,7 @@ const UploadPage = () => {
   const [saveSuccess, setSaveSuccess] = useState('');
   const [receiptId, setReceiptId] = useState(null);
   const [isDragActive, setIsDragActive] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
 
   // State untuk data ekstraksi
   const [storeName, setStoreName] = useState('Baji Cafe Store');
@@ -79,6 +80,7 @@ const UploadPage = () => {
     setUploadError('');
 
     try {
+      setUploadedImageUrl(URL.createObjectURL(file));
       const formData = new FormData();
       formData.append('image', file); // Backend expects 'image'
       
@@ -304,22 +306,17 @@ const UploadPage = () => {
                   
                   {/* Left Side: Receipt Preview */}
                   <div className="w-full md:w-1/2 bg-[#F4F5F6] p-8 flex items-center justify-center border-r border-gray-200 min-h-100">
-                    <div className="bg-white p-6 shadow-md w-64 text-xs font-mono text-gray-800">
-                      <h4 className="text-center font-bold text-sm mb-1">BAJI CAFE STORE</h4>
-                      <p className="text-center text-[10px] text-gray-500 mb-4">Jl. Gacor No. 40 Hehew</p>
-                      <div className="border-b border-dashed border-gray-300 mb-4"></div>
-                      <div className="space-y-3 mb-4">
-                        <div className="flex justify-between"><span className="w-24">Avocado Toast</span><span>Rp 10.000</span></div>
-                        <div className="flex justify-between"><span className="w-24">Baji Creamy Latte</span><span>Rp 10.000</span></div>
-                        <div className="flex justify-between"><span className="w-24">Baji Avocado</span><span>Rp 10.000</span></div>
+                    {uploadedImageUrl ? (
+                      <div className="w-full h-full max-h-[600px] flex items-center justify-center bg-white rounded-xl shadow-sm overflow-hidden p-2">
+                        <img 
+                          src={uploadedImageUrl} 
+                          alt="Uploaded Receipt" 
+                          className="max-w-full max-h-full object-contain rounded-lg"
+                        />
                       </div>
-                      <div className="border-b border-dashed border-gray-300 mb-4"></div>
-                      <div className="flex justify-between font-bold text-sm mb-6">
-                        <span>TOTAL</span><span>Rp 30.000</span>
-                        </div>
-                      <div className="bg-gray-100 h-8 rounded mb-2"></div>
-                      <p className="text-center text-[8px] text-gray-400">01/01/2026 - 12:00 AM</p>
-                    </div>
+                    ) : (
+                      <div className="text-gray-400 font-medium">Image preview not available</div>
+                    )}
                   </div>
 
                   {/* Right Side: Form Data */}
