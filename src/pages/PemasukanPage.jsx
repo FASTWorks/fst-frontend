@@ -265,7 +265,7 @@ const PemasukanPage = () => {
                 {/* Aktifkan Tabungan Toggle */}
                 <div>
                   <label className="block text-sm font-bold text-gray-900 mb-2">
-                    Aktifkan Tabungan<span className="text-red-500">*</span>
+                    Aktifkan Kantong Tabungan Utama<span className="text-red-500">*</span>
                   </label>
                   <div className="flex gap-2">
                     <button
@@ -353,7 +353,7 @@ const PemasukanPage = () => {
                       {/* Alokasi Tabungan */}
                       <div>
                         <label htmlFor="alokasi_tabungan" className="block text-sm font-bold text-gray-900 mb-2">
-                          Alokasi Tabungan
+                          Alokasi Kantong Tabungan Utama
                         </label>
                         <input
                           type="text"
@@ -369,7 +369,7 @@ const PemasukanPage = () => {
                       {/* Pilih Tabungan Tujuan */}
                       <div className="md:col-span-2">
                         <label htmlFor="pilih_tabungan" className="block text-sm font-bold text-gray-900 mb-2">
-                          Tabungan Tujuan
+                          Kantong Tabungan Utama Tujuan
                         </label>
                         <select
                           id="pilih_tabungan"
@@ -378,7 +378,7 @@ const PemasukanPage = () => {
                           onChange={(e) => setSelectedTabunganId(e.target.value)}
                           className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 bg-white"
                         >
-                          <option value="default">Total Saldo Tabungan (Default)</option>
+                          <option value="default">Kantong Tabungan Utama (Default)</option>
                           {tabunganList.map(t => (
                             <option key={t.id} value={t.id}>{t.goalName}</option>
                           ))}

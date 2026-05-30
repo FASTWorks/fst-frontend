@@ -49,7 +49,7 @@ const BuatTabunganPage = () => {
         goal_name: namaTabungan,
         target_amount: targetTabungan
       });
-      setSuccess('Tabungan berhasil dibuat!');
+      setSuccess('Kantong Tabungan Utama berhasil dibuat!');
       setTimeout(() => navigate('/tabungan'), 1500);
     } catch (err) {
       setError(err.response?.data?.message || 'Gagal membuat tabungan.');
@@ -138,7 +138,7 @@ const BuatTabunganPage = () => {
             
             {/* Title Section */}
             <div className="mb-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Tabungan</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Kantong Tabungan Utama</h2>
               <p className="text-gray-500 text-sm md:text-base">
                 Isi form berikut untuk membuat tabungan baru
               </p>
@@ -147,7 +147,7 @@ const BuatTabunganPage = () => {
             {/* Dashed Form Container */}
             <div className="flex-1 border-2 border-dashed border-gray-300 rounded-3xl p-6 md:p-12 flex flex-col items-center">
               
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Buat Tabungan</h3>
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Buat Kantong Tabungan Utama</h3>
 
               <form className="w-full max-w-xl" onSubmit={handleSubmit}>
 
@@ -166,11 +166,11 @@ const BuatTabunganPage = () => {
                 {/* Nama Tabungan */}
                 <div className="mb-6">
                   <label className="block text-sm font-bold text-gray-900 mb-2">
-                    Nama Tabungan <span className="text-red-500">*</span>
+                    Nama Kantong Tabungan Utama <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    placeholder="Tabungan Pernikahan"
+                    placeholder="Dana Pernikahan"
                     value={namaTabungan}
                     onChange={(e) => {
                       if (e.target.value.length <= 38) {
@@ -190,7 +190,7 @@ const BuatTabunganPage = () => {
                 {/* Target Tabungan (Dengan Prefix "Rp" Statis) */}
                 <div className="mb-6">
                   <label className="block text-sm font-bold text-gray-900 mb-2">
-                    Target Tabungan <span className="text-red-500">*</span>
+                    Target Kantong Tabungan Utama <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-3 text-gray-500 font-medium pointer-events-none">

@@ -29,6 +29,19 @@ const PengeluaranPage = () => {
   const [items, setItems] = useState([
     { id: Date.now(), name: '', qty: 1, price: 0 },
   ]);
+  const [budgetData, setBudgetData] = useState(null);
+
+  React.useEffect(() => {
+    const fetchBudget = async () => {
+      try {
+        const res = await financeApi.getBudgetSummary();
+        setBudgetData(res.data?.data?.categories || null);
+      } catch (err) {
+        console.error("Gagal memuat budget summary:", err);
+      }
+    };
+    fetchBudget();
+  }, []);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -66,6 +79,49 @@ const PengeluaranPage = () => {
     e.preventDefault();
     setSubmitError('');
     setSubmitSuccess('');
+
+    if (!storeName.trim()) {
+      setSubmitError('Nama Store wajib diisi.');
+      return;
+    }
+
+    if (!date) {
+      setSubmitError('Tanggal wajib diisi.');
+      return;
+    }
+
+    const selectedYear = new Date(date).getFullYear();
+    const currentYear = new Date().getFullYear();
+    if (selectedYear !== currentYear) {
+      setSubmitError(`Sistem hanya menerima transaksi untuk tahun berjalan (${currentYear}).`);
+      return;
+    }
+
+    const totalExpense = calculateTotal();
+    if (totalExpense <= 0) {
+      setSubmitError('Total pengeluaran harus lebih dari 0.');
+      return;
+    }
+
+    // Category Balance Validation
+    if (budgetData) {
+      const categoryMap = {
+        'kebutuhan_primer': budgetData.kebutuhan_primer,
+        'kebutuhan_sekunder': budgetData.kebutuhan_sekunder,
+        'dana_darurat': budgetData.dana_darurat,
+        'tabungan': budgetData.tabungan,
+      };
+      
+      const selectedBudget = categoryMap[category];
+      if (selectedBudget) {
+        const available = selectedBudget.allocated - selectedBudget.spent;
+        if (totalExpense > available) {
+          setSubmitError(`Saldo pada kategori yang dipilih tidak mencukupi. Sisa saldo: Rp${new Intl.NumberFormat('id-ID').format(available)}`);
+          return;
+        }
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -79,7 +135,15 @@ const PengeluaranPage = () => {
             name: item.name,
             source: 'manual',
             parent_category: category,
-            transaction_date: new Date(date).toISOString(),
+            transaction_date: (() => {
+              const selectedDate = new Date(date);
+              const today = new Date();
+              if (selectedDate.getFullYear() === today.getFullYear() && selectedDate.getMonth() === today.getMonth() && selectedDate.getDate() === today.getDate()) {
+                return today.toISOString();
+              }
+              selectedDate.setHours(23, 59, 59);
+              return selectedDate.toISOString();
+            })(),
             note: storeName ? `Dari ${storeName}` : undefined,
           })
         );
@@ -259,7 +323,7 @@ const PengeluaranPage = () => {
                         <option value="kebutuhan_primer">Kebutuhan Primer</option>
                         <option value="kebutuhan_sekunder">Kebutuhan Sekunder</option>
                         <option value="dana_darurat">Dana Darurat</option>
-                        <option value="tabungan">Tabungan</option>
+                        <option value="tabungan">Kantong Tabungan Utama</option>
                       </select>
                     </div>
 

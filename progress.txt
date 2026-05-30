@@ -138,3 +138,12 @@
 - Modified `src/pages/CatatTabunganPage.jsx` - Menerapkan validasi dinamis agar nominal penambahan tidak bisa melebihi target tabungan dan keterangan dibatasi maksimal 15 karakter dengan *live counter*.
 - Modified `src/pages/CatatTabunganPage.jsx` - Menambahkan proteksi *frontend* dengan mem-*fetch* sisa *budget* agar saldo "Total Saldo Tabungan" tidak minus saat menambah dana tabungan.
 - Modified Backend `saving-goal.service.ts` - Membangun validasi lapis kedua (*backend security*) untuk memblokir transaksi penambahan tabungan apabila melebihi sisa *budget* yang dialokasikan, guna menjamin "Total Saldo Tabungan" tidak pernah minus.
+
+### FASE 11: Penyesuaian UI & Bug Fix Analytics
+- Modified `src/pages/` - Mengubah semua UI label dari "Tabungan" dan "Total Saldo Tabungan" menjadi "Kantong Tabungan Utama" secara global, termasuk pada dashboard, menu sidebar, halaman pemasukan, pengeluaran, serta form edit dan catat.
+- Modified Backend `dashboard.service.ts` - Memperbarui `getFinancialHealth` agar kalkulasi skor didasarkan pada proporsi Budget Allocation bulan ini (ideal 40/30/20/10) bukan sisa tabungan murni.
+- Modified Backend `dashboard.service.ts` - Memperbaiki `getRecentTransactions` agar `parentCategory` dipertimbangkan bila `subCategory` tidak tersedia, sehingga pengeluaran via kategori utama tetap tercatat dan dikembalikan ke list transaksi dashboard.
+- Modified `src/pages/DashboardPage.jsx` - Menampilkan Skor Kesehatan Finansial secara dinamis dengan feedback yang berasal langsung dari data backend, dan menampilkan perubahan persentase Aset dinamis secara real-time.
+- Modified `src/pages/PengeluaranPage.jsx` - Memperbaiki manipulasi zona waktu (timezone) pada `transaction_date` untuk menjaga agar transaksi baru pada tanggal hari ini selalu mendapatkan stamp waktu terkini, sehingga menempati urutan teratas pada log transaksi alih-alih tenggelam karena terhitung sebagai 00:00:00.
+- Modified `src/pages/ *Page.jsx` - Merevisi (revert) menu sidebar agar kembali menggunakan teks 'Tabungan' sesuai permintaan user, sementara halaman dan komponen lain tetap 'Kantong Tabungan Utama'.
+- Modified Backend `dashboard.service.ts` - Memperbaiki kalkulasi skor kesehatan finansial dengan meningkatkan penalti untuk bar yang 0 (perbedaan alokasi), agar skor benar-benar merespons proporsi 40/30/20/10 dengan akurat.

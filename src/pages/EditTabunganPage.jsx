@@ -29,7 +29,7 @@ const EditTabunganPage = () => {
         const goal = data.data.find(g => g.id === id);
         
         if (!goal) {
-          setError('Tabungan tidak ditemukan.');
+          setError('Kantong Tabungan Utama tidak ditemukan.');
           return;
         }
 
@@ -161,7 +161,7 @@ const EditTabunganPage = () => {
 
             {/* Title Section */}
             <div className="mb-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Edit Tabungan</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Edit Kantong Tabungan Utama</h2>
               <p className="text-gray-500 text-sm md:text-base">
                 Isi form berikut untuk mengedit tabunganmu. Pastikan semua informasi yang dimasukkan benar sebelum menyimpan perubahan.
               </p>
@@ -170,7 +170,7 @@ const EditTabunganPage = () => {
             {/* Dashed Form Container */}
             <div className="flex-1 border-2 border-dashed border-gray-300 rounded-3xl p-6 md:p-12 flex flex-col items-center">
               
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Edit Tabungan</h3>
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Edit Kantong Tabungan Utama</h3>
 
               {isLoading ? (
                 <div className="py-20 text-center text-gray-400 font-bold animate-pulse">
@@ -188,11 +188,11 @@ const EditTabunganPage = () => {
                   {/* Nama Tabungan */}
                   <div className="mb-6">
                     <label className="block text-sm font-bold text-gray-900 mb-2">
-                    Nama Tabungan <span className="text-red-500">*</span>
+                    Nama Kantong Tabungan Utama <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    placeholder="Tabungan Pernikahan"
+                    placeholder="Dana Pernikahan"
                     value={namaTabungan}
                     onChange={(e) => {
                       if (e.target.value.length <= 38) {
@@ -212,7 +212,7 @@ const EditTabunganPage = () => {
                 {/* Target Tabungan (Dengan Prefix "Rp" Statis) */}
                 <div className="mb-6">
                   <label className="block text-sm font-bold text-gray-900 mb-2">
-                    Target Tabungan <span className="text-red-500">*</span>
+                    Target Kantong Tabungan Utama <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-3 text-gray-500 font-medium pointer-events-none">

@@ -96,6 +96,7 @@ const DashboardPage = () => {
   
   const healthScore = summary?.financialHealth?.score || 0;
   const healthStatus = summary?.financialHealth?.status || 'BELUM ADA DATA';
+  const healthMessage = summary?.financialHealth?.message || 'Buat budget alokasi dana agar kesehatan finansialmu dapat dihitung.';
 
   // Target income dinamis: Kelipatan 10 juta (minimal 10 juta) agar bar bisa bertahap penuh
   const incomeTarget = Math.max(Math.ceil(totalIncome / 10000000) * 10000000, 10000000);
@@ -356,7 +357,7 @@ const DashboardPage = () => {
               <h3 className="text-3xl font-bold mb-6">Rp {new Intl.NumberFormat('id-ID').format(totalAsset)}</h3>
               <div className="inline-flex items-center bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium">
                 <TrendingUpIcon />
-                <span className="ml-1">+12.5% dari bulan lalu</span>
+                <span className="ml-1">{summary?.asset?.percentageChange >= 0 ? '+' : ''}{summary?.asset?.percentageChange || 0}% dari bulan lalu</span>
               </div>
             </div>
 
@@ -507,14 +508,14 @@ const DashboardPage = () => {
                   <div className="flex justify-between text-xs mb-1">
                     <span className="font-semibold text-gray-700">Kebutuhan Primer</span>
                     <span className="text-gray-500 font-medium">
-                      {formatRupiah(summary?.budgetAllocation?.allocKebutuhanPrimer || 0)}
+                      {formatRupiah((summary?.budgetAllocation?.allocKebutuhanPrimer || 0) - (summary?.budgetAllocation?.spentKebutuhanPrimer || 0))}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div 
                       className="h-2 rounded-full transition-all duration-500 bg-[#FFAD2D]"
                       style={{ 
-                        width: `${Math.min(100, ((summary?.budgetAllocation?.allocKebutuhanPrimer || 0) / (summary?.income?.total || 1)) * 100)}%` 
+                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.allocKebutuhanPrimer || 0) - (summary?.budgetAllocation?.spentKebutuhanPrimer || 0)) / (summary?.budgetAllocation?.allocKebutuhanPrimer || 1)) * 100))}%` 
                       }}
                     ></div>
                   </div>
@@ -525,14 +526,14 @@ const DashboardPage = () => {
                   <div className="flex justify-between text-xs mb-1">
                     <span className="font-semibold text-gray-700">Kebutuhan Sekunder</span>
                     <span className="text-gray-500 font-medium">
-                      {formatRupiah(summary?.budgetAllocation?.allocKebutuhanSekunder || 0)}
+                      {formatRupiah((summary?.budgetAllocation?.allocKebutuhanSekunder || 0) - (summary?.budgetAllocation?.spentKebutuhanSekunder || 0))}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div 
                       className="h-2 rounded-full transition-all duration-500 bg-[#8C3A7A]"
                       style={{ 
-                        width: `${Math.min(100, ((summary?.budgetAllocation?.allocKebutuhanSekunder || 0) / (summary?.income?.total || 1)) * 100)}%` 
+                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.allocKebutuhanSekunder || 0) - (summary?.budgetAllocation?.spentKebutuhanSekunder || 0)) / (summary?.budgetAllocation?.allocKebutuhanSekunder || 1)) * 100))}%` 
                       }}
                     ></div>
                   </div>
@@ -543,14 +544,14 @@ const DashboardPage = () => {
                   <div className="flex justify-between text-xs mb-1">
                     <span className="font-semibold text-gray-700">Dana Darurat</span>
                     <span className="text-gray-500 font-medium">
-                      {formatRupiah(summary?.budgetAllocation?.allocDanaDarurat || 0)}
+                      {formatRupiah((summary?.budgetAllocation?.allocDanaDarurat || 0) - (summary?.budgetAllocation?.spentDanaDarurat || 0))}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div 
                       className="h-2 rounded-full bg-green-500 transition-all duration-500"
                       style={{ 
-                        width: `${Math.min(100, ((summary?.budgetAllocation?.allocDanaDarurat || 0) / (summary?.income?.total || 1)) * 100)}%` 
+                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.allocDanaDarurat || 0) - (summary?.budgetAllocation?.spentDanaDarurat || 0)) / (summary?.budgetAllocation?.allocDanaDarurat || 1)) * 100))}%` 
                       }}
                     ></div>
                   </div>
@@ -559,16 +560,16 @@ const DashboardPage = () => {
                 {/* Tabungan */}
                 <div>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="font-semibold text-gray-700">Tabungan</span>
+                    <span className="font-semibold text-gray-700">Kantong Tabungan Utama</span>
                     <span className="text-gray-500 font-medium">
-                      {formatRupiah(summary?.budgetAllocation?.allocTabungan || 0)}
+                      {formatRupiah((summary?.budgetAllocation?.allocTabungan || 0) - (summary?.budgetAllocation?.spentTabungan || 0))}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div 
                       className="h-2 rounded-full bg-blue-500 transition-all duration-500"
                       style={{ 
-                        width: `${Math.min(100, ((summary?.budgetAllocation?.allocTabungan || 0) / (summary?.income?.total || 1)) * 100)}%` 
+                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.allocTabungan || 0) - (summary?.budgetAllocation?.spentTabungan || 0)) / (summary?.budgetAllocation?.allocTabungan || 1)) * 100))}%` 
                       }}
                     ></div>
                   </div>
@@ -591,7 +592,7 @@ const DashboardPage = () => {
                 </div>
               </div>
               <p className="text-xs text-gray-500 leading-relaxed px-4">
-                Bagus! Kamu berada di jalur yang benar untuk mencapai tujuan tabunganmu.
+                {healthMessage}
               </p>
             </div>
             </div>
@@ -671,7 +672,7 @@ const DashboardPage = () => {
                       iconColor = isDeposit ? 'text-blue-600' : 'text-orange-600';
                       amountColor = isDeposit ? 'text-blue-600' : 'text-orange-600';
                       sign = isDeposit ? '+' : '-';
-                      displayCategory = 'Tabungan';
+                      displayCategory = 'Kantong Tabungan Utama';
                     } else {
                       icon = <WalletIcon />;
                       iconBg = 'bg-gray-100';
