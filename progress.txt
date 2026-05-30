@@ -127,3 +127,10 @@
 - Modified `src/pages/DashboardPage.jsx` - Menambahkan format waktu yang lebih detail (jam & menit) beserta UI catatan (note) transaksi yang rapi.
 - Modified Backend `dashboard.service.ts` - Memperbaiki *analytics service* agar memasukkan *field* `note` saat me- *return* daftar riwayat transaksi terbaru.
 - System - Me-rebuild dan merestart kontainer docker `fst-analytics-service` agar payload transaksi menyertakan keterangan.
+
+### FASE 10: Integrasi API Edit Tabungan & Validasi Bisnis
+- Modified `src/pages/EditTabunganPage.jsx` - Mengintegrasikan API `getSavingGoals` untuk auto-fill data dan `updateSavingGoal` untuk menyimpan perubahan target dan nama.
+- Modified `src/pages/EditTabunganPage.jsx` - Menyesuaikan UI agar sesuai dengan flow MVP (menghilangkan *Nabung Otomatis* dan mengembalikan desain *dashed-container* yang elegan).
+- Modified `src/pages/EditTabunganPage.jsx` & `BuatTabunganPage.jsx` - Menambahkan validasi ketat batas panjang nama tabungan (maks 38 karakter) disertai indikator sisa karakter.
+- Modified `src/pages/EditTabunganPage.jsx` & `BuatTabunganPage.jsx` - Menambahkan pembatasan maksimal saldo target tabungan hingga 1 Miliar Rupiah secara *real-time*.
+- Fix Frontend `EditTabunganPage.jsx` - Menyesuaikan nama parameter API payload dari *camelCase* (`goalName`) ke *snake_case* (`goal_name`) sesuai *schema* API Backend agar data tersimpan dengan benar.

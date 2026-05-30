@@ -1,20 +1,76 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { financeApi } from '@/api/finance';
 
 const CloseIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>;
 const LogoutIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>;
 const MenuIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>;
 
 const EditTabunganPage = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // --- Form States ---
   const [namaTabungan, setNamaTabungan] = useState('');
   const [targetTabungan, setTargetTabungan] = useState(0);
-  const [nabungPeriod, setNabungPeriod] = useState('minggu'); // 'minggu' | 'bulan'
-  const [nabungNominal, setNabungNominal] = useState(0);
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState(null);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  // Fetch Saving Goal
+  useEffect(() => {
+    const fetchGoal = async () => {
+      try {
+        const { data } = await financeApi.listSavingGoals();
+        const goal = data.data.find(g => g.id === id);
+        
+        if (!goal) {
+          setError('Tabungan tidak ditemukan.');
+          return;
+        }
+
+        setNamaTabungan(goal.goalName);
+        setTargetTabungan(goal.targetAmount);
+      } catch (err) {
+        setError(err?.response?.data?.message || 'Gagal mengambil data tabungan');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    if (id) fetchGoal();
+  }, [id]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!namaTabungan || targetTabungan <= 0) {
+      setError('Mohon lengkapi nama dan target tabungan.');
+      return;
+    }
+    
+    if (targetTabungan > 1000000000) {
+      setError('Target tabungan maksimal adalah Rp1.000.000.000 (1 Miliar).');
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      await financeApi.updateSavingGoal(id, {
+        goal_name: namaTabungan,
+        target_amount: targetTabungan
+      });
+      navigate('/tabungan');
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Gagal menyimpan perubahan');
+      setIsSaving(false);
+    }
+  };
 
   // Data Navigasi Sidebar (Label format lowercase untuk href)
   const navLinks = [
@@ -94,6 +150,15 @@ const EditTabunganPage = () => {
         <main className="p-4 md:p-8 flex-1">
           <div className="max-w-4xl mx-auto flex flex-col h-full">
             
+            {/* Tombol Back */}
+            <Link 
+              to="/tabungan"
+              className="inline-flex items-center text-sm font-bold text-gray-500 hover:text-gray-900 mb-6 transition-colors"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+              Kembali
+            </Link>
+
             {/* Title Section */}
             <div className="mb-8">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Edit Tabungan</h2>
@@ -107,20 +172,41 @@ const EditTabunganPage = () => {
               
               <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Edit Tabungan</h3>
 
-              <form className="w-full max-w-xl" onSubmit={(e) => e.preventDefault()}>
-                
-                {/* Nama Tabungan */}
-                <div className="mb-6">
-                  <label className="block text-sm font-bold text-gray-900 mb-2">
+              {isLoading ? (
+                <div className="py-20 text-center text-gray-400 font-bold animate-pulse">
+                  Memuat data tabungan...
+                </div>
+              ) : (
+                <form className="w-full max-w-xl" onSubmit={handleSubmit}>
+                  
+                  {error && (
+                    <div className="mb-6 p-4 bg-red-50 text-red-700 border border-red-200 rounded-xl text-sm font-medium">
+                      {error}
+                    </div>
+                  )}
+
+                  {/* Nama Tabungan */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-bold text-gray-900 mb-2">
                     Nama Tabungan <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     placeholder="Tabungan Pernikahan"
                     value={namaTabungan}
-                    onChange={(e) => setNamaTabungan(e.target.value)}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 38) {
+                        setNamaTabungan(e.target.value);
+                      }
+                    }}
+                    maxLength={38}
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700"
                   />
+                  <div className="flex justify-end mt-1">
+                    <span className={`text-xs font-medium ${namaTabungan.length === 38 ? 'text-orange-500' : 'text-gray-400'}`}>
+                      {namaTabungan.length}/38 karakter
+                    </span>
+                  </div>
                 </div>
 
                 {/* Target Tabungan (Dengan Prefix "Rp" Statis) */}
@@ -137,71 +223,25 @@ const EditTabunganPage = () => {
                       placeholder="100.000.000"
                       value={targetTabungan === 0 ? '' : new Intl.NumberFormat('id-ID').format(targetTabungan)}
                       onChange={(e) => {
-                        const rawValue = e.target.value.replace(/[^0-9]/g, '');
-                        setTargetTabungan(Number(rawValue));
+                        let rawValue = e.target.value.replace(/[^0-9]/g, '');
+                        let num = Number(rawValue);
+                        if (num > 1000000000) num = 1000000000;
+                        setTargetTabungan(num);
                       }}
                       className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700"
                     />
                   </div>
+                  <p className="text-xs text-gray-500 mt-2 font-medium">
+                    Maksimal target tabungan: Rp1.000.000.000 (1 Miliar).
+                  </p>
                 </div>
 
-                {/* Nabung Otomatis Section */}
-                <div className="mb-8">
-                  <label className="block text-sm font-bold text-gray-900 mb-2">
-                    Nabung Otomatis <span className="text-red-500">**</span>
-                  </label>
-                  
-                  {/* Toggle Per Minggu / Per Bulan */}
-                  <div className="flex gap-2 mb-3">
-                    <button
-                      type="button"
-                      onClick={() => setNabungPeriod('minggu')}
-                      className={`flex-1 py-2 rounded-full text-sm font-bold border transition-colors ${
-                        nabungPeriod === 'minggu'
-                          ? 'bg-[#FFAD2D] text-white border-[#FFAD2D]'
-                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      Per Minggu
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setNabungPeriod('bulan')}
-                      className={`flex-1 py-2 rounded-full text-sm font-bold border transition-colors ${
-                        nabungPeriod === 'bulan'
-                          ? 'bg-[#FFAD2D] text-white border-[#FFAD2D]'
-                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      Per Bulan
-                    </button>
-                  </div>
 
-                  {/* Input Nominal Nabung Otomatis */}
-                  <div className="relative">
-                    <span className="absolute left-4 top-3 text-gray-500 font-medium pointer-events-none">
-                      Rp
-                    </span>
-                    <input
-                      type="text"
-                      placeholder="10.000.000"
-                      value={nabungNominal === 0 ? '' : new Intl.NumberFormat('id-ID').format(nabungNominal)}
-                      onChange={(e) => {
-                        const rawValue = e.target.value.replace(/[^0-9]/g, '');
-                        setNabungNominal(Number(rawValue));
-                      }}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700"
-                    />
-                  </div>
-                </div>
 
                 {/* Footnotes */}
                 <div className="mb-8 space-y-1">
                   <p className="text-xs text-gray-700 font-medium">
-                    • Wajib di isi<span className="text-red-500">*</span>
-                  </p>
-                  <p className="text-xs text-gray-700 font-medium">
-                    • Setiap minggu/bulan saldo anda akan otomatis di pindah ke tabungan<span className="text-red-500">**</span>
+                    • Wajib diisi<span className="text-red-500">*</span>
                   </p>
                 </div>
 
@@ -215,13 +255,15 @@ const EditTabunganPage = () => {
                   </Link>
                   <button
                     type="submit"
-                    className="px-8 py-2.5 rounded-xl bg-[#963F71] hover:bg-[#7a325b] text-white font-bold border-2 border-gray-900 shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] transition-transform active:translate-y-0.5 active:shadow-none"
+                    disabled={isSaving}
+                    className="px-8 py-2.5 rounded-xl bg-[#963F71] hover:bg-[#7a325b] text-white font-bold border-2 border-gray-900 shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] transition-transform active:translate-y-0.5 active:shadow-none disabled:opacity-70"
                   >
-                    Save
+                    {isSaving ? 'Menyimpan...' : 'Save'}
                   </button>
                 </div>
 
               </form>
+              )}
             </div>
           </div>
         </main>

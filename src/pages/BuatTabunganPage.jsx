@@ -29,6 +29,17 @@ const BuatTabunganPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!namaTabungan || targetTabungan <= 0) {
+      setError('Mohon lengkapi nama dan target tabungan.');
+      return;
+    }
+    
+    if (targetTabungan > 1000000000) {
+      setError('Target tabungan maksimal adalah Rp1.000.000.000 (1 Miliar).');
+      return;
+    }
+
     setError('');
     setSuccess('');
     setIsSubmitting(true);
@@ -161,9 +172,19 @@ const BuatTabunganPage = () => {
                     type="text"
                     placeholder="Tabungan Pernikahan"
                     value={namaTabungan}
-                    onChange={(e) => setNamaTabungan(e.target.value)}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 38) {
+                        setNamaTabungan(e.target.value);
+                      }
+                    }}
+                    maxLength={38}
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700"
                   />
+                  <div className="flex justify-end mt-1">
+                    <span className={`text-xs font-medium ${namaTabungan.length === 38 ? 'text-orange-500' : 'text-gray-400'}`}>
+                      {namaTabungan.length}/38 karakter
+                    </span>
+                  </div>
                 </div>
 
                 {/* Target Tabungan (Dengan Prefix "Rp" Statis) */}
@@ -180,12 +201,17 @@ const BuatTabunganPage = () => {
                       placeholder="100.000.000"
                       value={targetTabungan === 0 ? '' : new Intl.NumberFormat('id-ID').format(targetTabungan)}
                       onChange={(e) => {
-                        const rawValue = e.target.value.replace(/[^0-9]/g, '');
-                        setTargetTabungan(Number(rawValue));
+                        let rawValue = e.target.value.replace(/[^0-9]/g, '');
+                        let num = Number(rawValue);
+                        if (num > 1000000000) num = 1000000000;
+                        setTargetTabungan(num);
                       }}
                       className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700"
                     />
                   </div>
+                  <p className="text-xs text-gray-500 mt-2 font-medium">
+                    Maksimal target tabungan: Rp1.000.000.000 (1 Miliar).
+                  </p>
                 </div>
 
                 {/* Footnotes */}
