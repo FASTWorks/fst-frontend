@@ -162,7 +162,11 @@
 - System Insight - Mengonfirmasi bahwa selisih Rp 50.000.000 antara **Asset** dan **Status Budget** adalah normal secara logika akuntansi, karena nilai tersebut adalah uang yang sudah "dikunci/ditransfer" ke wadah Saving Goals (Tabungan Pecahan), sehingga mengurangi *Status Budget* namun tetap menjadi bagian dari *Asset*.
 
 ### FASE 15: Integrasi UploadPage AI OCR & Override Kategori
+- Modified Backend `fst-gateway-service`:
+  - Memperbaiki *bug* 502/503 di mana API Gateway secara tidak sengaja merusak *stream* `multipart/form-data` dengan memanggil `fixRequestBody` saat mengunggah gambar struk, yang menyebabkan `Unexpected end of form` di *finance service*.
 - Modified Frontend `UploadPage.jsx`:
+  - Menghapus *hardcode header* `Content-Type: multipart/form-data` di `financeApi.js` agar `axios` dapat menyematkan `boundary` secara otomatis.
+  - Menambahkan kapabilitas interaktif *Drag and Drop* (`onDragOver`, `onDragLeave`, `onDrop`) yang sebelumnya belum aktif.
   - Mengimplementasikan sistem *Polling Async* untuk mengecek status pemrosesan OCR AI di *backend*, sehingga UI tidak mengalami *blocking/error* saat menunggu AI bekerja.
   - Memperbarui `items` array untuk mendukung properti `category` (menarik data `aiParentCategory` hasil tebakan AI).
   - Menambahkan *Dropdown Category Select* pada *UI per-item*, memungkinkan *user* untuk meng-*override* atau mengoreksi kategori yang ditebak AI sebelum melakukan *Save Receipt*.
