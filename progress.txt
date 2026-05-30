@@ -164,6 +164,8 @@
 ### FASE 15: Integrasi UploadPage AI OCR & Override Kategori
 - Modified Backend `fst-gateway-service`:
   - Memperbaiki *bug* 502/503 di mana API Gateway secara tidak sengaja merusak *stream* `multipart/form-data` dengan memanggil `fixRequestBody` saat mengunggah gambar struk, yang menyebabkan `Unexpected end of form` di *finance service*.
+- Modified Backend `fst-ai-service`:
+  - Menerapkan mekanisme *Fallback/Mock Data* pada `llm_service.py` untuk mengantisipasi *HuggingFace Token* yang tidak disetel di lingkungan *development* (`.env.docker`). AI sekarang akan selalu mengembalikan data "Mock Baji Store" yang terstruktur dengan baik.
 - Modified Frontend `UploadPage.jsx`:
   - Menghapus *hardcode header* `Content-Type: multipart/form-data` di `financeApi.js` agar `axios` dapat menyematkan `boundary` secara otomatis.
   - Menambahkan kapabilitas interaktif *Drag and Drop* (`onDragOver`, `onDragLeave`, `onDrop`) yang sebelumnya belum aktif.
