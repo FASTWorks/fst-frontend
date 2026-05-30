@@ -73,9 +73,8 @@ const BuatTabunganPage = () => {
               <CloseIcon />
             </button>
             <div className="w-16 h-16 rounded-xl flex items-center justify-center mb-2">
-              <img src="src/assets/logo/logo-fast-v1-bg-white.svg" alt="FAST Logo" className="w-full h-full object-contain" />
+              <img src="/assets/logo/logo-fast-v1-bg-white.svg" alt="FAST Logo" className="w-full h-full object-contain" />
             </div>
-            <h1 className="text-xl font-bold mt-1 tracking-wide">FAST</h1>
           </div>
           <nav className="space-y-2">
             {navLinks.map((link) => (
@@ -112,7 +111,7 @@ const BuatTabunganPage = () => {
             <button onClick={toggleSidebar} className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-lg">
               <MenuIcon />
             </button>
-            <h2 className="text-lg font-bold text-gray-800 hidden md:block">Halo, {user?.name || 'User'} 👋</h2>
+            <h2 className="text-xl font-bold text-gray-800 hidden md:block">Halo, {user?.name || 'User'} <span className="text-xl md:text-2xl">👋</span></h2>
           </div>
           <div className="flex items-center gap-4">
             <h1 className="text-lg font-bold md:hidden">FAST</h1>

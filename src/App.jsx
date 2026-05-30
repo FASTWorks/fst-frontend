@@ -32,8 +32,8 @@ const App = () => {
           <Route path="/pengeluaran" element={<ProtectedRoute><PengeluaranPage/></ProtectedRoute>}/>
           <Route path="/tabungan" element={<ProtectedRoute><TabunganPage/></ProtectedRoute>}/>
           <Route path="/tabungan/buat" element={<ProtectedRoute><BuatTabunganPage/></ProtectedRoute>}/>
-          <Route path="/tabungan/catat" element={<ProtectedRoute><CatatTabunganPage/></ProtectedRoute>}/>
-          <Route path="/tabungan/edit" element={<ProtectedRoute><EditTabunganPage/></ProtectedRoute>}/>
+          <Route path="/tabungan/catat/:id" element={<ProtectedRoute><CatatTabunganPage/></ProtectedRoute>}/>
+          <Route path="/tabungan/edit/:id" element={<ProtectedRoute><EditTabunganPage/></ProtectedRoute>}/>
           <Route path="/profile" element={<ProtectedRoute><ProfilePage/></ProtectedRoute>}/>
           
           <Route path="*" element={<NotFound/>}/>

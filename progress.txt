@@ -105,3 +105,9 @@
 - Modified `src/pages/PemasukanPage.jsx` - Mengembalikan toggle `isTabunganActive` dan merestorasi *state* `kebutuhanPrimer` dll yang sempat hilang.
 - Modified `src/pages/PemasukanPage.jsx` - Memastikan variabel `is_saving_active` dikirim kembali di *payload* agar *backend* tidak me-reset nilai alokasi tabungan menjadi 0.
 - Database Manual Fix - Memperbaiki dua row `incomes` lama dan menambah nilai tabungan di `budget_allocations` sebesar 2.050.000 untuk sinkronisasi nilai Asset vs Budget.
+
+### FASE 7: Integrasi API Halaman Utama Tabungan
+- Modified `src/App.jsx` - Memperbarui rute `/tabungan/catat` dan `/tabungan/edit` dengan menambahkan parameter dinamis `:id`.
+- Modified `src/pages/TabunganPage.jsx` - Fetch data asli dari `financeApi.listSavingGoals()` untuk menggantikan data dummy.
+- Modified `src/pages/TabunganPage.jsx` - Menghitung "Total Saldo Tabungan" dinamis berdasarkan *budget allocation* yang belum ditransfer.
+- Modified `src/pages/TabunganPage.jsx` - Menghubungkan fungsi *Delete* tabungan ke backend API beserta *state refresh*.
