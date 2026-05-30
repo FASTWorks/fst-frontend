@@ -37,7 +37,6 @@ export const financeApi = {
 
   createReceiptOCR: (formData) =>
     api.post('/api/finance/receipts/ocr', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
       timeout: 60000, // OCR bisa lambat — timeout 60 detik
     }),
 
