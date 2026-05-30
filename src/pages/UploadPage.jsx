@@ -33,6 +33,7 @@ const UploadPage = () => {
   const [saveSuccess, setSaveSuccess] = useState('');
   const [receiptId, setReceiptId] = useState(null);
   const [isDragActive, setIsDragActive] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
 
   // State untuk data ekstraksi
@@ -73,16 +74,23 @@ const UploadPage = () => {
     navigate('/login');
   };
 
-  // OCR Upload handler
-  const handleFileUpload = async (file) => {
+  // File selection handler
+  const handleFileSelect = (file) => {
     if (!file) return;
+    setUploadError('');
+    setSelectedFile(file);
+    setUploadedImageUrl(URL.createObjectURL(file));
+  };
+
+  // OCR Upload handler (triggered by process button)
+  const handleProcessFile = async () => {
+    if (!selectedFile) return;
     setIsUploading(true);
     setUploadError('');
 
     try {
-      setUploadedImageUrl(URL.createObjectURL(file));
       const formData = new FormData();
-      formData.append('image', file); // Backend expects 'image'
+      formData.append('image', selectedFile); // Backend expects 'image'
       
       // 1. Submit for OCR (Async)
       const { data } = await financeApi.createReceiptOCR(formData);
@@ -189,7 +197,7 @@ const UploadPage = () => {
     e.preventDefault();
     setIsDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileUpload(e.dataTransfer.files[0]);
+      handleFileSelect(e.dataTransfer.files[0]);
     }
   };
 
@@ -284,16 +292,53 @@ const UploadPage = () => {
                       {uploadError}
                     </div>
                   )}
-                  <label className="px-8 py-2.5 rounded-lg bg-[#963F71] hover:bg-[#7a325b] text-white font-bold border-2 border-gray-900 shadow-sm transition-colors cursor-pointer pointer-events-auto">
-                    {isUploading ? 'Mengupload...' : 'Pilih File'}
-                    <input
-                      type="file"
-                      accept="image/*,application/pdf"
-                      className="hidden"
-                      disabled={isUploading}
-                      onChange={(e) => handleFileUpload(e.target.files?.[0])}
-                    />
-                  </label>
+                  
+                  {!selectedFile ? (
+                    <label className="px-8 py-2.5 rounded-lg bg-[#963F71] hover:bg-[#7a325b] text-white font-bold border-2 border-gray-900 shadow-sm transition-colors cursor-pointer pointer-events-auto">
+                      Pilih File
+                      <input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        className="hidden"
+                        onChange={(e) => handleFileSelect(e.target.files?.[0])}
+                      />
+                    </label>
+                  ) : (
+                    <div className="flex flex-col items-center gap-4 w-full pointer-events-auto mt-2">
+                      <div className="w-full max-w-sm rounded-xl overflow-hidden shadow-sm border border-gray-200 bg-white p-2">
+                        <img src={uploadedImageUrl} alt="Preview" className="w-full h-48 object-contain rounded-lg" />
+                      </div>
+                      <div className="flex gap-3">
+                        <button 
+                          onClick={() => {
+                            setSelectedFile(null);
+                            setUploadedImageUrl(null);
+                          }}
+                          disabled={isUploading}
+                          className="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-bold hover:bg-gray-50 transition-colors bg-white shadow-sm disabled:opacity-60"
+                        >
+                          Batal
+                        </button>
+                        <button 
+                          onClick={handleProcessFile}
+                          disabled={isUploading}
+                          className="px-6 py-2.5 rounded-lg bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold shadow-sm transition-colors flex items-center gap-2 disabled:opacity-60"
+                        >
+                          {isUploading ? (
+                            <>
+                              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Memproses OCR...
+                            </>
+                          ) : (
+                            'Proses Struk'
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -437,6 +482,16 @@ const UploadPage = () => {
                     {/* Bottom Floating Action Area */}
                     <div className="p-6 bg-white">
                       <div className="bg-[#FFFDF4] border border-[#FDE0B5] rounded-2xl p-5 shadow-sm">
+                        {saveError && (
+                          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
+                            {saveError}
+                          </div>
+                        )}
+                        {saveSuccess && (
+                          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm font-medium">
+                            {saveSuccess}
+                          </div>
+                        )}
                         <div className="flex justify-between items-center mb-6">
                           <span className="text-xl font-bold text-gray-900">TOTAL</span>
                           <span className="text-3xl font-bold text-[#E58C17]">
@@ -445,7 +500,11 @@ const UploadPage = () => {
                         </div>
                         <div className="flex gap-4">
                           <button 
-                            onClick={() => setIsUploaded(false)}
+                            onClick={() => {
+                              setIsUploaded(false);
+                              setSelectedFile(null);
+                              setUploadedImageUrl(null);
+                            }}
                             className="flex-1 py-3 rounded-xl border border-gray-900 text-gray-900 font-bold hover:bg-gray-50 transition-colors bg-white shadow-sm"
                           >
                             DISCARD
