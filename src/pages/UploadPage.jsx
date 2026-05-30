@@ -350,15 +350,13 @@ const UploadPage = () => {
                 <div className="flex flex-col md:flex-row flex-1">
                   
                   {/* Left Side: Receipt Preview */}
-                  <div className="w-full md:w-1/2 bg-[#F4F5F6] p-8 flex items-center justify-center border-r border-gray-200 min-h-100">
+                  <div className="w-full md:w-1/2 bg-gray-900 flex items-center justify-center border-r border-gray-200 min-h-[400px] md:min-h-full">
                     {uploadedImageUrl ? (
-                      <div className="w-full h-full max-h-[600px] flex items-center justify-center bg-white rounded-xl shadow-sm overflow-hidden p-2">
                         <img 
                           src={uploadedImageUrl} 
                           alt="Uploaded Receipt" 
-                          className="max-w-full max-h-full object-contain rounded-lg"
+                          className="w-full h-full object-contain"
                         />
-                      </div>
                     ) : (
                       <div className="text-gray-400 font-medium">Image preview not available</div>
                     )}
