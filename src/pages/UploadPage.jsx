@@ -305,8 +305,8 @@ const UploadPage = () => {
                     </label>
                   ) : (
                     <div className="flex flex-col items-center gap-4 w-full pointer-events-auto mt-2">
-                      <div className="w-full max-w-sm rounded-xl overflow-hidden shadow-sm border border-gray-200 bg-white p-2">
-                        <img src={uploadedImageUrl} alt="Preview" className="w-full h-48 object-contain rounded-lg" />
+                      <div className="w-full max-w-2xl rounded-xl overflow-hidden shadow-md border border-gray-200 bg-gray-900">
+                        <img src={uploadedImageUrl} alt="Preview" className="w-full h-[400px] md:h-[500px] object-contain" />
                       </div>
                       <div className="flex gap-3">
                         <button 
