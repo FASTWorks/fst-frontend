@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { authApi } from '@/api/auth';
@@ -44,6 +44,7 @@ const ProfilePage = () => {
   const [showOldPass, setShowOldPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [isEditingNama, setIsEditingNama] = useState(false);
+  const fileInputRef = useRef(null);
 
   // UI States
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -143,6 +144,40 @@ const ProfilePage = () => {
     }
   };
 
+  // Upload Profile Picture
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Frontend Validation
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      alert('Format file tidak didukung. Gunakan JPG, PNG, atau WEBP.');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) { // 2MB
+      alert('Ukuran file maksimal 2MB.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('picture', file);
+
+    setIsSubmitting(true);
+    try {
+      const { data } = await authApi.updateProfilePicture(formData);
+      const pictureUrl = data.data?.user?.profilePicture || data.data?.pictureUrl;
+      if (pictureUrl) {
+        updateUser({ profilePicture: pictureUrl });
+        setSuccess('Foto profil berhasil diperbarui!');
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Gagal mengupload foto profil.');
+    } finally {
+      setIsSubmitting(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   // Navigasi Sidebar
   const navLinks = [
     { id: 1, label: 'Dashboard', href: '/dashboard', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>, active: false },
@@ -214,7 +249,7 @@ const ProfilePage = () => {
           <div className="flex items-center gap-4">
             <h1 className="text-lg font-bold md:hidden">FAST</h1>
             <div className="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-[#FFAD2D]">
-              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User Avatar" className="w-full h-full object-cover bg-gray-200" />
+              <img src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || 'Felix'}`} alt="User Avatar" className="w-full h-full object-cover bg-gray-200" />
             </div>
           </div>
         </header>
@@ -239,12 +274,24 @@ const ProfilePage = () => {
                 <div className="relative">
                   <div className="w-28 h-28 md:w-32 md:h-32 rounded-full border-4 border-[#FFAD2D] p-1">
                     <img 
-                      src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" 
+                      src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || 'Felix'}`} 
                       alt="Profile Avatar" 
                       className="w-full h-full rounded-full object-cover bg-gray-100"
                     />
                   </div>
-                  <button type="button" className="absolute bottom-0 right-0 bg-[#FFAD2D] hover:bg-[#F29F25] p-2 rounded-full border-2 border-white shadow-sm transition-colors">
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange} 
+                    accept="image/jpeg, image/png, image/webp" 
+                    className="hidden" 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isSubmitting}
+                    className="absolute bottom-0 right-0 bg-[#FFAD2D] hover:bg-[#F29F25] p-2 rounded-full border-2 border-white shadow-sm transition-colors disabled:opacity-60"
+                  >
                     <PencilIcon />
                   </button>
                 </div>

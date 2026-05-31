@@ -204,7 +204,7 @@ const PemasukanPage = () => {
           <div className="w-10 h-10 rounded-full border-2 border-[#FFAD2D] overflow-hidden shrink-0">
             <Link to="/profile" className="w-full h-full block">
               <img 
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Baji" 
+                src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || 'Felix'}`} 
                 alt="Profile Avatar" 
                 className="w-full h-full object-cover bg-gray-100"
               />
