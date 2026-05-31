@@ -127,6 +127,9 @@ const ProfilePage = () => {
 
   // Lupa kata sandi
   const handleForgotPassword = async () => {
+    const isConfirm = window.confirm("Apakah Anda yakin ingin mengirim link reset kata sandi ke email Anda?");
+    if (!isConfirm) return;
+
     setIsSubmitting(true);
     setPasswordError('');
     setPasswordSuccess('');
