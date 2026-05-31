@@ -159,23 +159,28 @@ const ProfilePage = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append('picture', file);
-
-    setIsSubmitting(true);
-    try {
-      const { data } = await authApi.updateProfilePicture(formData);
-      const pictureUrl = data.data?.user?.profilePicture || data.data?.pictureUrl;
-      if (pictureUrl) {
-        updateUser({ profilePicture: pictureUrl });
-        setSuccess('Foto profil berhasil diperbarui!');
+    // Convert to Base64
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+      setIsSubmitting(true);
+      try {
+        const { data } = await authApi.updateProfilePicture({ picture: reader.result });
+        const pictureUrl = data.data?.user?.profilePicture || data.data?.pictureUrl;
+        if (pictureUrl) {
+          updateUser({ profilePicture: pictureUrl });
+          setSuccess('Foto profil berhasil diperbarui!');
+        }
+      } catch (err) {
+        alert(err.response?.data?.message || 'Gagal mengupload foto profil.');
+      } finally {
+        setIsSubmitting(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
       }
-    } catch (err) {
-      alert(err.response?.data?.message || 'Gagal mengupload foto profil.');
-    } finally {
-      setIsSubmitting(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
+    };
+    reader.onerror = () => {
+      alert('Gagal membaca file gambar.');
+    };
   };
 
   // Navigasi Sidebar

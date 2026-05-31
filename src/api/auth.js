@@ -37,10 +37,8 @@ export const authApi = {
   updateProfile: (data) =>
     api.put('/api/auth/profile', data),
 
-  updateProfilePicture: (formData) =>
-    api.put('/api/auth/profile/picture', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+  updateProfilePicture: (data) =>
+    api.put('/api/auth/profile/picture', data),
 
   changePassword: ({ currentPassword, newPassword }) =>
     api.put('/api/auth/profile/password', { currentPassword, newPassword }),
