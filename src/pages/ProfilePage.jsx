@@ -69,7 +69,7 @@ const ProfilePage = () => {
     setSuccess('');
     setIsSubmitting(true);
     try {
-      await authApi.getProfile(); // Placeholder — backend may have updateProfile
+      await authApi.updateProfile({ name: nama });
       updateUser({ name: nama });
       setSuccess('Nama berhasil diperbarui!');
       setIsEditingNama(false);

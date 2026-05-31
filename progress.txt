@@ -185,3 +185,8 @@
 
 ### FASE 17: Proteksi Logout & Keamanan UX
 - Modified `src/pages/*.jsx` - Menambahkan validasi `window.confirm` pada fungsi `handleLogout` di semua halaman (Dashboard, Profile, Tabungan, dll) untuk mencegah pengguna ter-logout secara tidak sengaja akibat salah pencet.
+
+### FASE 18: Integrasi Edit Profil & Perbaikan API
+- Modified `src/api/auth.js` - Menambahkan fungsi `updateProfile` untuk mengirim pembaruan data profil (nama) ke backend.
+- Modified `src/pages/ProfilePage.jsx` - Mengganti pemanggilan `getProfile` (yang hanya mengambil data) menjadi `updateProfile` pada fitur ubah nama. Ini memperbaiki *bug* di mana nama profil yang sudah diubah akan *ter-reset* kembali ke nama lama saat berpindah ke halaman Dashboard.
+- Modified *Backend* `fst-auth-service` (Manual oleh Tuan Baji) - Membuat `updateProfileController` dan mendaftarkan rute `PUT /profile` untuk menyimpan nama baru ke *Database* Prisma.
