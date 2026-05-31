@@ -160,3 +160,24 @@
 ### FASE 14: Bug Fix Sinkronisasi Asset vs Status Budget
 - Database Manual Fix - Memperbaiki *desync* sebesar Rp 94.000.000 pada riwayat pemasukan lama (sebelum validasi mutlak diterapkan) yang menyebabkan "uang nganggur" (uang masuk yang tidak dialokasikan ke kategori manapun). Uang tersebut telah dialihkan otomatis ke `alloc_tabungan` (`budget_allocations`) agar sinkron.
 - System Insight - Mengonfirmasi bahwa selisih Rp 50.000.000 antara **Asset** dan **Status Budget** adalah normal secara logika akuntansi, karena nilai tersebut adalah uang yang sudah "dikunci/ditransfer" ke wadah Saving Goals (Tabungan Pecahan), sehingga mengurangi *Status Budget* namun tetap menjadi bagian dari *Asset*.
+<<<<<<< Updated upstream
+=======
+
+### FASE 15: Integrasi UploadPage AI OCR & Override Kategori
+- Modified Backend `fst-gateway-service`:
+  - Memperbaiki *bug* 502/503 di mana API Gateway secara tidak sengaja merusak *stream* `multipart/form-data` dengan memanggil `fixRequestBody` saat mengunggah gambar struk, yang menyebabkan `Unexpected end of form` di *finance service*.
+- Modified Backend `fst-ai-service`:
+  - Menerapkan mekanisme *Fallback/Mock Data* pada `llm_service.py` untuk mengantisipasi *HuggingFace Token* yang tidak disetel di lingkungan *development* (`.env.docker`). AI sekarang akan selalu mengembalikan data "Mock Baji Store" yang terstruktur dengan baik.
+- Modified Frontend `UploadPage.jsx`:
+  - Menghapus *hardcode header* `Content-Type: multipart/form-data` di `financeApi.js` agar `axios` dapat menyematkan `boundary` secara otomatis.
+  - Menambahkan kapabilitas interaktif *Drag and Drop* (`onDragOver`, `onDragLeave`, `onDrop`) yang sebelumnya belum aktif.
+  - Mengimplementasikan sistem *Polling Async* untuk mengecek status pemrosesan OCR AI di *backend*, sehingga UI tidak mengalami *blocking/error* saat menunggu AI bekerja.
+  - Memperbarui `items` array untuk mendukung properti `category` (menarik data `aiParentCategory` hasil tebakan AI).
+  - Menambahkan *Dropdown Category Select* pada *UI per-item*, memungkinkan *user* untuk meng-*override* atau mengoreksi kategori yang ditebak AI sebelum melakukan *Save Receipt*.
+  - Menyesuaikan payload `financeApi.confirmReceipt` untuk menyertakan `override_parent_category` dan ID (jika item sudah ada) saat *submit*.
+
+### FASE 16: Perbaikan UX Frontend (Sprint 1A)
+- Modified `src/pages/ProfilePage.jsx` - Menambahkan fitur toggle (ikon mata) untuk melihat inputan kata sandi lama dan kata sandi baru.
+- Modified `src/pages/ProfilePage.jsx` - Memperbaiki layout pesan error/sukses pada form ganti password dengan memindahkannya ke luar flex container agar *responsive* (tidak pecah di mobile).
+- Modified `src/pages/LoginPage.jsx` - Menambahkan fitur toggle (ikon mata) untuk melihat inputan kata sandi.
+>>>>>>> Stashed changes
