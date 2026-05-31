@@ -207,16 +207,34 @@ const DashboardPage = () => {
 
   const polylineString = svgPoints.map(p => `${p.x},${p.y}`).join(' ');
 
-  // --- LOGIKA PAGINATION TRANSAKSI ---
+  // --- LOGIKA FILTER & PAGINATION TRANSAKSI ---
   const [currentTrxPage, setCurrentTrxPage] = useState(1);
   const [isViewAll, setIsViewAll] = useState(false); // State baru untuk toggle Lihat Semua
+  const [trxFilter, setTrxFilter] = useState('terbaru'); // State untuk filter
   const itemsPerTrxPage = 5; // Menampilkan 5 transaksi per halaman (sesuaikan selera)
-  const totalTrxPages = Math.ceil(transactions.length / itemsPerTrxPage);
+
+  const sortedTransactions = useMemo(() => {
+    let sorted = [...transactions];
+    switch(trxFilter) {
+      case 'terbaru':
+        return sorted; 
+      case 'terlama':
+        return sorted.reverse();
+      case 'pengeluaran_terbanyak':
+        return sorted.filter(t => t.type === 'expense').sort((a, b) => b.amount - a.amount);
+      case 'pemasukan_terbanyak':
+        return sorted.filter(t => t.type === 'income').sort((a, b) => b.amount - a.amount);
+      default:
+        return sorted;
+    }
+  }, [transactions, trxFilter]);
+
+  const totalTrxPages = Math.ceil(sortedTransactions.length / itemsPerTrxPage);
 
   // Memotong array transaksi sesuai halaman yang aktif
   const currentTransactions = isViewAll 
-    ? transactions 
-    : transactions.slice(
+    ? sortedTransactions 
+    : sortedTransactions.slice(
         (currentTrxPage - 1) * itemsPerTrxPage,
         currentTrxPage * itemsPerTrxPage
       );
@@ -619,6 +637,21 @@ const DashboardPage = () => {
                     Export CSV
                   </button>
 
+                  {/* Dropdown Filter */}
+                  <select 
+                    value={trxFilter}
+                    onChange={(e) => {
+                      setTrxFilter(e.target.value);
+                      setCurrentTrxPage(1); // Reset ke halaman 1 saat ganti filter
+                    }}
+                    className="text-xs font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D]"
+                  >
+                    <option value="terbaru">Terbaru</option>
+                    <option value="terlama">Terlama</option>
+                    <option value="pengeluaran_terbanyak">Pengeluaran Terbanyak</option>
+                    <option value="pemasukan_terbanyak">Pemasukan Terbanyak</option>
+                  </select>
+
                   {/* Tombol Toggle Lihat Semua */}
                   <button 
                     onClick={() => setIsViewAll(!isViewAll)}
@@ -685,6 +718,9 @@ const DashboardPage = () => {
                       displayCategory = trx.category || 'Lainnya';
                     }
 
+                    // Format kategori agar lebih human-readable (mengubah kebutuhan_primer menjadi Kebutuhan Primer)
+                    displayCategory = displayCategory.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
                     return (
                       <div key={trx.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-xl transition-colors">
                         <div className="flex items-center">
@@ -729,7 +765,7 @@ const DashboardPage = () => {
               {!isViewAll && transactions.length > 0 && (
                 <div className="flex items-center justify-between pt-4 mt-2 border-t border-gray-100">
                   <span className="text-xs text-gray-500 font-medium hidden sm:block">
-                    Menampilkan {(currentTrxPage - 1) * itemsPerTrxPage + 1} - {Math.min(currentTrxPage * itemsPerTrxPage, transactions.length)} dari {transactions.length}
+                    Menampilkan {(currentTrxPage - 1) * itemsPerTrxPage + (currentTransactions.length > 0 ? 1 : 0)} - {Math.min(currentTrxPage * itemsPerTrxPage, sortedTransactions.length)} dari {sortedTransactions.length}
                   </span>
                   
                   <div className="flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-end">

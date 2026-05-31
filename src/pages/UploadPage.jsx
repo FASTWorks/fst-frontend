@@ -32,14 +32,17 @@ const UploadPage = () => {
   const [saveError, setSaveError] = useState('');
   const [saveSuccess, setSaveSuccess] = useState('');
   const [receiptId, setReceiptId] = useState(null);
+  const [isDragActive, setIsDragActive] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
 
   // State untuk data ekstraksi
   const [storeName, setStoreName] = useState('Baji Cafe Store');
   const [date, setDate] = useState('01/01/2026');
   const [items, setItems] = useState([
-    { id: 1, name: 'Avocado Toast', qty: 1, price: 10000 },
-    { id: 2, name: 'Baji Creamy Latte', qty: 1, price: 10000 },
-    { id: 3, name: 'Baji Avocado', qty: 1, price: 10000 },
+    { id: 1, name: 'Avocado Toast', qty: 1, price: 10000, category: 'kebutuhan_primer' },
+    { id: 2, name: 'Baji Creamy Latte', qty: 1, price: 10000, category: 'kebutuhan_sekunder' },
+    { id: 3, name: 'Baji Avocado', qty: 1, price: 10000, category: 'kebutuhan_sekunder' },
   ]);
 
   // [TAMBAHKAN KODE INI] - Fungsi untuk menambah baris item baru
@@ -48,7 +51,8 @@ const UploadPage = () => {
       id: Date.now(), // Generate ID unik
       name: '',
       qty: 1,
-      price: 0
+      price: 0,
+      category: 'kebutuhan_sekunder'
     };
     setItems([...items, newItem]);
   };
@@ -73,32 +77,62 @@ const UploadPage = () => {
     }
   };
 
-  // OCR Upload handler
-  const handleFileUpload = async (file) => {
+  // File selection handler
+  const handleFileSelect = (file) => {
     if (!file) return;
+    setUploadError('');
+    setSelectedFile(file);
+    setUploadedImageUrl(URL.createObjectURL(file));
+  };
+
+  // OCR Upload handler (triggered by process button)
+  const handleProcessFile = async () => {
+    if (!selectedFile) return;
     setIsUploading(true);
     setUploadError('');
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('image', selectedFile); // Backend expects 'image'
+      
+      // 1. Submit for OCR (Async)
       const { data } = await financeApi.createReceiptOCR(formData);
-      const receipt = data.data;
+      const { receiptId: newReceiptId } = data.data;
 
-      setReceiptId(receipt.id);
-      setStoreName(receipt.store_name || 'Unknown Store');
-      setDate(receipt.receipt_date ? receipt.receipt_date.split('T')[0] : new Date().toISOString().split('T')[0]);
+      // 2. Polling for results
+      let receiptData = null;
+      for (let i = 0; i < 30; i++) { // Max 60 seconds
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const res = await financeApi.getReceipt(newReceiptId);
+        if (res.data.data.status !== 'processing') {
+          receiptData = res.data.data;
+          break;
+        }
+      }
+
+      if (!receiptData) {
+        throw new Error('Waktu pemrosesan struk habis. Silakan coba lagi.');
+      }
+      
+      if (receiptData.status === 'failed' || receiptData.status === 'rejected') {
+        throw new Error(receiptData.categorySummary || 'AI gagal membaca struk ini. Coba foto ulang dengan lebih jelas.');
+      }
+
+      setReceiptId(receiptData.id);
+      setStoreName(receiptData.storeName || 'Unknown Store');
+      setDate(receiptData.receiptDate ? receiptData.receiptDate.split('T')[0] : new Date().toISOString().split('T')[0]);
       setItems(
-        (receipt.items || []).map((item, idx) => ({
-          id: idx + 1,
-          name: item.item_name || '',
+        (receiptData.items || []).map((item, idx) => ({
+          id: item.id || idx + 1,
+          name: item.itemName || '',
           qty: item.qty || 1,
-          price: item.unit_price || 0,
+          price: item.unitPrice || 0,
+          category: item.overrideParentCategory || item.aiParentCategory || 'kebutuhan_sekunder',
         }))
       );
       setIsUploaded(true);
     } catch (err) {
-      setUploadError(err.response?.data?.message || 'Gagal mengupload struk. Coba lagi.');
+      setUploadError(err.response?.data?.message || err.message || 'Gagal mengupload struk. Coba lagi.');
     } finally {
       setIsUploading(false);
     }
@@ -117,10 +151,12 @@ const UploadPage = () => {
           receipt_date: new Date(date).toISOString(),
           total: calculateTotal(),
           items: items.map((item) => ({
+            id: typeof item.id === 'string' ? item.id : undefined,
             item_name: item.name,
             qty: item.qty,
             unit_price: item.price,
             total_price: item.qty * item.price,
+            override_parent_category: item.category,
           })),
         });
       }
@@ -148,6 +184,25 @@ const UploadPage = () => {
     { id: 5, label: 'Tabungan', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>, active: false },
     { id: 6, label: 'Profile', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>, active: false },
   ];
+
+  // Drag and drop handlers
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragActive(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragActive(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileSelect(e.dataTransfer.files[0]);
+    }
+  };
 
   return (
     <div className="flex h-screen bg-[#FFFDF9] font-sans text-gray-800 overflow-hidden">
@@ -223,28 +278,70 @@ const UploadPage = () => {
             </div>
 
             {!isUploaded ? (
-              <div className="flex-1 flex items-center justify-center p-6 bg-[#FCFBFA] border-2 border-dashed border-gray-300 rounded-3xl min-h-100">
-                <div className="flex flex-col items-center text-center">
+              <div 
+                className={`flex-1 flex items-center justify-center p-6 bg-[#FCFBFA] border-2 border-dashed ${isDragActive ? 'border-[#FFAD2D] bg-[#FFF8ED]' : 'border-gray-300'} rounded-3xl min-h-100 transition-colors`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <div className="flex flex-col items-center text-center pointer-events-none">
                   <div className="w-16 h-16 bg-[#FFF8ED] rounded-full flex items-center justify-center mb-4">
                     <CloudUploadIcon />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{isUploading ? 'Mengupload...' : 'Drag and drop files here'}</h3>
                   <p className="text-gray-500 mb-8 font-medium">Support for PDF, JPG, PNG (Max 10MB)</p>
                   {uploadError && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium pointer-events-auto">
                       {uploadError}
                     </div>
                   )}
-                  <label className="px-8 py-2.5 rounded-lg bg-[#963F71] hover:bg-[#7a325b] text-white font-bold border-2 border-gray-900 shadow-sm transition-colors cursor-pointer">
-                    {isUploading ? 'Mengupload...' : 'Pilih File'}
-                    <input
-                      type="file"
-                      accept="image/*,application/pdf"
-                      className="hidden"
-                      disabled={isUploading}
-                      onChange={(e) => handleFileUpload(e.target.files?.[0])}
-                    />
-                  </label>
+                  
+                  {!selectedFile ? (
+                    <label className="px-8 py-2.5 rounded-lg bg-[#963F71] hover:bg-[#7a325b] text-white font-bold border-2 border-gray-900 shadow-sm transition-colors cursor-pointer pointer-events-auto">
+                      Pilih File
+                      <input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        className="hidden"
+                        onChange={(e) => handleFileSelect(e.target.files?.[0])}
+                      />
+                    </label>
+                  ) : (
+                    <div className="flex flex-col items-center gap-4 w-full pointer-events-auto mt-2">
+                      <div className="w-full max-w-2xl rounded-xl overflow-hidden shadow-md border border-gray-200 bg-gray-900">
+                        <img src={uploadedImageUrl} alt="Preview" className="w-full h-[400px] md:h-[500px] object-contain" />
+                      </div>
+                      <div className="flex gap-3">
+                        <button 
+                          onClick={() => {
+                            setSelectedFile(null);
+                            setUploadedImageUrl(null);
+                          }}
+                          disabled={isUploading}
+                          className="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-bold hover:bg-gray-50 transition-colors bg-white shadow-sm disabled:opacity-60"
+                        >
+                          Batal
+                        </button>
+                        <button 
+                          onClick={handleProcessFile}
+                          disabled={isUploading}
+                          className="px-6 py-2.5 rounded-lg bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold shadow-sm transition-colors flex items-center gap-2 disabled:opacity-60"
+                        >
+                          {isUploading ? (
+                            <>
+                              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Memproses OCR...
+                            </>
+                          ) : (
+                            'Proses Struk'
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -256,23 +353,16 @@ const UploadPage = () => {
                 <div className="flex flex-col md:flex-row flex-1">
                   
                   {/* Left Side: Receipt Preview */}
-                  <div className="w-full md:w-1/2 bg-[#F4F5F6] p-8 flex items-center justify-center border-r border-gray-200 min-h-100">
-                    <div className="bg-white p-6 shadow-md w-64 text-xs font-mono text-gray-800">
-                      <h4 className="text-center font-bold text-sm mb-1">BAJI CAFE STORE</h4>
-                      <p className="text-center text-[10px] text-gray-500 mb-4">Jl. Gacor No. 40 Hehew</p>
-                      <div className="border-b border-dashed border-gray-300 mb-4"></div>
-                      <div className="space-y-3 mb-4">
-                        <div className="flex justify-between"><span className="w-24">Avocado Toast</span><span>Rp 10.000</span></div>
-                        <div className="flex justify-between"><span className="w-24">Baji Creamy Latte</span><span>Rp 10.000</span></div>
-                        <div className="flex justify-between"><span className="w-24">Baji Avocado</span><span>Rp 10.000</span></div>
-                      </div>
-                      <div className="border-b border-dashed border-gray-300 mb-4"></div>
-                      <div className="flex justify-between font-bold text-sm mb-6">
-                        <span>TOTAL</span><span>Rp 30.000</span>
-                        </div>
-                      <div className="bg-gray-100 h-8 rounded mb-2"></div>
-                      <p className="text-center text-[8px] text-gray-400">01/01/2026 - 12:00 AM</p>
-                    </div>
+                  <div className="w-full md:w-1/2 bg-gray-900 flex items-center justify-center border-r border-gray-200 min-h-[400px] md:min-h-full">
+                    {uploadedImageUrl ? (
+                        <img 
+                          src={uploadedImageUrl} 
+                          alt="Uploaded Receipt" 
+                          className="w-full h-full object-contain"
+                        />
+                    ) : (
+                      <div className="text-gray-400 font-medium">Image preview not available</div>
+                    )}
                   </div>
 
                   {/* Right Side: Form Data */}
@@ -322,49 +412,68 @@ const UploadPage = () => {
                       {/* Dynamic Editable Items Array */}
                       <div className="space-y-3">
                         {items.map((item) => (
-                          <div key={item.id} className="flex gap-3 items-center">
-                            {/* Input Nama Item */}
-                            <input 
-                              type="text" 
-                              value={item.name}
-                              onChange={(e) => handleItemChange(item.id, 'name', e.target.value)}
-                              placeholder="Nama Item"
-                              className="flex-1 px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium focus:outline-none focus:border-[#FFAD2D] focus:ring-1 focus:ring-[#FFAD2D]"
-                            />
-                            {/* Input Quantity (Menggunakan type="number") */}
-                            <input 
-                              type="number" 
-                              value={item.qty}
-                              onChange={(e) => handleItemChange(item.id, 'qty', e.target.value)}
-                              min="1"
-                              className="w-16 text-center px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium focus:outline-none focus:border-[#FFAD2D] focus:ring-1 focus:ring-[#FFAD2D]"
-                            />
-                            {/* Input Harga */}
-                            <div className="relative w-32">
-                                <span className="absolute left-3 top-2 text-sm font-medium text-gray-500">
-                                  Rp
-                                </span>
-                                <input 
-                                  type="text" 
-                                  value={item.price === 0 ? '' : new Intl.NumberFormat('id-ID').format(item.price)}
-                                  onChange={(e) => {
-                                    // Hapus semua karakter selain angka agar murni numerik
-                                    const rawValue = e.target.value.replace(/[^0-9]/g, '');
-                                    handleItemChange(item.id, 'price', Number(rawValue));
-                                  }}
-                                  placeholder="0"
-                                  className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-300 text-sm font-medium focus:outline-none focus:border-[#FFAD2D] focus:ring-1 focus:ring-[#FFAD2D]"
-                                />
-                              </div>
+                          <div key={item.id} className="flex flex-col gap-2 p-3 bg-[#F9FAFB] rounded-xl border border-gray-100 shadow-sm">
+                            <div className="flex gap-3 items-center">
+                              {/* Input Nama Item */}
+                              <input 
+                                type="text" 
+                                value={item.name}
+                                onChange={(e) => handleItemChange(item.id, 'name', e.target.value)}
+                                placeholder="Nama Item"
+                                className="flex-1 px-3 py-2 bg-white rounded-lg border border-gray-300 text-sm font-medium focus:outline-none focus:border-[#FFAD2D] focus:ring-1 focus:ring-[#FFAD2D]"
+                              />
+                              {/* Input Quantity (Menggunakan type="number") */}
+                              <input 
+                                type="number" 
+                                value={item.qty}
+                                onChange={(e) => handleItemChange(item.id, 'qty', e.target.value)}
+                                min="1"
+                                className="w-16 text-center bg-white px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium focus:outline-none focus:border-[#FFAD2D] focus:ring-1 focus:ring-[#FFAD2D]"
+                              />
+                              {/* Input Harga */}
+                              <div className="relative w-32">
+                                  <span className="absolute left-3 top-2 text-sm font-medium text-gray-500">
+                                    Rp
+                                  </span>
+                                  <input 
+                                    type="text" 
+                                    value={item.price === 0 ? '' : new Intl.NumberFormat('id-ID').format(item.price)}
+                                    onChange={(e) => {
+                                      // Hapus semua karakter selain angka agar murni numerik
+                                      const rawValue = e.target.value.replace(/[^0-9]/g, '');
+                                      handleItemChange(item.id, 'price', Number(rawValue));
+                                    }}
+                                    placeholder="0"
+                                    className="w-full pl-8 bg-white pr-3 py-2 rounded-lg border border-gray-300 text-sm font-medium focus:outline-none focus:border-[#FFAD2D] focus:ring-1 focus:ring-[#FFAD2D]"
+                                  />
+                                </div>
 
-                              {/* Tombol Hapus */}
-                              <button 
-                                type="button" 
-                                onClick={() => handleDeleteItem(item.id)} 
-                                className="p-1"
+                                {/* Tombol Hapus */}
+                                <button 
+                                  type="button" 
+                                  onClick={() => handleDeleteItem(item.id)} 
+                                  className="p-1"
+                                >
+                                  <TrashIcon />
+                                </button>
+                            </div>
+                            
+                            {/* Baris Kategori Item */}
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                                Kategori:
+                              </span>
+                              <select
+                                value={item.category}
+                                onChange={(e) => handleItemChange(item.id, 'category', e.target.value)}
+                                className="flex-1 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-lg focus:ring-[#FFAD2D] focus:border-[#FFAD2D] block p-2 cursor-pointer"
                               >
-                                <TrashIcon />
-                              </button>
+                                <option value="kebutuhan_primer">Kebutuhan Primer</option>
+                                <option value="kebutuhan_sekunder">Kebutuhan Sekunder</option>
+                                <option value="dana_darurat">Dana Darurat</option>
+                                <option value="tabungan">Kantong Tabungan Utama</option>
+                              </select>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -374,6 +483,16 @@ const UploadPage = () => {
                     {/* Bottom Floating Action Area */}
                     <div className="p-6 bg-white">
                       <div className="bg-[#FFFDF4] border border-[#FDE0B5] rounded-2xl p-5 shadow-sm">
+                        {saveError && (
+                          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
+                            {saveError}
+                          </div>
+                        )}
+                        {saveSuccess && (
+                          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm font-medium">
+                            {saveSuccess}
+                          </div>
+                        )}
                         <div className="flex justify-between items-center mb-6">
                           <span className="text-xl font-bold text-gray-900">TOTAL</span>
                           <span className="text-3xl font-bold text-[#E58C17]">
@@ -382,7 +501,11 @@ const UploadPage = () => {
                         </div>
                         <div className="flex gap-4">
                           <button 
-                            onClick={() => setIsUploaded(false)}
+                            onClick={() => {
+                              setIsUploaded(false);
+                              setSelectedFile(null);
+                              setUploadedImageUrl(null);
+                            }}
                             className="flex-1 py-3 rounded-xl border border-gray-900 text-gray-900 font-bold hover:bg-gray-50 transition-colors bg-white shadow-sm"
                           >
                             DISCARD
