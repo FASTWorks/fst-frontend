@@ -190,3 +190,9 @@
 - Modified `src/api/auth.js` - Menambahkan fungsi `updateProfile` untuk mengirim pembaruan data profil (nama) ke backend.
 - Modified `src/pages/ProfilePage.jsx` - Mengganti pemanggilan `getProfile` (yang hanya mengambil data) menjadi `updateProfile` pada fitur ubah nama. Ini memperbaiki *bug* di mana nama profil yang sudah diubah akan *ter-reset* kembali ke nama lama saat berpindah ke halaman Dashboard.
 - Modified *Backend* `fst-auth-service` (Manual oleh Tuan Baji) - Membuat `updateProfileController` dan mendaftarkan rute `PUT /profile` untuk menyimpan nama baru ke *Database* Prisma.
+
+### FASE 19: Integrasi Edit Foto Profil & Keamanan Upload
+- Modified `src/api/auth.js` - Menambahkan endpoint `updateProfilePicture` untuk mengirim payload JSON berisi *string* gambar Base64 tanpa perlu *multipart/form-data*.
+- Modified `src/pages/ProfilePage.jsx` - Mengimplementasikan input file tersembunyi (*hidden*) yang dipicu dari klik ikon pensil. Gambar otomatis dikonversi ke Base64 via `FileReader`, disertai validasi *frontend* (maksimal 2MB, hanya ekstensi `.jpg`, `.png`, `.webp`) untuk menangkal eksploitasi unggahan *backdoor*.
+- Modified `src/pages/*.jsx` (Script Otomatis) - Menyapu bersih seluruh *hardcode* gambar avatar statis "Felix"/"Baji" di 8 halaman berbeda (Dashboard, Upload, Pemasukan, dll) agar terhubung langsung dengan properti `user?.profilePicture` dari `AuthContext`.
+- Modified *Backend* `fst-auth-service` (Manual oleh Tuan Baji) - Menyelaraskan *Database* dengan `npx prisma db push` untuk memuat kolom `profilePicture String?`, serta membuat `updateProfilePictureController` dengan keamanan ganda untuk menerima *string* Base64 tanpa butuh *middleware Multer*.
