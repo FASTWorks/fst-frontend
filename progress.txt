@@ -160,3 +160,11 @@
 ### FASE 14: Bug Fix Sinkronisasi Asset vs Status Budget
 - Database Manual Fix - Memperbaiki *desync* sebesar Rp 94.000.000 pada riwayat pemasukan lama (sebelum validasi mutlak diterapkan) yang menyebabkan "uang nganggur" (uang masuk yang tidak dialokasikan ke kategori manapun). Uang tersebut telah dialihkan otomatis ke `alloc_tabungan` (`budget_allocations`) agar sinkron.
 - System Insight - Mengonfirmasi bahwa selisih Rp 50.000.000 antara **Asset** dan **Status Budget** adalah normal secara logika akuntansi, karena nilai tersebut adalah uang yang sudah "dikunci/ditransfer" ke wadah Saving Goals (Tabungan Pecahan), sehingga mengurangi *Status Budget* namun tetap menjadi bagian dari *Asset*.
+
+## 2026-05-31
+
+### FASE 15: FAST Frontend UI Enhancements & Polish
+- Modified `src/pages/LoginPage.jsx` - Menambahkan fitur *password visibility toggle* (show/hide).
+- Modified `src/pages/ProfilePage.jsx` - Menambahkan fitur *password visibility toggle* dan memperbaiki isu persistensi nama profil.
+- Modified `src/App.jsx` - Memperbaiki konflik *routing* untuk fungsionalitas "Forgot Password".
+- Modified `src/components/` - Meningkatkan responsivitas UI alerts untuk memastikan pengalaman pengguna yang lebih *seamless* dan *polished*.
