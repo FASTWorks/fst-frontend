@@ -92,8 +92,11 @@ const CatatTabunganPage = () => {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   const handleLogout = async () => {
-    await logout();
-    navigate('/login');
+    const isConfirm = window.confirm("Apakah Anda yakin ingin keluar dari aplikasi?");
+    if (isConfirm) {
+      await logout();
+      navigate('/login');
+    }
   };
 
   const handleNominalChange = (e) => {
