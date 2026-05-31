@@ -125,6 +125,20 @@ const ProfilePage = () => {
     }
   };
 
+  // Lupa kata sandi
+  const handleForgotPassword = async () => {
+    setIsSubmitting(true);
+    setPasswordError('');
+    setPasswordSuccess('');
+    try {
+      await authApi.forgotPassword(email);
+      setPasswordSuccess('Jika email terdaftar, link reset telah dikirim.');
+    } catch (err) {
+      setPasswordError(err.response?.data?.message || 'Gagal mengirim link reset.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Navigasi Sidebar
   const navLinks = [
@@ -327,9 +341,14 @@ const ProfilePage = () => {
                       </button>
                     </div>
                     <div className="mt-2">
-                      <Link to="/lupa-kata-sandi" className="text-xs font-bold text-[#0284C7] hover:text-[#0369A1] transition-colors">
+                      <button 
+                        type="button"
+                        onClick={handleForgotPassword}
+                        disabled={isSubmitting}
+                        className="text-xs font-bold text-[#0284C7] hover:text-[#0369A1] transition-colors disabled:opacity-60"
+                      >
                         Lupa Kata Sandi?
-                      </Link>
+                      </button>
                     </div>
                   </div>
                   
