@@ -240,3 +240,9 @@
 ### INTEGRATION PHASE 3 (Tabungan Adjustments)
 - Modified `EditTabunganPage.jsx` - Mengoreksi _wording_ form edit dari "Kantong Tabungan Utama" menjadi "Tabungan" agar tidak membingungkan pengguna.
 - Fixed `EditTabunganPage.jsx` - Mengatasi *bug* "blank white screen" (React ReferenceError) yang disebabkan oleh variabel `user` yang dipanggil di elemen *header* namun belum di-*destructure* dari `useAuth()`. Endpoint `PUT /api/finance/saving-goals/{id}` kini dipastikan berjalan mulus 100%.
+
+## 2026-06-02
+
+### FASE 4: Validasi & Pagination
+- Fixed `src/pages/PemasukanPage.jsx` - Menambahkan fitur *auto-calculate* untuk field Alokasi Tabungan ketika *toggle* tabungan diaktifkan. Sisa pemasukan setelah dipotong 3 kebutuhan primer/sekunder/darurat akan otomatis terisi ke Alokasi Tabungan untuk mencegah isu "uang tidak teralokasi". Field ini sekarang dibuat *read-only*.
+- Modified `src/pages/DashboardPage.jsx` - Mengubah *key* ekstraksi data `pagination` menjadi `items` dan `total` agar selaras dengan skema balasan JSON dari API backend terbaru di endpoint `GET /api/analytics/recent`, sekaligus mempertahankan opsi *fallback* ke `recentTransactions` untuk kompatibilitas ke belakang.

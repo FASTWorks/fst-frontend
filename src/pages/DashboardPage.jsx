@@ -207,11 +207,12 @@ const DashboardPage = () => {
       try {
         const { data } = await analyticsApi.getRecent({ page: currentTrxPage, limit: 10 });
         if (data.data) {
-          if (data.data.transactions) {
-            setAllTransactions(data.data.transactions);
+          const fetchedItems = data.data.items || data.data.recentTransactions || data.data.transactions;
+          if (fetchedItems) {
+            setAllTransactions(fetchedItems);
             if (data.data.pagination) {
               setTotalServerPages(data.data.pagination.totalPages);
-              setTotalServerItems(data.data.pagination.totalData);
+              setTotalServerItems(data.data.pagination.total || data.data.pagination.totalData || 0);
             }
           } else if (Array.isArray(data.data)) {
             setAllTransactions(data.data);
@@ -845,11 +846,12 @@ const DashboardPage = () => {
                         ]);
                         setDashboardData(dashData.data);
                         if (recentData.data) {
-                          if (recentData.data.transactions) {
-                            setAllTransactions(recentData.data.transactions);
+                          const fetchedItems = recentData.data.items || recentData.data.recentTransactions || recentData.data.transactions;
+                          if (fetchedItems) {
+                            setAllTransactions(fetchedItems);
                             if (recentData.data.pagination) {
                               setTotalServerPages(recentData.data.pagination.totalPages);
-                              setTotalServerItems(recentData.data.pagination.totalData);
+                              setTotalServerItems(recentData.data.pagination.total || recentData.data.pagination.totalData || 0);
                             }
                           } else if (Array.isArray(recentData.data)) {
                             setAllTransactions(recentData.data);
