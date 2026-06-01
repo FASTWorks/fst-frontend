@@ -42,6 +42,54 @@ const DashboardPage = () => {
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [aiInsight, setAiInsight] = useState(null);
 
+  // Modal Budget State
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+  const [isSavingBudget, setIsSavingBudget] = useState(false);
+  const [budgetForm, setBudgetForm] = useState({
+    allocKebutuhanPrimer: 0,
+    allocKebutuhanSekunder: 0,
+    allocDanaDarurat: 0,
+    allocTabungan: 0,
+  });
+
+  const handleOpenBudgetModal = () => {
+    setBudgetForm({
+      allocKebutuhanPrimer: summary?.budgetAllocation?.allocKebutuhanPrimer || 0,
+      allocKebutuhanSekunder: summary?.budgetAllocation?.allocKebutuhanSekunder || 0,
+      allocDanaDarurat: summary?.budgetAllocation?.allocDanaDarurat || 0,
+      allocTabungan: summary?.budgetAllocation?.allocTabungan || 0,
+    });
+    setIsBudgetModalOpen(true);
+  };
+
+  const handleAutoCalculateBudget = () => {
+    // Basic 50/30/20 rule on Asset + Income
+    const baseAmount = summary?.asset?.total || 0;
+    setBudgetForm({
+      allocKebutuhanPrimer: baseAmount * 0.5,
+      allocKebutuhanSekunder: baseAmount * 0.3,
+      allocDanaDarurat: baseAmount * 0.1,
+      allocTabungan: baseAmount * 0.1,
+    });
+  };
+
+  const handleSaveBudget = async () => {
+    setIsSavingBudget(true);
+    try {
+      const currentPeriod = new Date().toISOString().slice(0, 7); // YYYY-MM
+      await financeApi.updateBudget(currentPeriod, budgetForm);
+      // Refresh Dashboard
+      const { data } = await aggregatorApi.getDashboardData();
+      setDashboardData(data.data);
+      setIsBudgetModalOpen(false);
+    } catch (err) {
+      console.error('Failed to update budget', err);
+      alert(err.response?.data?.message || 'Gagal menyimpan budget');
+    } finally {
+      setIsSavingBudget(false);
+    }
+  };
+
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   // Fetch dashboard data dari aggregator
@@ -52,6 +100,9 @@ const DashboardPage = () => {
         setDashboardData(data.data);
       } catch (err) {
         console.warn('Dashboard data fetch failed, using fallback:', err.message);
+        if (err.response?.status === 429) {
+          alert('Terlalu banyak permintaan (Rate Limit). Beberapa data mungkin tidak termuat sempurna. Tunggu beberapa saat lalu refresh.');
+        }
       } finally {
         setIsDataLoading(false);
       }
@@ -519,8 +570,16 @@ const DashboardPage = () => {
             </div>
 
             {/* Budget Allocation Bars & Financial Health Score */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col">
-              <h3 className="text-md font-bold text-gray-900 mb-4 text-center">Status Budget Anda</h3>
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col relative">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-md font-bold text-gray-900">Status Budget Anda</h3>
+                <button 
+                  onClick={handleOpenBudgetModal}
+                  className="text-xs font-bold text-[#FFAD2D] hover:text-[#e59b28] bg-[#FFF8ED] px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  Edit Budget
+                </button>
+              </div>
               
               {/* Progress Bars */}
               <div className="space-y-4 mb-6">
@@ -622,12 +681,31 @@ const DashboardPage = () => {
           {/* Bottom Row: Transactions & AI Insights */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-          {/* Recent Transactions Woy Gemini bagian ini yang perlu anda Ubah*/}
+          {/* Recent Transactions */}
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 lg:col-span-2 flex flex-col">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-gray-900">Transaksi Terbaru</h3>
                 
                 <div className="flex items-center gap-4">
+                  {/* Tombol Refresh */}
+                  <button 
+                    onClick={async () => {
+                      setIsDataLoading(true);
+                      try {
+                        const { data } = await aggregatorApi.getDashboardData();
+                        setDashboardData(data.data);
+                      } catch (err) {
+                        console.error('Refresh failed:', err);
+                      } finally {
+                        setIsDataLoading(false);
+                      }
+                    }}
+                    className="flex items-center text-xs font-bold bg-[#FFF8ED] text-[#8C3A7A] hover:bg-[#8C3A7A] hover:text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Refresh
+                  </button>
+
                   {/* Tombol Download */}
                   <button 
                     onClick={handleDownloadCSV}
@@ -841,6 +919,99 @@ const DashboardPage = () => {
           +
         </Link>
       </div>
+
+      {/* Budget Modal */}
+      {isBudgetModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-[#FFFDF9]">
+              <h3 className="text-lg font-bold text-gray-900">Atur Alokasi Budget</h3>
+              <button 
+                onClick={() => setIsBudgetModalOpen(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <CloseIcon />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto">
+              <div className="mb-6 bg-[#FFF8ED] p-4 rounded-xl border border-[#FFE4B5]">
+                <p className="text-sm text-gray-700 font-medium mb-3">
+                  Bingung atur budget? Biarkan sistem menghitung otomatis berdasarkan total asset Anda.
+                </p>
+                <button 
+                  onClick={handleAutoCalculateBudget}
+                  className="w-full py-2.5 bg-white border-2 border-[#FFAD2D] text-[#FFAD2D] hover:bg-[#FFAD2D] hover:text-white font-bold rounded-lg transition-colors text-sm"
+                >
+                  Hitung Otomatis (50/30/10/10)
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">Kebutuhan Primer</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
+                    <input 
+                      type="text" 
+                      value={new Intl.NumberFormat('id-ID').format(budgetForm.allocKebutuhanPrimer)}
+                      onChange={(e) => setBudgetForm({...budgetForm, allocKebutuhanPrimer: Number(e.target.value.replace(/[^0-9]/g, ''))})}
+                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">Kebutuhan Sekunder</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
+                    <input 
+                      type="text" 
+                      value={new Intl.NumberFormat('id-ID').format(budgetForm.allocKebutuhanSekunder)}
+                      onChange={(e) => setBudgetForm({...budgetForm, allocKebutuhanSekunder: Number(e.target.value.replace(/[^0-9]/g, ''))})}
+                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">Dana Darurat</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
+                    <input 
+                      type="text" 
+                      value={new Intl.NumberFormat('id-ID').format(budgetForm.allocDanaDarurat)}
+                      onChange={(e) => setBudgetForm({...budgetForm, allocDanaDarurat: Number(e.target.value.replace(/[^0-9]/g, ''))})}
+                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">Kantong Tabungan Utama</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
+                    <input 
+                      type="text" 
+                      value={new Intl.NumberFormat('id-ID').format(budgetForm.allocTabungan)}
+                      onChange={(e) => setBudgetForm({...budgetForm, allocTabungan: Number(e.target.value.replace(/[^0-9]/g, ''))})}
+                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-100 bg-gray-50">
+              <button 
+                onClick={handleSaveBudget}
+                disabled={isSavingBudget}
+                className="w-full bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3.5 rounded-xl transition-all disabled:opacity-60 shadow-md"
+              >
+                {isSavingBudget ? 'Menyimpan...' : 'Simpan Budget'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

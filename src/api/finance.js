@@ -39,7 +39,7 @@ export const financeApi = {
     api.post('/api/finance/receipts/ocr', formData, {
       timeout: 60000,
       headers: {
-        'Content-Type': undefined
+        'Content-Type': 'multipart/form-data'
       }
     }),
 

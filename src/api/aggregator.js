@@ -6,5 +6,5 @@ import api from '@/lib/axios';
 
 export const aggregatorApi = {
   getDashboardData: () =>
-    api.get('/api/aggregator/dashboard'),
+    api.get(`/api/aggregator/dashboard?_t=${Date.now()}`),
 };

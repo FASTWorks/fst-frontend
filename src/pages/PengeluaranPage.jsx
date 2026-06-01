@@ -155,7 +155,11 @@ const PengeluaranPage = () => {
       setSubmitSuccess('Pengeluaran berhasil disimpan!');
       setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err) {
-      setSubmitError(err.response?.data?.message || 'Gagal menyimpan pengeluaran.');
+      if (err.response?.status === 429) {
+        setSubmitError('Terlalu banyak permintaan (Rate Limit Railway). Silakan tunggu sekitar 1 menit dan coba lagi.');
+      } else {
+        setSubmitError(err.response?.data?.message || 'Gagal menyimpan pengeluaran.');
+      }
     } finally {
       setIsSubmitting(false);
     }

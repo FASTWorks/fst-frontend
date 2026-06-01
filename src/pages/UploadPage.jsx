@@ -38,7 +38,7 @@ const UploadPage = () => {
 
   // State untuk data ekstraksi
   const [storeName, setStoreName] = useState('Baji Cafe Store');
-  const [date, setDate] = useState('01/01/2026');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [items, setItems] = useState([
     { id: 1, name: 'Avocado Toast', qty: 1, price: 10000, category: 'kebutuhan_primer' },
     { id: 2, name: 'Baji Creamy Latte', qty: 1, price: 10000, category: 'kebutuhan_sekunder' },
@@ -114,8 +114,12 @@ const UploadPage = () => {
         throw new Error('Waktu pemrosesan struk habis. Silakan coba lagi.');
       }
       
-      if (receiptData.status === 'failed' || receiptData.status === 'rejected') {
-        throw new Error(receiptData.categorySummary || 'AI gagal membaca struk ini. Coba foto ulang dengan lebih jelas.');
+      if (receiptData.status === 'rejected') {
+        throw new Error(receiptData.categorySummary || 'Struk ditolak oleh sistem.');
+      }
+
+      if (receiptData.status === 'failed') {
+        setUploadError(receiptData.categorySummary || 'AI gagal membaca struk ini. Silakan input secara manual.');
       }
 
       setReceiptId(receiptData.id);

@@ -98,7 +98,7 @@ export default function RegisterPage() {
     } catch (err) {
       const message = err.response?.data?.message
         || err.response?.data?.errors?.email?.[0]
-        || 'Registrasi gagal. Silakan coba lagi.';
+        || `Registrasi gagal: ${err.message || JSON.stringify(err)}`;
       setError(message);
     } finally {
       setIsLoading(false);

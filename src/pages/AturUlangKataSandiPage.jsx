@@ -39,6 +39,7 @@ const AturUlangKataSandiPage = () => {
   
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState(emailFromUrl);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -67,7 +68,7 @@ const AturUlangKataSandiPage = () => {
     try {
       const { data } = await authApi.resetPassword({
         token: tokenFromUrl,
-        email: emailFromUrl,
+        email: email,
         password,
       });
       setSuccess(data.message || 'Kata sandi berhasil diubah!');
@@ -125,6 +126,23 @@ const AturUlangKataSandiPage = () => {
               </div>
             )}
             
+            {/* Input Email */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-2">
+                Email Akun
+              </label>
+              <div className="relative">
+                <input 
+                  type="email"
+                  placeholder="Masukkan email kamu"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium text-gray-700 bg-white transition-all mb-6"
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+
             {/* Input Kata Sandi Baru */}
             <div>
               <label className="block text-sm font-bold text-gray-900 mb-2">

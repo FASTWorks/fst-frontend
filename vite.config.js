@@ -15,4 +15,15 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  server: {
+    port: 3000,
+    strictPort: true, // Will fail if port 3000 is in use
+    proxy: {
+      '/api': {
+        target: 'https://fst-gateway-service-production.up.railway.app',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  }
 })

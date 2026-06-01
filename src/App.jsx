@@ -23,7 +23,9 @@ const App = () => {
           <Route path="/register" element={<PublicRoute><RegisterPage/></PublicRoute>}/>
           <Route path="/lupa-kata-sandi" element={<PublicRoute><LupaKataSandiPage/></PublicRoute>}/>
           <Route path="/konfirmasi" element={<PublicRoute><KonfirmasiPage/></PublicRoute>}/>
+          <Route path="/verify-email" element={<PublicRoute><KonfirmasiPage/></PublicRoute>}/>
           <Route path="/atur-ulang-kata-sandi" element={<PublicRoute><AturUlangKataSandiPage/></PublicRoute>}/>
+          <Route path="/reset-password" element={<PublicRoute><AturUlangKataSandiPage/></PublicRoute>}/>
 
           {/* ─── Protected Routes ─── */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage/></ProtectedRoute>}/>
