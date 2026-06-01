@@ -621,8 +621,7 @@ const DashboardPage = () => {
                 onMouseDown={handleMouseDown}
                 onMouseLeave={handleMouseLeaveChart}
                 onMouseUp={handleMouseUp}
-                onMouseMove={handleMouseMove}
-              >
+                onMouseMove={handleMouseMove}>
                 <div 
                   className="relative h-48 pt-4 mt-2 min-w-[800px] px-4" 
                   >
