@@ -111,7 +111,7 @@ const CatatTabunganPage = () => {
     setSubmitError('');
     setSubmitSuccess('');
     
-    if (nominal <= 0) {
+    if (nominal === 0) {
       setSubmitError('Nominal harus lebih dari 0.');
       return;
     }
@@ -146,7 +146,7 @@ const CatatTabunganPage = () => {
 
     setIsSubmitting(true);
     try {
-      const finalAmount = jenisTransaksi === 'tambah' ? nominal : -nominal;
+      const finalAmount = jenisTransaksi === 'tambah' ? Number(nominal) : -Math.abs(Number(nominal));
       await financeApi.addMoney(id, finalAmount, keterangan);
       
       setSubmitSuccess('Transaksi tabungan berhasil dicatat!');

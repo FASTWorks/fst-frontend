@@ -210,3 +210,11 @@
 - Fixed `fst-ai-service` - Menghapus *fallback mock data* pada `llm_service.py` sesuai permintaan *user* agar sistem murni menggunakan hasil OCR. Jika OCR gagal atau API HuggingFace bermasalah, sistem akan melemparkan *error* sebenarnya ("AI gagal membaca struk" atau "Koneksi ke AI Service gagal") alih-alih memberikan data *dummy*.
 - Fixed `fst-gateway-service` - Menonaktifkan secara penuh `ocrRateLimitMiddleware` dan `rateLimitMiddleware` untuk tahap pengembangan, sehingga Tuan Baji bisa melakukan tes unggah gambar tanpa batas tanpa terblokir *error* "Koneksi gagal".
 - Fixed `fst-finance-service` - Memodifikasi `receipt.service.ts` agar menangkap pesan *error* sebenarnya dari *AI service* (seperti *rate limit* bawaan Hugging Face atau OCR gagal) dan meneruskannya ke *frontend*, sehingga pesan *error* tidak lagi terpaku pada tulisan *hardcode* "Koneksi ke AI Service gagal".
+
+### FASE 20: Bug Fix OCR, Dashboard & Penanganan Limit (Frontend)
+- Fixed `fst-frontend/src/api/finance.js` - Memperbaiki gagal unggah OCR (*Receipt image is required*) dengan secara eksplisit mengatur `Content-Type: multipart/form-data` agar Axios tidak mengirimkannya sebagai JSON.
+- Modified `src/pages/DashboardPage.jsx` - Menambahkan fitur Modal Edit Budget secara dinamis, lengkap dengan tombol "Hitung Otomatis" (50/30/10/10) berdasarkan nilai Aset, sehingga pengguna dapat mengisi porsi budget yang masih `0`.
+- Fixed `src/pages/PengeluaranPage.jsx` - Menambahkan *graceful error handling* untuk mencegat error `HTTP 429 Too Many Requests` (akibat *rate limit* bawaan *Gateway* Railway), sehingga muncul *alert* yang jelas ke pengguna alih-alih merusak tampilan.
+- Fixed `src/pages/DashboardPage.jsx` - Memperbaiki *bug* "Asset tiba-tiba 0" dengan memastikan state `dashboardData` tidak di-*reset* ke `null` atau `0` saat terjadi kegagalan permintaan (termasuk error `429`).
+- Fixed `src/pages/DashboardPage.jsx` - Memperbaiki Line Chart Tren Saldo (Cashflow) agar tampil dinamis menggunakan `financeApi` sebagai *fallback* penghitungan histori saldo (kumulatif), sehingga chart naik saat ada uang masuk dan turun saat ada uang keluar. Mengatur ulang *padding* titik koordinat *chart* agar garis tidak terpotong di sisi bawah.
+- Modified Frontend CatatTabunganPage.jsx - Ensure finalAmount is strictly parsed as Number and negative for tarik tunai, blocking exact zero.

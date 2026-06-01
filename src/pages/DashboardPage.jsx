@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { aggregatorApi } from '@/api/aggregator';
 import { analyticsApi } from '@/api/analytics';
+import { financeApi } from '@/api/finance';
 
 // --- Mock Icons (Sesuaikan dengan import Anda) ---
 const DownloadIcon = () => <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>;
@@ -41,58 +42,11 @@ const DashboardPage = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [aiInsight, setAiInsight] = useState(null);
-
-  // Modal Budget State
-  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
-  const [isSavingBudget, setIsSavingBudget] = useState(false);
-  const [budgetForm, setBudgetForm] = useState({
-    allocKebutuhanPrimer: 0,
-    allocKebutuhanSekunder: 0,
-    allocDanaDarurat: 0,
-    allocTabungan: 0,
-  });
-
-  const handleOpenBudgetModal = () => {
-    setBudgetForm({
-      allocKebutuhanPrimer: summary?.budgetAllocation?.allocKebutuhanPrimer || 0,
-      allocKebutuhanSekunder: summary?.budgetAllocation?.allocKebutuhanSekunder || 0,
-      allocDanaDarurat: summary?.budgetAllocation?.allocDanaDarurat || 0,
-      allocTabungan: summary?.budgetAllocation?.allocTabungan || 0,
-    });
-    setIsBudgetModalOpen(true);
-  };
-
-  const handleAutoCalculateBudget = () => {
-    // Basic 50/30/20 rule on Asset + Income
-    const baseAmount = summary?.asset?.total || 0;
-    setBudgetForm({
-      allocKebutuhanPrimer: baseAmount * 0.5,
-      allocKebutuhanSekunder: baseAmount * 0.3,
-      allocDanaDarurat: baseAmount * 0.1,
-      allocTabungan: baseAmount * 0.1,
-    });
-  };
-
-  const handleSaveBudget = async () => {
-    setIsSavingBudget(true);
-    try {
-      const currentPeriod = new Date().toISOString().slice(0, 7); // YYYY-MM
-      await financeApi.updateBudget(currentPeriod, budgetForm);
-      // Refresh Dashboard
-      const { data } = await aggregatorApi.getDashboardData();
-      setDashboardData(data.data);
-      setIsBudgetModalOpen(false);
-    } catch (err) {
-      console.error('Failed to update budget', err);
-      alert(err.response?.data?.message || 'Gagal menyimpan budget');
-    } finally {
-      setIsSavingBudget(false);
-    }
-  };
+  const [manualBudget, setManualBudget] = useState(null);
+  const [manualTrend, setManualTrend] = useState(null);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-  // Fetch dashboard data dari aggregator
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -108,6 +62,102 @@ const DashboardPage = () => {
       }
     };
 
+    const fetchManualBudgetFallback = async () => {
+      try {
+        const [incomesRes, txRes] = await Promise.all([
+          financeApi.listIncomes({ limit: 1000 }),
+          financeApi.listTransactions({ limit: 1000 })
+        ]);
+        
+        let allocPrimer = 0, allocSekunder = 0, allocDarurat = 0, allocTabungan = 0;
+        let spentPrimer = 0, spentSekunder = 0, spentDarurat = 0, spentTabungan = 0;
+
+        const incomes = incomesRes.data?.data?.items || [];
+        const transactions = txRes.data?.data?.items || [];
+
+        incomes.forEach(inc => {
+          allocPrimer += inc.alloc_kebutuhan_primer || 0;
+          allocSekunder += inc.alloc_kebutuhan_sekunder || 0;
+          allocDarurat += inc.alloc_dana_darurat || 0;
+          allocTabungan += inc.alloc_tabungan || 0;
+        });
+
+        transactions.forEach(tx => {
+          if (tx.parent_category === 'kebutuhan_primer') spentPrimer += tx.amount;
+          if (tx.parent_category === 'kebutuhan_sekunder') spentSekunder += tx.amount;
+          if (tx.parent_category === 'dana_darurat') spentDarurat += tx.amount;
+          if (tx.parent_category === 'tabungan' || tx.type === 'saving_transfer') spentTabungan += tx.amount;
+        });
+
+        setManualBudget({
+          allocKebutuhanPrimer: allocPrimer,
+          allocKebutuhanSekunder: allocSekunder,
+          allocDanaDarurat: allocDarurat,
+          allocTabungan: allocTabungan,
+          spentKebutuhanPrimer: spentPrimer,
+          spentKebutuhanSekunder: spentSekunder,
+          spentDanaDarurat: spentDarurat,
+          spentTabungan: spentTabungan
+        });
+
+        // Kalkulasi Trend Saldo Asset (Kumulatif)
+        const ledger = [];
+        incomes.forEach(inc => {
+          ledger.push({ date: new Date(inc.income_date), amount: inc.amount, type: 'income' });
+        });
+        transactions.forEach(tx => {
+          ledger.push({ date: new Date(tx.transaction_date), amount: tx.amount, type: tx.type === 'expense' ? 'expense' : 'neutral' });
+        });
+
+        // Urutkan dari yang terlama ke terbaru
+        ledger.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+        let currentBalance = 0;
+        const balanceHistory = ledger.map(entry => {
+          if (entry.type === 'income') currentBalance += entry.amount;
+          else if (entry.type === 'expense') currentBalance -= entry.amount;
+          return { date: entry.date, balance: currentBalance };
+        });
+
+        const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+        const days7 = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          d.setHours(23, 59, 59, 999);
+          
+          let dayBalance = 0;
+          for (let j = balanceHistory.length - 1; j >= 0; j--) {
+            if (balanceHistory[j].date <= d) {
+              dayBalance = balanceHistory[j].balance;
+              break;
+            }
+          }
+          days7.push({ label: days[d.getDay()], value: dayBalance });
+        }
+
+        const days30 = [];
+        for (let i = 29; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          d.setHours(23, 59, 59, 999);
+          
+          let dayBalance = 0;
+          for (let j = balanceHistory.length - 1; j >= 0; j--) {
+            if (balanceHistory[j].date <= d) {
+              dayBalance = balanceHistory[j].balance;
+              break;
+            }
+          }
+          days30.push({ label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }), value: dayBalance });
+        }
+
+        setManualTrend({ days7, days30 });
+      } catch(err) {
+        console.warn('Failed to calculate manual budget', err);
+      }
+    };
+
     const fetchAiInsight = async () => {
       try {
         const { data } = await analyticsApi.getInsight();
@@ -118,6 +168,7 @@ const DashboardPage = () => {
     };
 
     fetchDashboardData();
+    fetchManualBudgetFallback();
     fetchAiInsight();
   }, []);
 
@@ -196,65 +247,56 @@ const DashboardPage = () => {
 
   // Menggunakan data cashflowTrend dari backend (akumulasi pemasukan - pengeluaran 7 hari)
   const chartData7Days = useMemo(() => {
-    const rawTrend = summary?.cashflowTrend || [];
+    if (manualTrend?.days7) return manualTrend.days7;
     
-    // Jika data kosong, buat array 7 hari dengan value 0 sebagai empty state
+    const rawTrend = summary?.cashflowTrend || [];
     if (rawTrend.length === 0) {
       const emptyData = [];
       const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
       for (let i = 6; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        emptyData.push({
-          label: days[d.getDay()],
-          value: 0
-        });
+        emptyData.push({ label: days[d.getDay()], value: 0 });
       }
       return emptyData;
     }
-
-    // Jika ada data, mapping ke format yang dibutuhkan chart
-    return rawTrend.map(t => ({
-      label: t.day,
-      value: t.amount
-    }));
-  }, [summary?.cashflowTrend]);
+    return rawTrend.map(t => ({ label: t.day, value: t.amount }));
+  }, [summary?.cashflowTrend, manualTrend]);
 
   const chartData30Days = useMemo(() => {
+    if (manualTrend?.days30) return manualTrend.days30;
+
     const rawTrend30 = summary?.cashflowTrend30Days || [];
-    
     if (rawTrend30.length === 0) {
       const emptyData = [];
       for (let i = 29; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        emptyData.push({
-          label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
-          value: 0
-        });
+        emptyData.push({ label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }), value: 0 });
       }
       return emptyData;
     }
-
-    return rawTrend30.map(t => ({
-      label: t.day,
-      value: t.amount
-    }));
-  }, [summary?.cashflowTrend30Days]);
+    return rawTrend30.map(t => ({ label: t.day, value: t.amount }));
+  }, [summary?.cashflowTrend30Days, manualTrend]);
 
   // --- LOGIKA PERHITUNGAN KOORDINAT LINE CHART ---
   const activeData = chartPeriod === '7days' ? chartData7Days : chartData30Days;
-  const maxVal = Math.max(...activeData.map(d => d.value)); // Cari nilai tertinggi untuk skala chart
-  const safeMaxVal = maxVal === 0 ? 1 : maxVal; // Hindari pembagian dengan 0 (NaN)
+  
+  // Update: Skala dinamis dari minimum hingga maksimum asset agar fluktuasi terlihat jelas
+  const maxVal = Math.max(...activeData.map(d => d.value), 1);
+  const minVal = Math.min(...activeData.map(d => d.value), 0);
+  const range = maxVal - minVal;
+  const safeRange = range === 0 ? 1 : range;
 
   const svgPoints = useMemo(() => {
     return activeData.map((d, index) => {
-      const x = (index / (activeData.length - 1)) * 1000; // Skala lebar 0 - 1000
-      // Skala tinggi 0 - 200, sisakan ruang 40px di atas agar tooltip tidak terpotong
-      const y = 200 - ((d.value / safeMaxVal) * 160); 
+      const x = (index / (Math.max(activeData.length - 1, 1))) * 1000;
+      // Gunakan skala rentang untuk mengisi ruang vertikal secara optimal (dengan padding)
+      // Jika nilai konstan (maxVal === minVal), letakkan garis di tengah (y = 110)
+      const y = maxVal === minVal ? 110 : 180 - (((d.value - minVal) / safeRange) * 140); 
       return { x, y, ...d, index };
     });
-  }, [activeData, maxVal]);
+  }, [activeData, maxVal, minVal, safeRange]);
 
   const polylineString = svgPoints.map(p => `${p.x},${p.y}`).join(' ');
 
@@ -573,83 +615,77 @@ const DashboardPage = () => {
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col relative">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-md font-bold text-gray-900">Status Budget Anda</h3>
-                <button 
-                  onClick={handleOpenBudgetModal}
-                  className="text-xs font-bold text-[#FFAD2D] hover:text-[#e59b28] bg-[#FFF8ED] px-3 py-1.5 rounded-lg transition-colors"
-                >
-                  Edit Budget
-                </button>
               </div>
               
               {/* Progress Bars */}
               <div className="space-y-4 mb-6">
-                {/* Primer */}
+                {/* Kebutuhan Primer */}
                 <div>
                   <div className="flex justify-between text-xs mb-1">
                     <span className="font-semibold text-gray-700">Kebutuhan Primer</span>
                     <span className="text-gray-500 font-medium">
-                      {formatRupiah((summary?.budgetAllocation?.allocKebutuhanPrimer || 0) - (summary?.budgetAllocation?.spentKebutuhanPrimer || 0))}
+                      {formatRupiah((summary?.budgetAllocation?.allocKebutuhanPrimer ?? manualBudget?.allocKebutuhanPrimer ?? 0) - (summary?.budgetAllocation?.spentKebutuhanPrimer ?? manualBudget?.spentKebutuhanPrimer ?? 0))}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div 
                       className="h-2 rounded-full transition-all duration-500 bg-[#FFAD2D]"
                       style={{ 
-                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.allocKebutuhanPrimer || 0) - (summary?.budgetAllocation?.spentKebutuhanPrimer || 0)) / (summary?.budgetAllocation?.allocKebutuhanPrimer || 1)) * 100))}%` 
+                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.allocKebutuhanPrimer ?? manualBudget?.allocKebutuhanPrimer ?? 0) - (summary?.budgetAllocation?.spentKebutuhanPrimer ?? manualBudget?.spentKebutuhanPrimer ?? 0)) / (summary?.budgetAllocation?.allocKebutuhanPrimer || manualBudget?.allocKebutuhanPrimer || 1)) * 100))}%` 
                       }}
                     ></div>
                   </div>
                 </div>
 
-                {/* Sekunder */}
+                {/* Kebutuhan Sekunder */}
                 <div>
                   <div className="flex justify-between text-xs mb-1">
                     <span className="font-semibold text-gray-700">Kebutuhan Sekunder</span>
                     <span className="text-gray-500 font-medium">
-                      {formatRupiah((summary?.budgetAllocation?.allocKebutuhanSekunder || 0) - (summary?.budgetAllocation?.spentKebutuhanSekunder || 0))}
+                      {formatRupiah((summary?.budgetAllocation?.allocKebutuhanSekunder ?? manualBudget?.allocKebutuhanSekunder ?? 0) - (summary?.budgetAllocation?.spentKebutuhanSekunder ?? manualBudget?.spentKebutuhanSekunder ?? 0))}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div 
                       className="h-2 rounded-full transition-all duration-500 bg-[#8C3A7A]"
                       style={{ 
-                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.allocKebutuhanSekunder || 0) - (summary?.budgetAllocation?.spentKebutuhanSekunder || 0)) / (summary?.budgetAllocation?.allocKebutuhanSekunder || 1)) * 100))}%` 
+                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.allocKebutuhanSekunder ?? manualBudget?.allocKebutuhanSekunder ?? 0) - (summary?.budgetAllocation?.spentKebutuhanSekunder ?? manualBudget?.spentKebutuhanSekunder ?? 0)) / (summary?.budgetAllocation?.allocKebutuhanSekunder || manualBudget?.allocKebutuhanSekunder || 1)) * 100))}%` 
                       }}
                     ></div>
                   </div>
                 </div>
 
-                {/* Darurat */}
+                {/* Dana Darurat */}
                 <div>
                   <div className="flex justify-between text-xs mb-1">
                     <span className="font-semibold text-gray-700">Dana Darurat</span>
                     <span className="text-gray-500 font-medium">
-                      {formatRupiah((summary?.budgetAllocation?.allocDanaDarurat || 0) - (summary?.budgetAllocation?.spentDanaDarurat || 0))}
+                      {formatRupiah((summary?.budgetAllocation?.allocDanaDarurat ?? manualBudget?.allocDanaDarurat ?? 0) - (summary?.budgetAllocation?.spentDanaDarurat ?? manualBudget?.spentDanaDarurat ?? 0))}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div 
                       className="h-2 rounded-full bg-green-500 transition-all duration-500"
                       style={{ 
-                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.allocDanaDarurat || 0) - (summary?.budgetAllocation?.spentDanaDarurat || 0)) / (summary?.budgetAllocation?.allocDanaDarurat || 1)) * 100))}%` 
+                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.allocDanaDarurat ?? manualBudget?.allocDanaDarurat ?? 0) - (summary?.budgetAllocation?.spentDanaDarurat ?? manualBudget?.spentDanaDarurat ?? 0)) / (summary?.budgetAllocation?.allocDanaDarurat || manualBudget?.allocDanaDarurat || 1)) * 100))}%` 
                       }}
                     ></div>
                   </div>
                 </div>
 
-                {/* Tabungan */}
+                {/* Kantong Tabungan Utama */}
                 <div>
                   <div className="flex justify-between text-xs mb-1">
                     <span className="font-semibold text-gray-700">Kantong Tabungan Utama</span>
                     <span className="text-gray-500 font-medium">
-                      {formatRupiah((summary?.budgetAllocation?.allocTabungan || 0) - (summary?.budgetAllocation?.spentTabungan || 0))}
+                      {formatRupiah((summary?.budgetAllocation?.allocTabungan ?? manualBudget?.allocTabungan ?? 0) - (summary?.budgetAllocation?.spentTabungan ?? manualBudget?.spentTabungan ?? 0))}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div 
                       className="h-2 rounded-full bg-blue-500 transition-all duration-500"
                       style={{ 
-                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.allocTabungan || 0) - (summary?.budgetAllocation?.spentTabungan || 0)) / (summary?.budgetAllocation?.allocTabungan || 1)) * 100))}%` 
+                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.allocTabungan ?? manualBudget?.allocTabungan ?? 0) - (summary?.budgetAllocation?.spentTabungan ?? manualBudget?.spentTabungan ?? 0)) / (summary?.budgetAllocation?.allocTabungan || manualBudget?.allocTabungan || 1)) * 100))}%` 
                       }}
                     ></div>
                   </div>
@@ -918,100 +954,7 @@ const DashboardPage = () => {
         <Link to="/pengeluaran" className="fixed md:hidden bottom-8 right-6 w-14 h-14 bg-[#FFAD2D] hover:bg-[#F29F25] text-white rounded-full shadow-lg flex items-center justify-center align-middle text-3xl font-light transition-transform hover:scale-105 z-40">
           +
         </Link>
-      </div>
-
-      {/* Budget Modal */}
-      {isBudgetModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-[#FFFDF9]">
-              <h3 className="text-lg font-bold text-gray-900">Atur Alokasi Budget</h3>
-              <button 
-                onClick={() => setIsBudgetModalOpen(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
-              >
-                <CloseIcon />
-              </button>
-            </div>
-            
-            <div className="p-6 overflow-y-auto">
-              <div className="mb-6 bg-[#FFF8ED] p-4 rounded-xl border border-[#FFE4B5]">
-                <p className="text-sm text-gray-700 font-medium mb-3">
-                  Bingung atur budget? Biarkan sistem menghitung otomatis berdasarkan total asset Anda.
-                </p>
-                <button 
-                  onClick={handleAutoCalculateBudget}
-                  className="w-full py-2.5 bg-white border-2 border-[#FFAD2D] text-[#FFAD2D] hover:bg-[#FFAD2D] hover:text-white font-bold rounded-lg transition-colors text-sm"
-                >
-                  Hitung Otomatis (50/30/10/10)
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">Kebutuhan Primer</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
-                    <input 
-                      type="text" 
-                      value={new Intl.NumberFormat('id-ID').format(budgetForm.allocKebutuhanPrimer)}
-                      onChange={(e) => setBudgetForm({...budgetForm, allocKebutuhanPrimer: Number(e.target.value.replace(/[^0-9]/g, ''))})}
-                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">Kebutuhan Sekunder</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
-                    <input 
-                      type="text" 
-                      value={new Intl.NumberFormat('id-ID').format(budgetForm.allocKebutuhanSekunder)}
-                      onChange={(e) => setBudgetForm({...budgetForm, allocKebutuhanSekunder: Number(e.target.value.replace(/[^0-9]/g, ''))})}
-                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">Dana Darurat</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
-                    <input 
-                      type="text" 
-                      value={new Intl.NumberFormat('id-ID').format(budgetForm.allocDanaDarurat)}
-                      onChange={(e) => setBudgetForm({...budgetForm, allocDanaDarurat: Number(e.target.value.replace(/[^0-9]/g, ''))})}
-                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">Kantong Tabungan Utama</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
-                    <input 
-                      type="text" 
-                      value={new Intl.NumberFormat('id-ID').format(budgetForm.allocTabungan)}
-                      onChange={(e) => setBudgetForm({...budgetForm, allocTabungan: Number(e.target.value.replace(/[^0-9]/g, ''))})}
-                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] font-medium"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 border-t border-gray-100 bg-gray-50">
-              <button 
-                onClick={handleSaveBudget}
-                disabled={isSavingBudget}
-                className="w-full bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3.5 rounded-xl transition-all disabled:opacity-60 shadow-md"
-              >
-                {isSavingBudget ? 'Menyimpan...' : 'Simpan Budget'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+    </div>
     </div>
   );
 };
