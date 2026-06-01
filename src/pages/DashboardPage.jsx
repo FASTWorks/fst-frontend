@@ -38,13 +38,16 @@ const DashboardPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [chartPeriod, setChartPeriod] = useState('7days');
 
-  // State untuk data dari API
   const [dashboardData, setDashboardData] = useState(null);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [aiInsight, setAiInsight] = useState(null);
   const [manualBudget, setManualBudget] = useState(null);
   const [manualTrend, setManualTrend] = useState(null);
   const [allTransactions, setAllTransactions] = useState([]);
+  const [currentTrxPage, setCurrentTrxPage] = useState(1);
+  const [totalServerPages, setTotalServerPages] = useState(0);
+  const [totalServerItems, setTotalServerItems] = useState(0);
+  const itemsPerTrxPage = 10;
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -177,24 +180,11 @@ const DashboardPage = () => {
       }
     };
 
-    const fetchRecentTransactions = async () => {
-      try {
-        const { data } = await analyticsApi.getRecent();
-        // Backend returns up to 10 by default or as implemented
-        if (data.data) {
-          setAllTransactions(data.data);
-        }
-      } catch (err) {
-        console.warn('Failed to fetch recent transactions', err);
-      }
-    };
-
     const fetchAiInsight = async () => {
       try {
         const { data } = await analyticsApi.getInsight();
         if (data.data?.insights && data.data.insights.length > 0) {
            const texts = data.data.insights.map(i => i.description).join(' ');
-           // Format number with dots (misal 3000000 menjadi 3.000.000)
            const formattedText = texts.replace(/\b(\d{4,})\b/g, (match) => {
              return new Intl.NumberFormat('id-ID').format(Number(match));
            });
@@ -207,9 +197,36 @@ const DashboardPage = () => {
 
     fetchDashboardData();
     fetchManualBudgetFallback();
-    fetchRecentTransactions();
     fetchAiInsight();
   }, []);
+
+  // Fetch recent transactions with server-side pagination
+  useEffect(() => {
+    const fetchRecentTransactions = async () => {
+      setIsDataLoading(true);
+      try {
+        const { data } = await analyticsApi.getRecent({ page: currentTrxPage, limit: 10 });
+        if (data.data) {
+          if (data.data.transactions) {
+            setAllTransactions(data.data.transactions);
+            if (data.data.pagination) {
+              setTotalServerPages(data.data.pagination.totalPages);
+              setTotalServerItems(data.data.pagination.totalData);
+            }
+          } else if (Array.isArray(data.data)) {
+            setAllTransactions(data.data);
+            setTotalServerPages(0);
+            setTotalServerItems(data.data.length);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch recent transactions', err);
+      } finally {
+        setIsDataLoading(false);
+      }
+    };
+    fetchRecentTransactions();
+  }, [currentTrxPage]);
 
   const handleLogout = async () => {
     const isConfirm = window.confirm("Apakah Anda yakin ingin keluar dari aplikasi?");
@@ -383,11 +400,8 @@ const DashboardPage = () => {
   const polylineString = svgPoints.map(p => `${p.x},${p.y}`).join(' ');
 
   // --- LOGIKA FILTER & PAGINATION TRANSAKSI ---
-  const [currentTrxPage, setCurrentTrxPage] = useState(1);
   const [isViewAll, setIsViewAll] = useState(false); // State baru untuk toggle Lihat Semua
   const [trxFilter, setTrxFilter] = useState('terbaru'); // State untuk filter
-  const itemsPerTrxPage = 10; // Menampilkan 10 transaksi per halaman (sesuaikan selera)
-
   const sortedTransactions = useMemo(() => {
     let sorted = [...transactions];
     switch(trxFilter) {
@@ -404,15 +418,19 @@ const DashboardPage = () => {
     }
   }, [transactions, trxFilter]);
 
-  const totalTrxPages = Math.ceil(sortedTransactions.length / itemsPerTrxPage);
+  const totalTrxPages = totalServerPages > 0 
+    ? totalServerPages 
+    : Math.ceil(sortedTransactions.length / itemsPerTrxPage);
 
-  // Memotong array transaksi sesuai halaman yang aktif
+  // Transaksi yang akan ditampilkan di halaman saat ini
   const currentTransactions = isViewAll 
     ? sortedTransactions 
-    : sortedTransactions.slice(
-        (currentTrxPage - 1) * itemsPerTrxPage,
-        currentTrxPage * itemsPerTrxPage
-      );
+    : (totalServerPages > 0 
+        ? sortedTransactions 
+        : sortedTransactions.slice(
+            (currentTrxPage - 1) * itemsPerTrxPage,
+            currentTrxPage * itemsPerTrxPage
+          ));
   
 
   const handleDownloadCSV = () => {
@@ -821,8 +839,22 @@ const DashboardPage = () => {
                     onClick={async () => {
                       setIsDataLoading(true);
                       try {
-                        const { data } = await aggregatorApi.getDashboardData();
-                        setDashboardData(data.data);
+                        const [{ data: dashData }, { data: recentData }] = await Promise.all([
+                          aggregatorApi.getDashboardData(),
+                          analyticsApi.getRecent({ page: currentTrxPage, limit: 10 })
+                        ]);
+                        setDashboardData(dashData.data);
+                        if (recentData.data) {
+                          if (recentData.data.transactions) {
+                            setAllTransactions(recentData.data.transactions);
+                            if (recentData.data.pagination) {
+                              setTotalServerPages(recentData.data.pagination.totalPages);
+                              setTotalServerItems(recentData.data.pagination.totalData);
+                            }
+                          } else if (Array.isArray(recentData.data)) {
+                            setAllTransactions(recentData.data);
+                          }
+                        }
                       } catch (err) {
                         console.error('Refresh failed:', err);
                       } finally {
@@ -969,10 +1001,10 @@ const DashboardPage = () => {
 
               {/* --- PAGINATION CONTROLS DI BAWAH TRANSAKSI --- */}
               {/* Hanya tampilkan navigasi halaman jika BUKAN dalam mode Lihat Semua */}
-              {!isViewAll && transactions.length > 0 && (
+              {!isViewAll && (totalServerItems > 0 || transactions.length > 0) && (
                 <div className="flex items-center justify-between pt-4 mt-2 border-t border-gray-100">
                   <span className="text-xs text-gray-500 font-medium hidden sm:block">
-                    Menampilkan {(currentTrxPage - 1) * itemsPerTrxPage + (currentTransactions.length > 0 ? 1 : 0)} - {Math.min(currentTrxPage * itemsPerTrxPage, sortedTransactions.length)} dari {sortedTransactions.length}
+                    Menampilkan {(currentTrxPage - 1) * itemsPerTrxPage + (currentTransactions.length > 0 ? 1 : 0)} - {Math.min(currentTrxPage * itemsPerTrxPage, totalServerItems > 0 ? totalServerItems : sortedTransactions.length)} dari {totalServerItems > 0 ? totalServerItems : sortedTransactions.length}
                   </span>
                   
                   <div className="flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-end">
