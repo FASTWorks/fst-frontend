@@ -67,6 +67,17 @@ const PemasukanPage = () => {
   const isMismatch = nominalPemasukan > 0 && totalAlokasi !== nominalPemasukan;
   const sisaAlokasi = nominalPemasukan - totalAlokasi;
 
+  // Auto-calculate alokasi tabungan if active
+  useEffect(() => {
+    if (isTabunganActive && nominalPemasukan > 0) {
+      const used = kebutuhanPrimer + kebutuhanSekunder + danaDarurat;
+      const remainder = nominalPemasukan - used;
+      if (remainder >= 0) {
+        setAlokasiTabungan(remainder);
+      }
+    }
+  }, [isTabunganActive, nominalPemasukan, kebutuhanPrimer, kebutuhanSekunder, danaDarurat]);
+
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   const handleLogout = async () => {
@@ -268,7 +279,7 @@ const PemasukanPage = () => {
                 {/* Aktifkan Tabungan Toggle */}
                 <div>
                   <label className="block text-sm font-bold text-gray-900 mb-2">
-                    Aktifkan Kantong Tabungan Utama<span className="text-red-500">*</span>
+                    Aktifkan Tabungan<span className="text-red-500">*</span>
                   </label>
                   <div className="flex gap-2">
                     <button
@@ -356,7 +367,7 @@ const PemasukanPage = () => {
                       {/* Alokasi Tabungan */}
                       <div>
                         <label htmlFor="alokasi_tabungan" className="block text-sm font-bold text-gray-900 mb-2">
-                          Alokasi Kantong Tabungan Utama <span className="text-red-500">*</span>
+                          Alokasi Tabungan <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -364,15 +375,15 @@ const PemasukanPage = () => {
                           name="alokasi_tabungan"
                           placeholder="500.000"
                           value={alokasiTabungan === 0 ? '' : formatRupiah(alokasiTabungan)}
-                          onChange={(e) => setAlokasiTabungan(parseRupiah(e.target.value))}
-                          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FFAD2D] focus:border-transparent text-gray-900 placeholder-gray-400"
+                          readOnly
+                          className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 cursor-not-allowed focus:outline-none"
                         />
                       </div>
                       
                       {/* Pilih Tabungan Tujuan */}
                       <div className="md:col-span-2">
                         <label htmlFor="pilih_tabungan" className="block text-sm font-bold text-gray-900 mb-2">
-                          Kantong Tabungan Utama Tujuan
+                          Tabungan Tujuan
                         </label>
                         <select
                           id="pilih_tabungan"
