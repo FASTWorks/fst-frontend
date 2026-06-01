@@ -223,7 +223,12 @@
 ### Audit & Planning: Full API Documentation Review
 - Created `integration_plan.md` - Audit menyeluruh API_DOCUMENTATION.md vs codebase frontend. Mengidentifikasi 4 bug kritis di Dashboard (Tren Saldo, Status Budget, Transaksi Terbaru, Hapus Tabungan). Membuat gap analysis 25+ endpoint terintegrasi vs 11 endpoint yang belum/bermasalah. Menyusun roadmap integrasi 6 fase dengan 15 task terurut prioritas.
 
-### INTEGRATION PHASE 1: Fix Critical Dashboard Bugs
+### INTEGRATION PHASE 1: Fix Dashboard Fallback Logic & Analytics
+- Modified `DashboardPage.jsx` - Merombak perhitungan Dashboard untuk membaca *real-time API endpoint*:
+  1. **Cashflow (Tren Saldo)**: Mengubah konsep menjadi **Backward Asset Tracking**. Titik grafik terakhir secara mutlak selalu terkunci pada angka `totalAsset` dari backend. Sedangkan titik-titik pada hari sebelumnya dihitung *mundur* berdasarkan riwayat arus kas murni (`netChange` harian). Hal ini memastikan dua syarat kritis terpenuhi: (1) Grafik benar-benar mengacu pada Saldo Aset yang sebenarnya (misal: 120 Juta), dan (2) Data pada hari-hari kemarin bersifat statis dan terkunci selamanya tanpa bisa bergeser, karena hanya direkonstruksi dari transaksi harian historis.
+  2. **Transaksi Terbaru**: Mengganti fallback lokal manual dengan pemanggilan langsung ke endpoint `GET /api/analytics/recent` dan meningkatkan UX tampilan dengan default **10 item per halaman** sesuai instruksi.
+  3. **FAST AI Insight**: Menghubungkan komponen *insight* dengan endpoint `GET /api/analytics/insight` dan menambahkan fungsi Regex untuk otomatis memformat angka yang dihasilkan AI dengan titik pemisah ribuan (misal: 3000000 menjadi 3.000.000).
+- Modified `DashboardPage.jsx` - Menambahkan `.catch()` pada pemanggilan API `listIncomes` dan `listTransactions` untuk mencegah *Promise.all* melempar *fatal error* (blank/0 array) jika endpoint sedang *down* atau kosong.
 - Modified `DashboardPage.jsx` - Memperbaiki parsing array response `.data?.data` untuk list incomes dan transactions yang gagal di-_render_.
 - Modified `DashboardPage.jsx` - Merombak kalkulasi *Tren Saldo (Cashflow)* menjadi *Running Balance (Kumulatif)* yang akurat, dengan mengakumulasikan Pemasukan dan Pengeluaran sesuai riwayat transaksi sesungguhnya, bukan sekadar selisih harian.
 - Modified `DashboardPage.jsx` - Memperbaiki Bug *Status Budget* dengan menggunakan response langsung dari API `GET /api/finance/budget/summary`, serta menyesuaikan field schema backend (`alloc_kebutuhan_primer` dst) agar data progress bar budget 100% tersinkron dengan alokasi.

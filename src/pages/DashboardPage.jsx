@@ -66,16 +66,19 @@ const DashboardPage = () => {
     const fetchManualBudgetFallback = async () => {
       try {
         const [incomesRes, txRes, budgetRes] = await Promise.all([
-          financeApi.listIncomes({ limit: 1000 }),
-          financeApi.listTransactions({ limit: 1000 }),
+          financeApi.listIncomes({ limit: 1000 }).catch(() => ({ data: { data: [] } })),
+          financeApi.listTransactions({ limit: 1000 }).catch(() => ({ data: { data: [] } })),
           financeApi.getBudgetSummary().catch(() => ({ data: { data: null } }))
         ]);
         
         let allocPrimer = 0, allocSekunder = 0, allocDarurat = 0, allocTabungan = 0;
         let spentPrimer = 0, spentSekunder = 0, spentDarurat = 0, spentTabungan = 0;
 
-        const incomes = incomesRes.data?.data || [];
-        const transactions = txRes.data?.data || [];
+        const rawIncomes = incomesRes.data?.data;
+        const incomes = Array.isArray(rawIncomes) ? rawIncomes : [];
+        
+        const rawTx = txRes.data?.data;
+        const transactions = Array.isArray(rawTx) ? rawTx : [];
 
         const budgetCategories = budgetRes.data?.data?.categories;
         if (budgetCategories) {
@@ -114,100 +117,89 @@ const DashboardPage = () => {
           spent_tabungan: spentTabungan
         });
 
-        // Gabungkan transaksi dan pemasukan untuk "Transaksi Terbaru"
-        const combined = [];
-        incomes.forEach(inc => {
-          combined.push({
-            id: 'inc-' + inc.id,
-            name: inc.source || 'Pemasukan',
-            title: inc.source || 'Pemasukan',
-            amount: inc.amount,
-            type: 'income',
-            category: 'pemasukan',
-            date: inc.income_date,
-            note: inc.note
-          });
-        });
-        transactions.forEach(tx => {
-          combined.push({
-            id: 'tx-' + tx.id,
-            name: tx.name,
-            title: tx.name,
-            amount: tx.amount,
-            type: tx.type,
-            category: tx.parent_category || tx.sub_category || 'Lainnya',
-            date: tx.transaction_date,
-            note: tx.note
-          });
-        });
-        
-        combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        setAllTransactions(combined);
-
-        // Kalkulasi Trend Saldo Asset (Kumulatif)
+        // Kalkulasi Trend Saldo Asset (Kumulatif) untuk line chart
         const ledger = [];
         incomes.forEach(inc => {
-          ledger.push({ date: new Date(inc.income_date), amount: inc.amount, type: 'income' });
+          ledger.push({ date: new Date(inc.income_date || inc.createdAt), amount: inc.amount, type: 'income' });
         });
         transactions.forEach(tx => {
           if (tx.type === 'expense') {
-            ledger.push({ date: new Date(tx.transaction_date), amount: tx.amount, type: 'expense' });
+            ledger.push({ date: new Date(tx.transaction_date || tx.createdAt), amount: tx.amount, type: 'expense' });
           }
         });
 
         // Urutkan dari yang terlama ke terbaru
         ledger.sort((a, b) => a.date.getTime() - b.date.getTime());
-
-        let currentBalance = 0;
-        const balanceHistory = ledger.map(entry => {
-          if (entry.type === 'income') currentBalance += entry.amount;
-          else if (entry.type === 'expense') currentBalance -= entry.amount;
-          return { date: entry.date, balance: currentBalance };
-        });
-
         const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
         const days7 = [];
         for (let i = 6; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          d.setHours(23, 59, 59, 999);
+          const dStart = new Date();
+          dStart.setDate(dStart.getDate() - i);
+          dStart.setHours(0, 0, 0, 0);
           
-          let dayBalance = 0;
-          for (let j = balanceHistory.length - 1; j >= 0; j--) {
-            if (balanceHistory[j].date <= d) {
-              dayBalance = balanceHistory[j].balance;
-              break;
+          const dEnd = new Date(dStart);
+          dEnd.setHours(23, 59, 59, 999);
+          
+          let dayNet = 0;
+          ledger.forEach(entry => {
+            if (entry.date >= dStart && entry.date <= dEnd) {
+              if (entry.type === 'income') dayNet += entry.amount;
+              else if (entry.type === 'expense') dayNet -= entry.amount;
             }
-          }
-          days7.push({ label: days[d.getDay()], value: dayBalance });
+          });
+          
+          days7.push({ label: days[dStart.getDay()], netChange: dayNet });
         }
 
         const days30 = [];
         for (let i = 29; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          d.setHours(23, 59, 59, 999);
+          const dStart = new Date();
+          dStart.setDate(dStart.getDate() - i);
+          dStart.setHours(0, 0, 0, 0);
           
-          let dayBalance = 0;
-          for (let j = balanceHistory.length - 1; j >= 0; j--) {
-            if (balanceHistory[j].date <= d) {
-              dayBalance = balanceHistory[j].balance;
-              break;
+          const dEnd = new Date(dStart);
+          dEnd.setHours(23, 59, 59, 999);
+          
+          let dayNet = 0;
+          ledger.forEach(entry => {
+            if (entry.date >= dStart && entry.date <= dEnd) {
+              if (entry.type === 'income') dayNet += entry.amount;
+              else if (entry.type === 'expense') dayNet -= entry.amount;
             }
-          }
-          days30.push({ label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }), value: dayBalance });
+          });
+          
+          days30.push({ label: dStart.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }), netChange: dayNet });
         }
 
         setManualTrend({ days7, days30 });
       } catch(err) {
-        console.warn('Failed to calculate manual budget', err);
+        console.warn('Failed to calculate manual budget/trend', err);
+      }
+    };
+
+    const fetchRecentTransactions = async () => {
+      try {
+        const { data } = await analyticsApi.getRecent();
+        // Backend returns up to 10 by default or as implemented
+        if (data.data) {
+          setAllTransactions(data.data);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch recent transactions', err);
       }
     };
 
     const fetchAiInsight = async () => {
       try {
         const { data } = await analyticsApi.getInsight();
-        setAiInsight(data.data?.insight);
+        if (data.data?.insights && data.data.insights.length > 0) {
+           const texts = data.data.insights.map(i => i.description).join(' ');
+           // Format number with dots (misal 3000000 menjadi 3.000.000)
+           const formattedText = texts.replace(/\b(\d{4,})\b/g, (match) => {
+             return new Intl.NumberFormat('id-ID').format(Number(match));
+           });
+           setAiInsight(`"${formattedText}"`);
+        }
       } catch {
         // AI insight is optional, fail silently
       }
@@ -215,6 +207,7 @@ const DashboardPage = () => {
 
     fetchDashboardData();
     fetchManualBudgetFallback();
+    fetchRecentTransactions();
     fetchAiInsight();
   }, []);
 
@@ -237,12 +230,18 @@ const DashboardPage = () => {
   ];
 
   // --- Transaksi ---
-  // Menggunakan data transaksi dari backend, atau kosong jika belum ada (user baru)
+  // Menggunakan data transaksi langsung dari endpoint analytics yang disimpan di allTransactions
   const summary = dashboardData?.dashboard || {};
-  const transactions = allTransactions.length > 0 ? allTransactions : (summary?.recentTransactions || []).map(tx => ({
+  const transactions = allTransactions.length > 0 ? allTransactions.map(tx => ({
     ...tx,
     date: tx.transaction_date || tx.date,
-    title: tx.name || tx.title
+    title: tx.name || tx.title,
+    category: tx.parent_category || tx.category
+  })) : (summary?.recentTransactions || []).map(tx => ({
+    ...tx,
+    date: tx.transaction_date || tx.date,
+    title: tx.name || tx.title,
+    category: tx.parent_category || tx.category
   }));
 
   const totalAsset = summary?.asset?.total || 0;
@@ -297,36 +296,66 @@ const DashboardPage = () => {
 
   // Menggunakan data cashflowTrend dari backend (akumulasi pemasukan - pengeluaran 7 hari)
   const chartData7Days = useMemo(() => {
-    if (manualTrend?.days7) return manualTrend.days7;
-    
-    const rawTrend = summary?.cashflowTrend || [];
-    if (rawTrend.length === 0) {
-      const emptyData = [];
-      const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        emptyData.push({ label: days[d.getDay()], value: 0 });
+    let baseData = [];
+    if (manualTrend?.days7) {
+      // BACKWARD ACCUMULATION: Titik terakhir selalu persis totalAsset
+      // Titik-titik sebelumnya dihitung mundur murni dari riwayat netChange,
+      // sehingga nilainya akan 100% statis/terkunci meskipun ada transaksi baru di masa depan.
+      const arr = [...manualTrend.days7];
+      let runningAsset = totalAsset;
+      for (let i = arr.length - 1; i >= 0; i--) {
+        arr[i] = { ...arr[i], value: runningAsset };
+        runningAsset -= arr[i].netChange;
       }
-      return emptyData;
+      baseData = arr;
+    } else {
+      const rawTrend = summary?.cashflowTrend || [];
+      if (rawTrend.length === 0) {
+        const emptyData = [];
+        const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          emptyData.push({ label: days[d.getDay()], value: totalAsset });
+        }
+        baseData = emptyData;
+      } else {
+        baseData = rawTrend.map(t => ({ label: t.day, value: t.amount }));
+      }
     }
-    return rawTrend.map(t => ({ label: t.day, value: t.amount }));
-  }, [summary?.cashflowTrend, manualTrend]);
+    
+    // Hapus offset dinamis agar titik data hari-hari sebelumnya bersifat statis (terkunci)
+    // sesuai perhitungan asli riwayat transaksi tanpa bergeser jika ada perubahan di luar riwayat.
+    return baseData;
+  }, [summary?.cashflowTrend, manualTrend, totalAsset]);
 
   const chartData30Days = useMemo(() => {
-    if (manualTrend?.days30) return manualTrend.days30;
-
-    const rawTrend30 = summary?.cashflowTrend30Days || [];
-    if (rawTrend30.length === 0) {
-      const emptyData = [];
-      for (let i = 29; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        emptyData.push({ label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }), value: 0 });
+    let baseData = [];
+    if (manualTrend?.days30) {
+      const arr = [...manualTrend.days30];
+      let runningAsset = totalAsset;
+      for (let i = arr.length - 1; i >= 0; i--) {
+        arr[i] = { ...arr[i], value: runningAsset };
+        runningAsset -= arr[i].netChange;
       }
-      return emptyData;
+      baseData = arr;
+    } else {
+      const rawTrend30 = summary?.cashflowTrend30Days || [];
+      if (rawTrend30.length === 0) {
+        const emptyData = [];
+        for (let i = 29; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          emptyData.push({ label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }), value: totalAsset });
+        }
+        baseData = emptyData;
+      } else {
+        baseData = rawTrend30.map(t => ({ label: t.day, value: t.amount }));
+      }
     }
-    return rawTrend30.map(t => ({ label: t.day, value: t.amount }));
+    
+    // Hapus offset dinamis agar titik data hari-hari sebelumnya bersifat statis (terkunci)
+    return baseData;
   }, [summary?.cashflowTrend30Days, manualTrend]);
 
   // --- LOGIKA PERHITUNGAN KOORDINAT LINE CHART ---
@@ -337,6 +366,9 @@ const DashboardPage = () => {
   const minVal = Math.min(...activeData.map(d => d.value), 0);
   const range = maxVal - minVal;
   const safeRange = range === 0 ? 1 : range;
+
+  // Titik Y untuk nilai 0 (Baseline)
+  const zeroY = maxVal === minVal ? 110 : 180 - (((0 - minVal) / safeRange) * 140);
 
   const svgPoints = useMemo(() => {
     return activeData.map((d, index) => {
@@ -354,7 +386,7 @@ const DashboardPage = () => {
   const [currentTrxPage, setCurrentTrxPage] = useState(1);
   const [isViewAll, setIsViewAll] = useState(false); // State baru untuk toggle Lihat Semua
   const [trxFilter, setTrxFilter] = useState('terbaru'); // State untuk filter
-  const itemsPerTrxPage = 5; // Menampilkan 5 transaksi per halaman (sesuaikan selera)
+  const itemsPerTrxPage = 10; // Menampilkan 10 transaksi per halaman (sesuaikan selera)
 
   const sortedTransactions = useMemo(() => {
     let sorted = [...transactions];
@@ -596,6 +628,18 @@ const DashboardPage = () => {
                   >
                   {/* SVG Garis & Titik */}
                   <svg viewBox="0 0 1000 200" preserveAspectRatio="none" className="w-full h-full overflow-visible">
+                    {/* Garis Dasar (Nol / Baseline) */}
+                    <line 
+                      x1="0" 
+                      y1={zeroY} 
+                      x2="1000" 
+                      y2={zeroY} 
+                      stroke="#9CA3AF" 
+                      strokeWidth="2" 
+                      strokeDasharray="8,4" 
+                      opacity="0.5" 
+                    />
+                    
                     {/* Garis Utama */}
                     <polyline
                       fill="none"

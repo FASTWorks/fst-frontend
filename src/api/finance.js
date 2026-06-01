@@ -74,4 +74,11 @@ export const financeApi = {
 
   addMoney: (id, amount, note) =>
     api.post(`/api/finance/saving-goals/${id}/add-money`, { amount, note }),
+
+  // ─── Analytics ───
+  getRecentTransactions: () =>
+    api.get('/api/analytics/recent'),
+    
+  getInsights: () =>
+    api.get('/api/analytics/insight'),
 };
