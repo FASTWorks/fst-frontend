@@ -203,3 +203,4 @@
 - Fixed `fst-analytics-service` - Menambahkan missing import `config` pada `dashboard.service.ts` yang menyebabkan build Docker gagal.
 - Fixed `fst-finance-service` - Menyelesaikan *merge conflict* pada `receipt.service.ts` dan memperbaiki sintaks kurangnya tutup kurung kurawal `}` di `transaction.service.ts` yang menyebabkan proses *build* terhenti.
 - Fixed `fst-finance-service` - Menghapus duplikasi deklarasi variabel `currentPeriod` pada `saving-goal.service.ts` yang menyebabkan error TypeScript (TS2451).
+- Fixed `fst-ai-service` - Memperbaiki *fallback* `mock data` pada `llm_service.py` agar tetap mereturn mock jika *HuggingFace Token* kedaluwarsa atau terjadi *error* `401 Unauthorized`, alih-alih mereturn respon kosong yang menyebabkan gagal ekstraksi struk di *frontend*.
