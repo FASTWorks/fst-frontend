@@ -82,10 +82,20 @@ const TabunganPage = () => {
   };
 
   const handleDeleteTabungan = async (id) => {
+    const tabungan = tabunganData.find(t => t.id === id);
+    const amountToReturn = tabungan?.currentAmount || 0;
+
     const isConfirm = window.confirm('Apakah Anda yakin ingin menghapus tabungan ini?');
     if (isConfirm) {
       try {
         await financeApi.deleteSavingGoal(id);
+        
+        if (amountToReturn > 0) {
+          alert(`Berhasil dihapus! Saldo sebesar Rp ${formatRupiah(amountToReturn)} telah dikembalikan ke Kantong Tabungan Utama.`);
+        } else {
+          alert("Tabungan berhasil dihapus.");
+        }
+        
         fetchData(); // Refresh data setelah delete
       } catch (err) {
         console.error("Gagal menghapus tabungan:", err);

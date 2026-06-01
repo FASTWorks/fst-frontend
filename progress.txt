@@ -228,3 +228,6 @@
 - Modified `DashboardPage.jsx` - Merombak kalkulasi *Tren Saldo (Cashflow)* menjadi *Running Balance (Kumulatif)* yang akurat, dengan mengakumulasikan Pemasukan dan Pengeluaran sesuai riwayat transaksi sesungguhnya, bukan sekadar selisih harian.
 - Modified `DashboardPage.jsx` - Memperbaiki Bug *Status Budget* dengan menggunakan response langsung dari API `GET /api/finance/budget/summary`, serta menyesuaikan field schema backend (`alloc_kebutuhan_primer` dst) agar data progress bar budget 100% tersinkron dengan alokasi.
 - Modified `DashboardPage.jsx` - Menyempurnakan *Transaksi Terbaru* dengan menggabungkan data pengeluaran dan pemasukan secara dinamis, sehingga Pemasukan kini muncul di *List Transaksi Terbaru* dengan ikon dan format penanda (+).
+
+### INTEGRATION PHASE 2: Fix Tabungan Saldo Return
+- Modified `TabunganPage.jsx` - Menambahkan notifikasi pengembalian saldo ketika pengguna menghapus (delete) tabungan. Alert kini secara eksplisit menampilkan nilai nominal (*currentAmount*) yang dikembalikan ke Kantong Tabungan Utama secara otomatis (sejalan dengan perbaikan Prisma Transaction dari Backend di fase sebelumnya).
