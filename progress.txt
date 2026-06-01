@@ -231,3 +231,7 @@
 
 ### INTEGRATION PHASE 2: Fix Tabungan Saldo Return
 - Modified `TabunganPage.jsx` - Menambahkan notifikasi pengembalian saldo ketika pengguna menghapus (delete) tabungan. Alert kini secara eksplisit menampilkan nilai nominal (*currentAmount*) yang dikembalikan ke Kantong Tabungan Utama secara otomatis (sejalan dengan perbaikan Prisma Transaction dari Backend di fase sebelumnya).
+
+### INTEGRATION PHASE 3 (Tabungan Adjustments)
+- Modified `EditTabunganPage.jsx` - Mengoreksi _wording_ form edit dari "Kantong Tabungan Utama" menjadi "Tabungan" agar tidak membingungkan pengguna.
+- Fixed `EditTabunganPage.jsx` - Mengatasi *bug* "blank white screen" (React ReferenceError) yang disebabkan oleh variabel `user` yang dipanggil di elemen *header* namun belum di-*destructure* dari `useAuth()`. Endpoint `PUT /api/finance/saving-goals/{id}` kini dipastikan berjalan mulus 100%.
