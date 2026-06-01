@@ -44,6 +44,7 @@ const DashboardPage = () => {
   const [aiInsight, setAiInsight] = useState(null);
   const [manualBudget, setManualBudget] = useState(null);
   const [manualTrend, setManualTrend] = useState(null);
+  const [allTransactions, setAllTransactions] = useState([]);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -64,41 +65,84 @@ const DashboardPage = () => {
 
     const fetchManualBudgetFallback = async () => {
       try {
-        const [incomesRes, txRes] = await Promise.all([
+        const [incomesRes, txRes, budgetRes] = await Promise.all([
           financeApi.listIncomes({ limit: 1000 }),
-          financeApi.listTransactions({ limit: 1000 })
+          financeApi.listTransactions({ limit: 1000 }),
+          financeApi.getBudgetSummary().catch(() => ({ data: { data: null } }))
         ]);
         
         let allocPrimer = 0, allocSekunder = 0, allocDarurat = 0, allocTabungan = 0;
         let spentPrimer = 0, spentSekunder = 0, spentDarurat = 0, spentTabungan = 0;
 
-        const incomes = incomesRes.data?.data?.items || [];
-        const transactions = txRes.data?.data?.items || [];
+        const incomes = incomesRes.data?.data || [];
+        const transactions = txRes.data?.data || [];
 
-        incomes.forEach(inc => {
-          allocPrimer += inc.alloc_kebutuhan_primer || 0;
-          allocSekunder += inc.alloc_kebutuhan_sekunder || 0;
-          allocDarurat += inc.alloc_dana_darurat || 0;
-          allocTabungan += inc.alloc_tabungan || 0;
-        });
+        const budgetCategories = budgetRes.data?.data?.categories;
+        if (budgetCategories) {
+          allocPrimer = budgetCategories.kebutuhan_primer?.allocated || 0;
+          spentPrimer = budgetCategories.kebutuhan_primer?.spent || 0;
+          allocSekunder = budgetCategories.kebutuhan_sekunder?.allocated || 0;
+          spentSekunder = budgetCategories.kebutuhan_sekunder?.spent || 0;
+          allocDarurat = budgetCategories.dana_darurat?.allocated || 0;
+          spentDarurat = budgetCategories.dana_darurat?.spent || 0;
+          allocTabungan = budgetCategories.tabungan?.allocated || 0;
+          spentTabungan = budgetCategories.tabungan?.spent || 0;
+        } else {
+          incomes.forEach(inc => {
+            allocPrimer += inc.alloc_kebutuhan_primer || 0;
+            allocSekunder += inc.alloc_kebutuhan_sekunder || 0;
+            allocDarurat += inc.alloc_dana_darurat || 0;
+            allocTabungan += inc.alloc_tabungan || 0;
+          });
 
-        transactions.forEach(tx => {
-          if (tx.parent_category === 'kebutuhan_primer') spentPrimer += tx.amount;
-          if (tx.parent_category === 'kebutuhan_sekunder') spentSekunder += tx.amount;
-          if (tx.parent_category === 'dana_darurat') spentDarurat += tx.amount;
-          if (tx.parent_category === 'tabungan' || tx.type === 'saving_transfer') spentTabungan += tx.amount;
-        });
+          transactions.forEach(tx => {
+            if (tx.parent_category === 'kebutuhan_primer') spentPrimer += tx.amount;
+            if (tx.parent_category === 'kebutuhan_sekunder') spentSekunder += tx.amount;
+            if (tx.parent_category === 'dana_darurat') spentDarurat += tx.amount;
+            if (tx.parent_category === 'tabungan' || tx.type === 'saving_transfer') spentTabungan += tx.amount;
+          });
+        }
 
         setManualBudget({
-          allocKebutuhanPrimer: allocPrimer,
-          allocKebutuhanSekunder: allocSekunder,
-          allocDanaDarurat: allocDarurat,
-          allocTabungan: allocTabungan,
-          spentKebutuhanPrimer: spentPrimer,
-          spentKebutuhanSekunder: spentSekunder,
-          spentDanaDarurat: spentDarurat,
-          spentTabungan: spentTabungan
+          alloc_kebutuhan_primer: allocPrimer,
+          alloc_kebutuhan_sekunder: allocSekunder,
+          alloc_dana_darurat: allocDarurat,
+          alloc_tabungan: allocTabungan,
+          spent_kebutuhan_primer: spentPrimer,
+          spent_kebutuhan_sekunder: spentSekunder,
+          spent_dana_darurat: spentDarurat,
+          spent_tabungan: spentTabungan
         });
+
+        // Gabungkan transaksi dan pemasukan untuk "Transaksi Terbaru"
+        const combined = [];
+        incomes.forEach(inc => {
+          combined.push({
+            id: 'inc-' + inc.id,
+            name: inc.source || 'Pemasukan',
+            title: inc.source || 'Pemasukan',
+            amount: inc.amount,
+            type: 'income',
+            category: 'pemasukan',
+            date: inc.income_date,
+            note: inc.note
+          });
+        });
+        transactions.forEach(tx => {
+          combined.push({
+            id: 'tx-' + tx.id,
+            name: tx.name,
+            title: tx.name,
+            amount: tx.amount,
+            type: tx.type,
+            category: tx.parent_category || tx.sub_category || 'Lainnya',
+            date: tx.transaction_date,
+            note: tx.note
+          });
+        });
+        
+        combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setAllTransactions(combined);
 
         // Kalkulasi Trend Saldo Asset (Kumulatif)
         const ledger = [];
@@ -106,7 +150,9 @@ const DashboardPage = () => {
           ledger.push({ date: new Date(inc.income_date), amount: inc.amount, type: 'income' });
         });
         transactions.forEach(tx => {
-          ledger.push({ date: new Date(tx.transaction_date), amount: tx.amount, type: tx.type === 'expense' ? 'expense' : 'neutral' });
+          if (tx.type === 'expense') {
+            ledger.push({ date: new Date(tx.transaction_date), amount: tx.amount, type: 'expense' });
+          }
         });
 
         // Urutkan dari yang terlama ke terbaru
@@ -193,7 +239,11 @@ const DashboardPage = () => {
   // --- Transaksi ---
   // Menggunakan data transaksi dari backend, atau kosong jika belum ada (user baru)
   const summary = dashboardData?.dashboard || {};
-  const transactions = summary?.recentTransactions || [];
+  const transactions = allTransactions.length > 0 ? allTransactions : (summary?.recentTransactions || []).map(tx => ({
+    ...tx,
+    date: tx.transaction_date || tx.date,
+    title: tx.name || tx.title
+  }));
 
   const totalAsset = summary?.asset?.total || 0;
   const totalIncome = summary?.income?.total || 0;
@@ -624,14 +674,14 @@ const DashboardPage = () => {
                   <div className="flex justify-between text-xs mb-1">
                     <span className="font-semibold text-gray-700">Kebutuhan Primer</span>
                     <span className="text-gray-500 font-medium">
-                      {formatRupiah((summary?.budgetAllocation?.allocKebutuhanPrimer ?? manualBudget?.allocKebutuhanPrimer ?? 0) - (summary?.budgetAllocation?.spentKebutuhanPrimer ?? manualBudget?.spentKebutuhanPrimer ?? 0))}
+                      {formatRupiah((summary?.budgetAllocation?.alloc_kebutuhan_primer ?? manualBudget?.alloc_kebutuhan_primer ?? 0) - (summary?.budgetAllocation?.spent_kebutuhan_primer ?? manualBudget?.spent_kebutuhan_primer ?? 0))}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div 
                       className="h-2 rounded-full transition-all duration-500 bg-[#FFAD2D]"
                       style={{ 
-                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.allocKebutuhanPrimer ?? manualBudget?.allocKebutuhanPrimer ?? 0) - (summary?.budgetAllocation?.spentKebutuhanPrimer ?? manualBudget?.spentKebutuhanPrimer ?? 0)) / (summary?.budgetAllocation?.allocKebutuhanPrimer || manualBudget?.allocKebutuhanPrimer || 1)) * 100))}%` 
+                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.alloc_kebutuhan_primer ?? manualBudget?.alloc_kebutuhan_primer ?? 0) - (summary?.budgetAllocation?.spent_kebutuhan_primer ?? manualBudget?.spent_kebutuhan_primer ?? 0)) / (summary?.budgetAllocation?.alloc_kebutuhan_primer || manualBudget?.alloc_kebutuhan_primer || 1)) * 100))}%` 
                       }}
                     ></div>
                   </div>
@@ -642,14 +692,14 @@ const DashboardPage = () => {
                   <div className="flex justify-between text-xs mb-1">
                     <span className="font-semibold text-gray-700">Kebutuhan Sekunder</span>
                     <span className="text-gray-500 font-medium">
-                      {formatRupiah((summary?.budgetAllocation?.allocKebutuhanSekunder ?? manualBudget?.allocKebutuhanSekunder ?? 0) - (summary?.budgetAllocation?.spentKebutuhanSekunder ?? manualBudget?.spentKebutuhanSekunder ?? 0))}
+                      {formatRupiah((summary?.budgetAllocation?.alloc_kebutuhan_sekunder ?? manualBudget?.alloc_kebutuhan_sekunder ?? 0) - (summary?.budgetAllocation?.spent_kebutuhan_sekunder ?? manualBudget?.spent_kebutuhan_sekunder ?? 0))}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div 
                       className="h-2 rounded-full transition-all duration-500 bg-[#8C3A7A]"
                       style={{ 
-                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.allocKebutuhanSekunder ?? manualBudget?.allocKebutuhanSekunder ?? 0) - (summary?.budgetAllocation?.spentKebutuhanSekunder ?? manualBudget?.spentKebutuhanSekunder ?? 0)) / (summary?.budgetAllocation?.allocKebutuhanSekunder || manualBudget?.allocKebutuhanSekunder || 1)) * 100))}%` 
+                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.alloc_kebutuhan_sekunder ?? manualBudget?.alloc_kebutuhan_sekunder ?? 0) - (summary?.budgetAllocation?.spent_kebutuhan_sekunder ?? manualBudget?.spent_kebutuhan_sekunder ?? 0)) / (summary?.budgetAllocation?.alloc_kebutuhan_sekunder || manualBudget?.alloc_kebutuhan_sekunder || 1)) * 100))}%` 
                       }}
                     ></div>
                   </div>
@@ -660,14 +710,14 @@ const DashboardPage = () => {
                   <div className="flex justify-between text-xs mb-1">
                     <span className="font-semibold text-gray-700">Dana Darurat</span>
                     <span className="text-gray-500 font-medium">
-                      {formatRupiah((summary?.budgetAllocation?.allocDanaDarurat ?? manualBudget?.allocDanaDarurat ?? 0) - (summary?.budgetAllocation?.spentDanaDarurat ?? manualBudget?.spentDanaDarurat ?? 0))}
+                      {formatRupiah((summary?.budgetAllocation?.alloc_dana_darurat ?? manualBudget?.alloc_dana_darurat ?? 0) - (summary?.budgetAllocation?.spent_dana_darurat ?? manualBudget?.spent_dana_darurat ?? 0))}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div 
                       className="h-2 rounded-full bg-green-500 transition-all duration-500"
                       style={{ 
-                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.allocDanaDarurat ?? manualBudget?.allocDanaDarurat ?? 0) - (summary?.budgetAllocation?.spentDanaDarurat ?? manualBudget?.spentDanaDarurat ?? 0)) / (summary?.budgetAllocation?.allocDanaDarurat || manualBudget?.allocDanaDarurat || 1)) * 100))}%` 
+                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.alloc_dana_darurat ?? manualBudget?.alloc_dana_darurat ?? 0) - (summary?.budgetAllocation?.spent_dana_darurat ?? manualBudget?.spent_dana_darurat ?? 0)) / (summary?.budgetAllocation?.alloc_dana_darurat || manualBudget?.alloc_dana_darurat || 1)) * 100))}%` 
                       }}
                     ></div>
                   </div>
@@ -678,14 +728,14 @@ const DashboardPage = () => {
                   <div className="flex justify-between text-xs mb-1">
                     <span className="font-semibold text-gray-700">Kantong Tabungan Utama</span>
                     <span className="text-gray-500 font-medium">
-                      {formatRupiah((summary?.budgetAllocation?.allocTabungan ?? manualBudget?.allocTabungan ?? 0) - (summary?.budgetAllocation?.spentTabungan ?? manualBudget?.spentTabungan ?? 0))}
+                      {formatRupiah((summary?.budgetAllocation?.alloc_tabungan ?? manualBudget?.alloc_tabungan ?? 0) - (summary?.budgetAllocation?.spent_tabungan ?? manualBudget?.spent_tabungan ?? 0))}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div 
                       className="h-2 rounded-full bg-blue-500 transition-all duration-500"
                       style={{ 
-                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.allocTabungan ?? manualBudget?.allocTabungan ?? 0) - (summary?.budgetAllocation?.spentTabungan ?? manualBudget?.spentTabungan ?? 0)) / (summary?.budgetAllocation?.allocTabungan || manualBudget?.allocTabungan || 1)) * 100))}%` 
+                        width: `${Math.max(0, Math.min(100, (((summary?.budgetAllocation?.alloc_tabungan ?? manualBudget?.alloc_tabungan ?? 0) - (summary?.budgetAllocation?.spent_tabungan ?? manualBudget?.spent_tabungan ?? 0)) / (summary?.budgetAllocation?.alloc_tabungan || manualBudget?.alloc_tabungan || 1)) * 100))}%` 
                       }}
                     ></div>
                   </div>

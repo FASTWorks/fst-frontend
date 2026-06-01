@@ -22,3 +22,6 @@ API_DOCUMENTATION.md
 *.njsproj
 *.sln
 *.sw?
+integration_plan.md
+progress.txt
+test-budget.js
