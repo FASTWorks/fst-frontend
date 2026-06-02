@@ -36,7 +36,7 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [chartPeriod, setChartPeriod] = useState('7days');
+  const [chartPeriod, setChartPeriod] = useState('day');
 
   const [dashboardData, setDashboardData] = useState(null);
   const [isDataLoading, setIsDataLoading] = useState(true);
@@ -53,8 +53,9 @@ const DashboardPage = () => {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      setIsDataLoading(true);
       try {
-        const { data } = await aggregatorApi.getDashboardData();
+        const { data } = await aggregatorApi.getDashboardData(chartPeriod);
         setDashboardData(data.data);
       } catch (err) {
         console.warn('Dashboard data fetch failed, using fallback:', err.message);
@@ -65,7 +66,10 @@ const DashboardPage = () => {
         setIsDataLoading(false);
       }
     };
+    fetchDashboardData();
+  }, [chartPeriod]);
 
+  useEffect(() => {
     const fetchManualBudgetFallback = async () => {
       try {
         const [incomesRes, txRes, budgetRes] = await Promise.all([
@@ -195,7 +199,6 @@ const DashboardPage = () => {
       }
     };
 
-    fetchDashboardData();
     fetchManualBudgetFallback();
     fetchAiInsight();
   }, []);
@@ -312,72 +315,48 @@ const DashboardPage = () => {
     chartScrollRef.current.scrollLeft = scrollLeft - walk;
   };
 
-  // Menggunakan data cashflowTrend dari backend (akumulasi pemasukan - pengeluaran 7 hari)
-  const chartData7Days = useMemo(() => {
+  const activeData = useMemo(() => {
     let baseData = [];
-    if (manualTrend?.days7) {
-      // BACKWARD ACCUMULATION: Titik terakhir selalu persis totalAsset
-      // Titik-titik sebelumnya dihitung mundur murni dari riwayat netChange,
-      // sehingga nilainya akan 100% statis/terkunci meskipun ada transaksi baru di masa depan.
-      const arr = [...manualTrend.days7];
-      let runningAsset = totalAsset;
-      for (let i = arr.length - 1; i >= 0; i--) {
-        arr[i] = { ...arr[i], value: runningAsset };
-        runningAsset -= arr[i].netChange;
-      }
-      baseData = arr;
+    if (manualTrend && (chartPeriod === 'day' ? manualTrend.days7 : manualTrend.days30)) {
+       // BACKWARD ACCUMULATION
+       const arr = chartPeriod === 'day' ? [...manualTrend.days7] : [...manualTrend.days30];
+       let runningAsset = totalAsset;
+       for (let i = arr.length - 1; i >= 0; i--) {
+         arr[i] = { ...arr[i], value: runningAsset };
+         runningAsset -= arr[i].netChange;
+       }
+       baseData = arr;
     } else {
-      const rawTrend = summary?.cashflowTrend || [];
-      if (rawTrend.length === 0) {
-        const emptyData = [];
-        const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          emptyData.push({ label: days[d.getDay()], value: totalAsset });
-        }
-        baseData = emptyData;
-      } else {
-        baseData = rawTrend.map(t => ({ label: t.day, value: t.amount }));
-      }
+       const rawTrend = summary?.cashflowTrend || [];
+       if (rawTrend.length === 0) {
+           const emptyData = [];
+           if (chartPeriod === 'hour') {
+             for (let i = 23; i >= 0; i--) {
+               const d = new Date();
+               d.setHours(d.getHours() - i);
+               emptyData.push({ label: d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), value: totalAsset });
+             }
+           } else if (chartPeriod === 'day') {
+             const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+             for (let i = 6; i >= 0; i--) {
+               const d = new Date();
+               d.setDate(d.getDate() - i);
+               emptyData.push({ label: days[d.getDay()], value: totalAsset });
+             }
+           } else {
+             for (let i = 29; i >= 0; i--) {
+               const d = new Date();
+               d.setDate(d.getDate() - i);
+               emptyData.push({ label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }), value: totalAsset });
+             }
+           }
+           baseData = emptyData;
+       } else {
+           baseData = rawTrend.map(t => ({ label: t.day || t.hour, value: t.amount }));
+       }
     }
-    
-    // Hapus offset dinamis agar titik data hari-hari sebelumnya bersifat statis (terkunci)
-    // sesuai perhitungan asli riwayat transaksi tanpa bergeser jika ada perubahan di luar riwayat.
     return baseData;
-  }, [summary?.cashflowTrend, manualTrend, totalAsset]);
-
-  const chartData30Days = useMemo(() => {
-    let baseData = [];
-    if (manualTrend?.days30) {
-      const arr = [...manualTrend.days30];
-      let runningAsset = totalAsset;
-      for (let i = arr.length - 1; i >= 0; i--) {
-        arr[i] = { ...arr[i], value: runningAsset };
-        runningAsset -= arr[i].netChange;
-      }
-      baseData = arr;
-    } else {
-      const rawTrend30 = summary?.cashflowTrend30Days || [];
-      if (rawTrend30.length === 0) {
-        const emptyData = [];
-        for (let i = 29; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          emptyData.push({ label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }), value: totalAsset });
-        }
-        baseData = emptyData;
-      } else {
-        baseData = rawTrend30.map(t => ({ label: t.day, value: t.amount }));
-      }
-    }
-    
-    // Hapus offset dinamis agar titik data hari-hari sebelumnya bersifat statis (terkunci)
-    return baseData;
-  }, [summary?.cashflowTrend30Days, manualTrend]);
-
-  // --- LOGIKA PERHITUNGAN KOORDINAT LINE CHART ---
-  const activeData = chartPeriod === '7days' ? chartData7Days : chartData30Days;
+  }, [summary?.cashflowTrend, manualTrend, totalAsset, chartPeriod]);
   
   // Update: Skala dinamis dari minimum hingga maksimum asset agar fluktuasi terlihat jelas
   const maxVal = Math.max(...activeData.map(d => d.value), 1);
@@ -618,9 +597,9 @@ const DashboardPage = () => {
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 lg:col-span-2">
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Cashflow</h3>
+                  <h3 className="text-lg font-bold text-gray-900">Hamid's Cashflow</h3>
                   <p className="text-xs text-gray-500">
-                    Data real-time {chartPeriod === '7days' ? '7 hari' : '1 bulan'} terakhir
+                    Data real-time {chartPeriod === 'hour' ? 'hari ini' : (chartPeriod === 'day' ? '7 hari' : '1 bulan')} terakhir
                   </p>
                 </div>
                 <select 
@@ -628,8 +607,9 @@ const DashboardPage = () => {
                   onChange={(e) => setChartPeriod(e.target.value)}
                   className="bg-white border border-gray-200 text-gray-900 font-medium text-sm rounded-lg focus:ring-[#FFAD2D] focus:border-[#FFAD2D] block p-2 cursor-pointer"
                 >
-                  <option value="7days">7 days ago</option>
-                  <option value="30days">1 Month ago</option>
+                  <option value="hour">Today</option>
+                  <option value="day">7 days ago</option>
+                  <option value="month">1 Month ago</option>
                 </select>
               </div>
               
@@ -704,13 +684,22 @@ const DashboardPage = () => {
 
                 {/* Label Sumbu X (Bawah Chart) */}
                 <div className="flex justify-between w-full mt-3 text-xs text-gray-400 font-medium min-w-[800px] px-4">
-                  {chartPeriod === '7days' ? (
+                  {chartPeriod === 'day' ? (
                     // Tampilkan semua nama hari jika mode 7 hari
                     activeData.map((d, i) => (
                       <span key={i} className={i === 6 ? 'font-bold text-[#8C3A7A]' : ''}>
                         {d.label}
                       </span>
                     ))
+                  ) : chartPeriod === 'hour' ? (
+                    // Tampilkan beberapa jam saja agar tidak kepanjangan
+                    <>
+                      <span>{activeData[0]?.label}</span>
+                      <span>{activeData[Math.floor(activeData.length / 4)]?.label}</span>
+                      <span>{activeData[Math.floor(activeData.length / 2)]?.label}</span>
+                      <span>{activeData[Math.floor((activeData.length * 3) / 4)]?.label}</span>
+                      <span className="font-bold text-[#8C3A7A]">{activeData[activeData.length - 1]?.label}</span>
+                    </>
                   ) : (
                     // Tampilkan Awal, Tengah, Akhir saja jika mode 30 hari agar tidak sempit
                     <>

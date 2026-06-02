@@ -246,3 +246,7 @@
 ### FASE 4: Validasi & Pagination
 - Fixed `src/pages/PemasukanPage.jsx` - Menambahkan fitur *auto-calculate* untuk field Alokasi Tabungan ketika *toggle* tabungan diaktifkan. Sisa pemasukan setelah dipotong 3 kebutuhan primer/sekunder/darurat akan otomatis terisi ke Alokasi Tabungan untuk mencegah isu "uang tidak teralokasi". Field ini sekarang dibuat *read-only*.
 - Modified `src/pages/DashboardPage.jsx` - Mengubah *key* ekstraksi data `pagination` menjadi `items` dan `total` agar selaras dengan skema balasan JSON dari API backend terbaru di endpoint `GET /api/analytics/recent`, sekaligus mempertahankan opsi *fallback* ke `recentTransactions` untuk kompatibilitas ke belakang.
+- Modified `src/api/aggregator.js` - Update `getDashboardData` to accept `filter` parameter for dynamic dashboard data fetching (day/month).
+- Modified `src/pages/DashboardPage.jsx` - Refactor DashboardPage to pass `chartPeriod` as filter parameter to API, eliminate local cashflow mock data splitting, and split `useEffect` logic for more efficient rendering.
+- Modified `.env` - Update `VITE_API_URL` and `VITE_GATEWAY_URL` to point to the production API (https://fst-gateway-service-production.up.railway.app).
+- Modified `src/pages/DashboardPage.jsx` - Added `hour` filter option for cashflow chart, dynamically rendering data points and fallback data for today's transactions.
