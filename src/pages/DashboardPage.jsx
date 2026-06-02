@@ -41,6 +41,8 @@ const DashboardPage = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [aiInsight, setAiInsight] = useState(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiError, setAiError] = useState(null);
   const [manualBudget, setManualBudget] = useState(null);
   const [manualTrend, setManualTrend] = useState(null);
   const [allTransactions, setAllTransactions] = useState([]);
@@ -50,6 +52,28 @@ const DashboardPage = () => {
   const itemsPerTrxPage = 10;
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  const generateAiInsight = async () => {
+    setIsAiLoading(true);
+    setAiError(null);
+    try {
+      const { data } = await analyticsApi.getInsight();
+      if (data.data?.insights && data.data.insights.length > 0) {
+         const texts = data.data.insights.map(i => i.description).join(' ');
+         const formattedText = texts.replace(/\b(\d{4,})\b/g, (match) => {
+           return new Intl.NumberFormat('id-ID').format(Number(match));
+         });
+         setAiInsight(`"${formattedText}"`);
+      } else {
+         setAiError("Belum ada insight yang tersedia.");
+      }
+    } catch (err) {
+      console.error(err);
+      setAiError("Gagal mengambil saran AI. Silakan coba lagi.");
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -184,23 +208,7 @@ const DashboardPage = () => {
       }
     };
 
-    const fetchAiInsight = async () => {
-      try {
-        const { data } = await analyticsApi.getInsight();
-        if (data.data?.insights && data.data.insights.length > 0) {
-           const texts = data.data.insights.map(i => i.description).join(' ');
-           const formattedText = texts.replace(/\b(\d{4,})\b/g, (match) => {
-             return new Intl.NumberFormat('id-ID').format(Number(match));
-           });
-           setAiInsight(`"${formattedText}"`);
-        }
-      } catch {
-        // AI insight is optional, fail silently
-      }
-    };
-
     fetchManualBudgetFallback();
-    fetchAiInsight();
   }, []);
 
   // Fetch recent transactions with server-side pagination
@@ -1055,13 +1063,50 @@ const DashboardPage = () => {
 
             {/* AI Insight */}
             <div className="bg-[#FFFDF9] border-2 border-dashed border-[#FFAD2D] rounded-3xl p-6 relative">
-              <div className="flex items-center mb-4 text-[#8C3A7A]">
-                <SparklesIcon />
-                <h3 className="ml-2 font-bold text-sm">Insight FAST AI</h3>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center text-[#8C3A7A]">
+                  <SparklesIcon />
+                  <h3 className="ml-2 font-bold text-sm">Insight FAST AI</h3>
+                </div>
+                {!aiInsight && !isAiLoading && (
+                  <button 
+                    onClick={generateAiInsight}
+                    className="bg-[#8C3A7A] hover:bg-[#7a326a] text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-sm flex items-center"
+                  >
+                    Generate Insight
+                  </button>
+                )}
+                {aiInsight && !isAiLoading && (
+                  <button 
+                    onClick={generateAiInsight}
+                    className="text-[#8C3A7A] text-xs font-semibold hover:underline flex items-center"
+                  >
+                    Regenerate
+                  </button>
+                )}
               </div>
-              <p className="text-sm text-gray-800 leading-relaxed italic">
-                {aiInsight || '"Belum ada data yang cukup. FAST AI akan menganalisis pola pemasukan dan pengeluaran Anda untuk memberikan rekomendasi yang berguna agar Anda semakin JAGO dalam mengatur keuangan!"'}
-              </p>
+
+              {isAiLoading && (
+                <div className="flex items-center py-2 text-[#8C3A7A]">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-[#8C3A7A]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span className="text-sm font-medium">FAST AI sedang menganalisis data Anda...</span>
+                </div>
+              )}
+
+              {aiError && (
+                <div className="py-2">
+                  <p className="text-sm text-red-500 mb-1">{aiError}</p>
+                </div>
+              )}
+
+              {!isAiLoading && (
+                <p className="text-sm text-gray-800 leading-relaxed italic">
+                  {aiInsight || '"Belum ada data yang cukup. FAST AI akan menganalisis pola pemasukan dan pengeluaran Anda untuk memberikan rekomendasi yang berguna agar Anda semakin JAGO dalam mengatur keuangan!"'}
+                </p>
+              )}
             </div>
           </section>
 
