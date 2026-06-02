@@ -60,8 +60,8 @@ const DashboardPage = () => {
     setAiError(null);
     try {
       const { data } = await analyticsApi.getInsight();
-      if (data.data?.insights && data.data.insights.length > 0) {
-         const texts = data.data.insights.map(i => i.description).join(' ');
+      if (data.data?.insight) {
+         const texts = data.data.insight;
          const formattedText = texts.replace(/\b(\d{4,})\b/g, (match) => {
            return new Intl.NumberFormat('id-ID').format(Number(match));
          });
