@@ -225,7 +225,13 @@ const DashboardPage = () => {
           hours24.push({ label: dStart.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), netChange: hourNet });
         }
 
-        setManualTrend({ days7, days30, hours24 });
+        let calculatedAsset = 0;
+        ledger.forEach(entry => {
+          if (entry.type === 'income') calculatedAsset += entry.amount;
+          else if (entry.type === 'expense') calculatedAsset -= entry.amount;
+        });
+
+        setManualTrend({ days7, days30, hours24, realtimeAsset: calculatedAsset });
       } catch(err) {
         console.warn('Failed to calculate manual budget/trend', err);
       }
@@ -352,7 +358,7 @@ const DashboardPage = () => {
        // BACKWARD ACCUMULATION
        const arr = chartPeriod === 'hour' ? [...(manualTrend.hours24 || [])] : (chartPeriod === 'day' ? [...manualTrend.days7] : [...manualTrend.days30]);
        if (arr.length === 0) return baseData;
-       let runningAsset = totalAsset;
+       let runningAsset = manualTrend.realtimeAsset !== undefined ? manualTrend.realtimeAsset : totalAsset;
        for (let i = arr.length - 1; i >= 0; i--) {
          arr[i] = { ...arr[i], value: runningAsset };
          runningAsset -= arr[i].netChange;
