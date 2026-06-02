@@ -152,14 +152,20 @@ const DashboardPage = () => {
           spent_tabungan: spentTabungan
         });
 
-        // Kalkulasi Trend Saldo Asset (Kumulatif) untuk line chart
         const ledger = [];
         incomes.forEach(inc => {
-          ledger.push({ date: new Date(inc.income_date || inc.createdAt), amount: inc.amount, type: 'income' });
+          const dateStr = inc.income_date || inc.date || inc.createdAt;
+          if (dateStr) {
+            ledger.push({ date: new Date(dateStr), amount: Number(inc.amount) || 0, type: 'income' });
+          }
         });
         transactions.forEach(tx => {
-          if (tx.type === 'expense') {
-            ledger.push({ date: new Date(tx.transaction_date || tx.createdAt), amount: tx.amount, type: 'expense' });
+          const isExpense = tx.type === 'expense' || !tx.type;
+          if (isExpense) {
+            const dateStr = tx.transaction_date || tx.date || tx.createdAt;
+            if (dateStr) {
+              ledger.push({ date: new Date(dateStr), amount: Number(tx.amount) || 0, type: 'expense' });
+            }
           }
         });
 
@@ -225,7 +231,13 @@ const DashboardPage = () => {
           hours24.push({ label: dStart.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), netChange: hourNet });
         }
 
-        setManualTrend({ days7, days30, hours24 });
+        let calculatedAsset = 0;
+        ledger.forEach(entry => {
+          if (entry.type === 'income') calculatedAsset += entry.amount;
+          else if (entry.type === 'expense') calculatedAsset -= entry.amount;
+        });
+
+        setManualTrend({ days7, days30, hours24, realtimeAsset: calculatedAsset });
       } catch(err) {
         console.warn('Failed to calculate manual budget/trend', err);
       }
@@ -352,7 +364,7 @@ const DashboardPage = () => {
        // BACKWARD ACCUMULATION
        const arr = chartPeriod === 'hour' ? [...(manualTrend.hours24 || [])] : (chartPeriod === 'day' ? [...manualTrend.days7] : [...manualTrend.days30]);
        if (arr.length === 0) return baseData;
-       let runningAsset = totalAsset;
+       let runningAsset = manualTrend.realtimeAsset !== undefined ? manualTrend.realtimeAsset : totalAsset;
        for (let i = arr.length - 1; i >= 0; i--) {
          arr[i] = { ...arr[i], value: runningAsset };
          runningAsset -= arr[i].netChange;
