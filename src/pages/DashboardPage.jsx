@@ -638,24 +638,51 @@ const DashboardPage = () => {
           {/* Middle Row: Charts & Scores */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             
-            {/* Spending Trend (DINAMIS BERDASARKAN STATE) */}
+            {/* Spending Trend (GOOGLE FINANCE STYLE) */}
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 lg:col-span-2 flex flex-col">
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">Hamid's Cashflow</h3>
-                  <p className="text-xs text-gray-500">
-                    Data real-time {chartPeriod === 'hour' ? '24 jam' : (chartPeriod === 'day' ? '7 hari' : '1 bulan')} terakhir
-                  </p>
+              {/* Header: Large Balance & Tabs */}
+              <div className="mb-6">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-4">
+                  <div>
+                    <h2 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
+                      Rp {new Intl.NumberFormat('id-ID').format(activeData[activeData.length - 1]?.value || totalAsset)}
+                      <span className={`flex items-center text-sm font-semibold px-3 py-1 rounded-lg ${
+                        (activeData[activeData.length - 1]?.value || 0) - (activeData[0]?.value || 0) >= 0 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-red-100 text-red-700'
+                      }`}>
+                        {(activeData[activeData.length - 1]?.value || 0) - (activeData[0]?.value || 0) >= 0 ? '↑' : '↓'}
+                        {Math.abs(activeData[0]?.value ? (((activeData[activeData.length - 1]?.value || 0) - (activeData[0]?.value || 0)) / activeData[0]?.value) * 100 : 0).toFixed(2)}%
+                        <span className="ml-2 font-normal opacity-80">
+                          {((activeData[activeData.length - 1]?.value || 0) - (activeData[0]?.value || 0) >= 0 ? '+' : '-')} Rp {new Intl.NumberFormat('id-ID').format(Math.abs((activeData[activeData.length - 1]?.value || 0) - (activeData[0]?.value || 0)))} {chartPeriod === 'hour' ? 'hari ini' : chartPeriod === 'day' ? '7 hari terakhir' : '1 bulan terakhir'}
+                        </span>
+                      </span>
+                    </h2>
+                    <p className="text-xs text-gray-400 mt-1">Data real-time terbaru • Hamid's Cashflow</p>
+                  </div>
                 </div>
-                <select 
-                  value={chartPeriod}
-                  onChange={(e) => setChartPeriod(e.target.value)}
-                  className="bg-white border border-gray-200 text-gray-900 font-medium text-sm rounded-lg focus:ring-[#FFAD2D] focus:border-[#FFAD2D] block p-2 cursor-pointer"
-                >
-                  <option value="hour">24 Jam Terakhir</option>
-                  <option value="day">7 Hari Terakhir</option>
-                  <option value="month">1 Bulan Terakhir</option>
-                </select>
+
+                {/* Horizontal Tabs */}
+                <div className="flex gap-6 border-b border-gray-100">
+                  <button 
+                    onClick={() => setChartPeriod('hour')}
+                    className={`pb-2 text-sm font-medium transition-colors ${chartPeriod === 'hour' ? 'text-[#FFAD2D] border-b-2 border-[#FFAD2D]' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    1 HR
+                  </button>
+                  <button 
+                    onClick={() => setChartPeriod('day')}
+                    className={`pb-2 text-sm font-medium transition-colors ${chartPeriod === 'day' ? 'text-[#FFAD2D] border-b-2 border-[#FFAD2D]' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    7 HR
+                  </button>
+                  <button 
+                    onClick={() => setChartPeriod('month')}
+                    className={`pb-2 text-sm font-medium transition-colors ${chartPeriod === 'month' ? 'text-[#FFAD2D] border-b-2 border-[#FFAD2D]' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    1 BLN
+                  </button>
+                </div>
               </div>
               
               {/* --- LINE CHART INTERAKTIF DENGAN HOVER TOOLTIP --- */}
@@ -667,50 +694,97 @@ const DashboardPage = () => {
                 onMouseUp={handleMouseUp}
                 onMouseMove={handleMouseMove}>
                 <div 
-                  className="relative h-[280px] pt-4 mt-2 min-w-[800px] px-4" 
+                  className="relative h-[280px] pt-4 mt-2 min-w-[800px] pl-12 pr-4" 
                   >
+                  {/* Y-Axis Guidelines (Left side) */}
+                  <div className="absolute inset-0 pt-4 pointer-events-none">
+                    <div className="relative w-full h-full">
+                      {[
+                        { val: maxVal, yPos: '20%' }, // 40/200
+                        { val: minVal + (range * 0.5), yPos: '55%' }, // 110/200
+                        { val: minVal, yPos: '90%' } // 180/200
+                      ].map((item, idx) => (
+                        <div key={idx} className="absolute w-full border-t border-gray-100 border-dashed" style={{ top: item.yPos }}>
+                          <span className="text-[10px] text-gray-400 absolute -top-[7px] left-0 bg-white pr-2 z-20">
+                            {new Intl.NumberFormat('id-ID', { notation: "compact", compactDisplay: "short" }).format(item.val)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* SVG Garis & Titik */}
-                  <svg viewBox="0 0 1000 200" preserveAspectRatio="none" className="w-full h-full overflow-visible">
-                    {/* Garis Dasar (Nol / Baseline) */}
-                    <line 
-                      x1="0" 
-                      y1={zeroY} 
-                      x2="1000" 
-                      y2={zeroY} 
-                      stroke="#9CA3AF" 
-                      strokeWidth="2" 
-                      strokeDasharray="8,4" 
-                      opacity="0.5" 
-                    />
+                  <svg viewBox="0 0 1000 200" preserveAspectRatio="none" className="w-full h-full overflow-visible z-10 relative">
+                    <defs>
+                      <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor="#FFAD2D" stopOpacity="0.4" />
+                        <stop offset="100%" stopColor="#FFAD2D" stopOpacity="0.0" />
+                      </linearGradient>
+                    </defs>
                     
+                    {/* Area Fill */}
+                    {activeData.length > 0 && (
+                      <polygon
+                        fill="url(#chartGradient)"
+                        points={`${svgPoints[0]?.x || 0},200 ${polylineString} ${svgPoints[svgPoints.length-1]?.x || 1000},200`}
+                        className="transition-all duration-500"
+                      />
+                    )}
+
                     {/* Garis Utama */}
                     <polyline
                       fill="none"
                       stroke="#FFAD2D"
-                      strokeWidth="4"
+                      strokeWidth="3"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       points={polylineString}
                       className="transition-all duration-500"
                     />
+
+                    {/* Interactive Crosshair (Vertical Line) */}
+                    {hoveredPoint && (
+                      <line
+                        x1={hoveredPoint.x}
+                        y1={hoveredPoint.y}
+                        x2={hoveredPoint.x}
+                        y2="200"
+                        stroke="#9CA3AF"
+                        strokeWidth="1.5"
+                        strokeDasharray="4,4"
+                      />
+                    )}
                   </svg>
 
                   {/* Wrapper khusus untuk menyesuaikan ukuran persis dengan SVG content-box */}
-                  <div className="absolute inset-0 pt-4 px-4 pointer-events-none">
+                  <div className="absolute inset-0 pt-4 pl-12 pr-4 pointer-events-none">
                     <div className="relative w-full h-full">
-                      {/* Titik-titik (HTML Div) untuk Lingkaran Sempurna */}
+                      
+                      {/* Hanya 1 titik yang muncul saat hover (Single Dot) */}
+                      {hoveredPoint && (
+                        <div
+                          className="absolute rounded-full pointer-events-none bg-[#FFAD2D]"
+                          style={{
+                            left: `calc(${(hoveredPoint.x / 1000) * 100}% - 6px)`,
+                            top: `calc(${(hoveredPoint.y / 200) * 100}% - 6px)`,
+                            width: `12px`,
+                            height: `12px`,
+                            boxShadow: '0 0 0 4px rgba(255, 173, 45, 0.3)',
+                            zIndex: 10
+                          }}
+                        />
+                      )}
+
+                      {/* Hover Catchers (Kolom Transparan untuk snapping crosshair) */}
                       {svgPoints.map((point) => (
                         <div
                           key={point.index}
-                          className="absolute rounded-full cursor-pointer transition-all duration-300 pointer-events-auto"
+                          className="absolute h-full cursor-pointer pointer-events-auto"
                           style={{
-                            left: `calc(${(point.x / 1000) * 100}% - ${hoveredPoint?.index === point.index ? 8 : 5}px)`,
-                            top: `calc(${(point.y / 200) * 100}% - ${hoveredPoint?.index === point.index ? 8 : 5}px)`,
-                            width: `${hoveredPoint?.index === point.index ? 16 : 10}px`,
-                            height: `${hoveredPoint?.index === point.index ? 16 : 10}px`,
-                            backgroundColor: hoveredPoint?.index === point.index ? '#8C3A7A' : '#FFFFFF',
-                            border: `3px solid ${hoveredPoint?.index === point.index ? '#8C3A7A' : '#FFAD2D'}`,
-                            zIndex: hoveredPoint?.index === point.index ? 10 : 5
+                            left: `calc(${(point.x / 1000) * 100}% - 2%)`, 
+                            width: '4%',
+                            top: 0,
+                            zIndex: 20
                           }}
                           onMouseEnter={() => setHoveredPoint(point)}
                         />
@@ -718,25 +792,29 @@ const DashboardPage = () => {
                     </div>
                   </div>
 
-                  {/* Tooltip HTML (Muncul saat hoveredPoint tidak null) */}
+                  {/* Tooltip HTML (Dark bubble) */}
                   {hoveredPoint && (
-                    <div 
-                      className="absolute z-10 bg-gray-900 text-white text-xs rounded-xl shadow-lg p-2.5 pointer-events-none transform -translate-x-1/2 -translate-y-full transition-all duration-100 ease-in-out"
-                      style={{
-                        left: `${(hoveredPoint.x / 1000) * 100}%`,
-                        top: `calc(${(hoveredPoint.y / 200) * 100}% - 12px)`
-                      }}
-                    >
-                      <div className="text-gray-300 font-medium text-[10px] mb-1">{hoveredPoint.label}</div>
-                      <div className="font-bold text-[#FFAD2D] whitespace-nowrap">
-                        Rp {new Intl.NumberFormat('id-ID').format(hoveredPoint.value)}
+                    <div className="absolute inset-0 pt-4 pl-12 pr-4 pointer-events-none z-30">
+                      <div className="relative w-full h-full">
+                        <div 
+                          className="absolute bg-gray-900 text-white rounded-lg shadow-xl px-3 py-2 transform -translate-x-1/2 -translate-y-[120%] transition-all duration-100 ease-out"
+                          style={{
+                            left: `${(hoveredPoint.x / 1000) * 100}%`,
+                            top: `${(hoveredPoint.y / 200) * 100}%`
+                          }}
+                        >
+                          <div className="font-semibold text-sm whitespace-nowrap">
+                            Rp {new Intl.NumberFormat('id-ID').format(hoveredPoint.value)}
+                          </div>
+                          <div className="text-gray-400 font-medium text-[10px] mt-0.5">{hoveredPoint.label}</div>
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
 
                 {/* Label Sumbu X (Bawah Chart) */}
-                <div className="flex justify-between w-full mt-3 text-xs text-gray-400 font-medium min-w-[800px] px-4">
+                <div className="flex justify-between w-full mt-3 text-xs text-gray-400 font-medium min-w-[800px] pl-12 pr-4">
                   {chartPeriod === 'day' ? (
                     // Tampilkan semua nama hari jika mode 7 hari
                     activeData.map((d, i) => (
