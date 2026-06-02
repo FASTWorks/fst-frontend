@@ -40,7 +40,9 @@ const DashboardPage = () => {
 
   const [dashboardData, setDashboardData] = useState(null);
   const [isDataLoading, setIsDataLoading] = useState(true);
-  const [aiInsight, setAiInsight] = useState(null);
+  const [aiInsight, setAiInsight] = useState(() => {
+    return localStorage.getItem('fast_ai_insight') || null;
+  });
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiError, setAiError] = useState(null);
   const [manualBudget, setManualBudget] = useState(null);
@@ -63,7 +65,9 @@ const DashboardPage = () => {
          const formattedText = texts.replace(/\b(\d{4,})\b/g, (match) => {
            return new Intl.NumberFormat('id-ID').format(Number(match));
          });
-         setAiInsight(`"${formattedText}"`);
+         const resultInsight = `"${formattedText}"`;
+         setAiInsight(resultInsight);
+         localStorage.setItem('fast_ai_insight', resultInsight);
       } else {
          setAiError("Belum ada insight yang tersedia.");
       }
