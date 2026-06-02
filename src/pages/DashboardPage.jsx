@@ -627,7 +627,7 @@ const DashboardPage = () => {
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             
             {/* Spending Trend (DINAMIS BERDASARKAN STATE) */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 lg:col-span-2">
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 lg:col-span-2 flex flex-col">
               <div className="flex justify-between items-center mb-6">
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">Hamid's Cashflow</h3>
@@ -649,13 +649,13 @@ const DashboardPage = () => {
               {/* --- LINE CHART INTERAKTIF DENGAN HOVER TOOLTIP --- */}
               <div 
                 ref={chartScrollRef}
-                className={`w-full overflow-x-auto overflow-y-hidden pb-4 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                className={`w-full flex-1 overflow-x-auto overflow-y-hidden pb-4 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
                 onMouseDown={handleMouseDown}
                 onMouseLeave={handleMouseLeaveChart}
                 onMouseUp={handleMouseUp}
                 onMouseMove={handleMouseMove}>
                 <div 
-                  className="relative h-48 pt-4 mt-2 min-w-[800px] px-4" 
+                  className="relative h-[280px] pt-4 mt-2 min-w-[800px] px-4" 
                   >
                   {/* SVG Garis & Titik */}
                   <svg viewBox="0 0 1000 200" preserveAspectRatio="none" className="w-full h-full overflow-visible">
