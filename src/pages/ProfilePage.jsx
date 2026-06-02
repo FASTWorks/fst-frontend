@@ -240,7 +240,7 @@ const ProfilePage = () => {
           <div className="flex items-center gap-4">
             <h1 className="text-lg font-bold md:hidden">FAST</h1>
             <div className="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-[#FFAD2D]">
-              <img src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || 'Felix'}`} alt="User Avatar" className="w-full h-full object-cover bg-gray-200" />
+              <img src={user?.profilePicture || '/assets/avatars/default-1.svg'} alt="User Avatar" className="w-full h-full object-cover bg-gray-200" />
             </div>
           </div>
         </header>
@@ -265,7 +265,7 @@ const ProfilePage = () => {
                 <div className="relative">
                   <div className="w-28 h-28 md:w-32 md:h-32 rounded-full border-4 border-[#FFAD2D] p-1">
                     <img 
-                      src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || 'Felix'}`} 
+                      src={user?.profilePicture || '/assets/avatars/default-1.svg'} 
                       alt="Profile Avatar" 
                       className="w-full h-full rounded-full object-cover bg-gray-100"
                     />
