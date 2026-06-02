@@ -639,7 +639,7 @@ const DashboardPage = () => {
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             
             {/* Spending Trend (DINAMIS BERDASARKAN STATE) */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 lg:col-span-2 h-fit">
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 lg:col-span-2 flex flex-col">
               <div className="flex justify-between items-center mb-6">
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">Hamid's Cashflow</h3>
@@ -661,13 +661,13 @@ const DashboardPage = () => {
               {/* --- LINE CHART INTERAKTIF DENGAN HOVER TOOLTIP --- */}
               <div 
                 ref={chartScrollRef}
-                className={`w-full overflow-x-auto overflow-y-hidden pb-4 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                className={`w-full flex-1 overflow-x-auto overflow-y-hidden pb-4 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
                 onMouseDown={handleMouseDown}
                 onMouseLeave={handleMouseLeaveChart}
                 onMouseUp={handleMouseUp}
                 onMouseMove={handleMouseMove}>
                 <div 
-                  className="relative h-48 pt-4 mt-2 min-w-[600px] px-4" 
+                  className="relative h-[280px] pt-4 mt-2 min-w-[800px] px-4" 
                   >
                   {/* SVG Garis & Titik */}
                   <svg viewBox="0 0 1000 200" preserveAspectRatio="none" className="w-full h-full overflow-visible">
@@ -693,22 +693,30 @@ const DashboardPage = () => {
                       points={polylineString}
                       className="transition-all duration-500"
                     />
-                    
-                    {/* Titik-titik (Circles) yang bisa di hover */}
-                    {svgPoints.map((point) => (
-                      <circle
-                        key={point.index}
-                        cx={point.x}
-                        cy={point.y}
-                        r={hoveredPoint?.index === point.index ? "8" : "5"}
-                        fill={hoveredPoint?.index === point.index ? "#8C3A7A" : "#FFFFFF"}
-                        stroke={hoveredPoint?.index === point.index ? "#8C3A7A" : "#FFAD2D"}
-                        strokeWidth="3"
-                        className="transition-all duration-200 cursor-pointer"
-                        onMouseEnter={() => setHoveredPoint(point)}
-                      />
-                    ))}
                   </svg>
+
+                  {/* Wrapper khusus untuk menyesuaikan ukuran persis dengan SVG content-box */}
+                  <div className="absolute inset-0 pt-4 px-4 pointer-events-none">
+                    <div className="relative w-full h-full">
+                      {/* Titik-titik (HTML Div) untuk Lingkaran Sempurna */}
+                      {svgPoints.map((point) => (
+                        <div
+                          key={point.index}
+                          className="absolute rounded-full cursor-pointer transition-all duration-300 pointer-events-auto"
+                          style={{
+                            left: `calc(${(point.x / 1000) * 100}% - ${hoveredPoint?.index === point.index ? 8 : 5}px)`,
+                            top: `calc(${(point.y / 200) * 100}% - ${hoveredPoint?.index === point.index ? 8 : 5}px)`,
+                            width: `${hoveredPoint?.index === point.index ? 16 : 10}px`,
+                            height: `${hoveredPoint?.index === point.index ? 16 : 10}px`,
+                            backgroundColor: hoveredPoint?.index === point.index ? '#8C3A7A' : '#FFFFFF',
+                            border: `3px solid ${hoveredPoint?.index === point.index ? '#8C3A7A' : '#FFAD2D'}`,
+                            zIndex: hoveredPoint?.index === point.index ? 10 : 5
+                          }}
+                          onMouseEnter={() => setHoveredPoint(point)}
+                        />
+                      ))}
+                    </div>
+                  </div>
 
                   {/* Tooltip HTML (Muncul saat hoveredPoint tidak null) */}
                   {hoveredPoint && (
@@ -728,7 +736,7 @@ const DashboardPage = () => {
                 </div>
 
                 {/* Label Sumbu X (Bawah Chart) */}
-                <div className="flex justify-between w-full mt-3 text-xs text-gray-400 font-medium min-w-[600px] px-4">
+                <div className="flex justify-between w-full mt-3 text-xs text-gray-400 font-medium min-w-[800px] px-4">
                   {chartPeriod === 'day' ? (
                     // Tampilkan semua nama hari jika mode 7 hari
                     activeData.map((d, i) => (
