@@ -325,104 +325,144 @@ const DashboardPage = () => {
     ? Math.min((totalExpense / totalIncome) * 100, 100) 
     : (totalExpense > 0 ? 100 : 1); 
 
-  // --- LOGIKA CHART DINAMIS ---
-  // --- STATE UNTUK TOOLTIP HOVER ---
+  // --- LOGIKA CHART DINAMIS (Stock-Style) ---
   const [hoveredPoint, setHoveredPoint] = useState(null);
+  const chartContainerRef = useRef(null);
 
-  // --- DRAG TO SCROLL LOGIC ---
-  const chartScrollRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-    setStartX(e.pageX - chartScrollRef.current.offsetLeft);
-    setScrollLeft(chartScrollRef.current.scrollLeft);
-  };
-
-  const handleMouseLeaveChart = () => {
-    setIsDragging(false);
-    setHoveredPoint(null);
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    const x = e.pageX - chartScrollRef.current.offsetLeft;
-    const walk = (x - startX) * 1.5; // scroll speed multiplier
-    chartScrollRef.current.scrollLeft = scrollLeft - walk;
-  };
-
+  // Forward Accumulation: hitung saldo kumulatif dari titik paling awal ke paling baru
   const activeData = useMemo(() => {
-    let baseData = [];
-    if (manualTrend) {
-       // BACKWARD ACCUMULATION
-       const arr = chartPeriod === 'hour' ? [...(manualTrend.hours24 || [])] : (chartPeriod === 'day' ? [...manualTrend.days7] : [...manualTrend.days30]);
-       if (arr.length === 0) return baseData;
-       let runningAsset = manualTrend.realtimeAsset !== undefined ? manualTrend.realtimeAsset : totalAsset;
-       for (let i = arr.length - 1; i >= 0; i--) {
-         arr[i] = { ...arr[i], value: runningAsset };
-         runningAsset -= arr[i].netChange;
-       }
-       baseData = arr;
-    } else {
-       const rawTrend = summary?.cashflowTrend || [];
-       if (rawTrend.length === 0) {
-           const emptyData = [];
-           if (chartPeriod === 'hour') {
-             for (let i = 23; i >= 0; i--) {
-               const d = new Date();
-               d.setHours(d.getHours() - i);
-               emptyData.push({ label: d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), value: totalAsset });
-             }
-           } else if (chartPeriod === 'day') {
-             const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-             for (let i = 6; i >= 0; i--) {
-               const d = new Date();
-               d.setDate(d.getDate() - i);
-               emptyData.push({ label: days[d.getDay()], value: totalAsset });
-             }
-           } else {
-             for (let i = 29; i >= 0; i--) {
-               const d = new Date();
-               d.setDate(d.getDate() - i);
-               emptyData.push({ label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }), value: totalAsset });
-             }
-           }
-           baseData = emptyData;
-       } else {
-           baseData = rawTrend.map(t => ({ label: t.day || t.hour, value: t.amount }));
-       }
+    if (!manualTrend) {
+      // Fallback: pakai data dari aggregator jika manualTrend belum ready
+      const rawTrend = summary?.cashflowTrend || [];
+      if (rawTrend.length > 0) {
+        return rawTrend.map(t => ({ label: t.day || t.hour, value: t.amount }));
+      }
+      // Jika tidak ada data, buat garis flat di totalAsset
+      const emptyData = [];
+      if (chartPeriod === 'hour') {
+        for (let i = 23; i >= 0; i--) {
+          const d = new Date(); d.setHours(d.getHours() - i);
+          emptyData.push({ label: d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), value: totalAsset });
+        }
+      } else if (chartPeriod === 'day') {
+        const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(); d.setDate(d.getDate() - i);
+          emptyData.push({ label: dayNames[d.getDay()], value: totalAsset });
+        }
+      } else {
+        for (let i = 29; i >= 0; i--) {
+          const d = new Date(); d.setDate(d.getDate() - i);
+          emptyData.push({ label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }), value: totalAsset });
+        }
+      }
+      return emptyData;
     }
-    return baseData;
-  }, [summary?.cashflowTrend, manualTrend, totalAsset, chartPeriod]);
-  
-  // Update: Skala dinamis dari minimum hingga maksimum asset agar fluktuasi terlihat jelas
-  const values = activeData.map(d => d.value);
-  const maxVal = values.length > 0 ? Math.max(...values, 1) : 1;
-  const minVal = values.length > 0 ? Math.min(...values) : 0;
-  const range = maxVal - minVal;
-  const safeRange = range === 0 ? 1 : range;
 
-  // Titik Y untuk nilai 0 (Baseline)
-  const zeroY = maxVal === minVal ? 110 : 180 - (((0 - minVal) / safeRange) * 140);
+    // Backward accumulation: mulai dari saldo sekarang, mundur ke belakang
+    const periodData = chartPeriod === 'hour'
+      ? [...(manualTrend.hours24 || [])]
+      : chartPeriod === 'day'
+        ? [...(manualTrend.days7 || [])]
+        : [...(manualTrend.days30 || [])];
+
+    if (periodData.length === 0) return [];
+
+    const currentAsset = manualTrend.realtimeAsset !== undefined ? manualTrend.realtimeAsset : totalAsset;
+    let running = currentAsset;
+    for (let i = periodData.length - 1; i >= 0; i--) {
+      periodData[i] = { ...periodData[i], value: running };
+      running -= (periodData[i].netChange || 0);
+    }
+    return periodData;
+  }, [summary?.cashflowTrend, manualTrend, totalAsset, chartPeriod]);
+
+  // --- Kalkulasi skala Y ---
+  const chartValues = activeData.map(d => d.value);
+  const dataMax = chartValues.length > 0 ? Math.max(...chartValues) : 0;
+  const dataMin = chartValues.length > 0 ? Math.min(...chartValues) : 0;
+  const dataRange = dataMax - dataMin;
+
+  // Buat Y-axis labels yang rapi (5 garis horizontal)
+  const yAxisLabels = useMemo(() => {
+    if (dataRange === 0) {
+      // Semua nilai sama, buat range artifisial +-10%
+      const center = dataMax || 0;
+      const offset = Math.max(Math.abs(center) * 0.1, 10000);
+      return Array.from({ length: 5 }, (_, i) => {
+        const val = center + offset - (i * (offset * 2) / 4);
+        return Math.round(val);
+      });
+    }
+    const padding = dataRange * 0.1;
+    const scaleMin = dataMin - padding;
+    const scaleMax = dataMax + padding;
+    const step = (scaleMax - scaleMin) / 4;
+    return Array.from({ length: 5 }, (_, i) => Math.round(scaleMax - i * step));
+  }, [dataMax, dataMin, dataRange]);
+
+  const scaleMax = yAxisLabels[0];
+  const scaleMin = yAxisLabels[yAxisLabels.length - 1];
+  const scaleRange = scaleMax - scaleMin || 1;
+
+  // Konversi data ke koordinat SVG (viewBox: 0 0 1000 400)
+  const chartW = 1000;
+  const chartH = 400;
+  const padTop = 20;
+  const padBottom = 20;
+  const usableH = chartH - padTop - padBottom;
+
+  const valueToY = (val) => padTop + ((scaleMax - val) / scaleRange) * usableH;
 
   const svgPoints = useMemo(() => {
     return activeData.map((d, index) => {
-      const x = (index / (Math.max(activeData.length - 1, 1))) * 1000;
-      // Gunakan skala rentang untuk mengisi ruang vertikal secara optimal (dengan padding)
-      // Jika nilai konstan (maxVal === minVal), letakkan garis di tengah (y = 110)
-      const y = maxVal === minVal ? 110 : 180 - (((d.value - minVal) / safeRange) * 140); 
+      const x = activeData.length <= 1 ? chartW / 2 : (index / (activeData.length - 1)) * chartW;
+      const y = valueToY(d.value);
       return { x, y, ...d, index };
     });
-  }, [activeData, maxVal, minVal, safeRange]);
+  }, [activeData, scaleMax, scaleRange]);
 
-  const polylineString = svgPoints.map(p => `${p.x},${p.y}`).join(' ');
+  // Path garis + area fill
+  const linePath = svgPoints.length > 0
+    ? 'M ' + svgPoints.map(p => `${p.x},${p.y}`).join(' L ')
+    : '';
+  const areaPath = svgPoints.length > 0
+    ? linePath + ` L ${svgPoints[svgPoints.length - 1].x},${chartH} L ${svgPoints[0].x},${chartH} Z`
+    : '';
+
+  // Handler hover pada chart area
+  const handleChartHover = (e) => {
+    if (!chartContainerRef.current || svgPoints.length === 0) return;
+    const rect = chartContainerRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const chartWidth = rect.width;
+    const ratio = mouseX / chartWidth;
+    const idx = Math.round(ratio * (svgPoints.length - 1));
+    const clampedIdx = Math.max(0, Math.min(svgPoints.length - 1, idx));
+    setHoveredPoint(svgPoints[clampedIdx]);
+  };
+
+  const formatCompact = (val) => {
+    if (Math.abs(val) >= 1000000) return `${(val / 1000000).toFixed(1)}jt`;
+    if (Math.abs(val) >= 1000) return `${(val / 1000).toFixed(0)}rb`;
+    return val.toString();
+  };
+
+  // X-axis labels
+  const xLabels = useMemo(() => {
+    if (activeData.length === 0) return [];
+    if (chartPeriod === 'day') {
+      return activeData.map((d, i) => ({ label: d.label, index: i, bold: i === activeData.length - 1 }));
+    }
+    // Untuk hour dan month, pilih ~5 label agar rapi
+    const count = Math.min(5, activeData.length);
+    const result = [];
+    for (let i = 0; i < count; i++) {
+      const idx = Math.round((i / (count - 1)) * (activeData.length - 1));
+      result.push({ label: activeData[idx]?.label, index: idx, bold: idx === activeData.length - 1 });
+    }
+    return result;
+  }, [activeData, chartPeriod]);
 
   // --- LOGIKA FILTER & PAGINATION TRANSAKSI ---
   const [isViewAll, setIsViewAll] = useState(false); // State baru untuk toggle Lihat Semua
@@ -638,207 +678,142 @@ const DashboardPage = () => {
           {/* Middle Row: Charts & Scores */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             
-            {/* Spending Trend (GOOGLE FINANCE STYLE) */}
+            {/* Spending Trend (DINAMIS BERDASARKAN STATE) */}
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 lg:col-span-2 flex flex-col">
-              {/* Header: Large Balance & Tabs */}
-              <div className="mb-6">
-                <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-4">
-                  <div>
-                    <h2 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-                      Rp {new Intl.NumberFormat('id-ID').format(activeData[activeData.length - 1]?.value || totalAsset)}
-                      <span className={`flex items-center text-sm font-semibold px-3 py-1 rounded-lg ${
-                        (activeData[activeData.length - 1]?.value || 0) - (activeData[0]?.value || 0) >= 0 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-red-100 text-red-700'
-                      }`}>
-                        {(activeData[activeData.length - 1]?.value || 0) - (activeData[0]?.value || 0) >= 0 ? '↑' : '↓'}
-                        {Math.abs(activeData[0]?.value ? (((activeData[activeData.length - 1]?.value || 0) - (activeData[0]?.value || 0)) / activeData[0]?.value) * 100 : 0).toFixed(2)}%
-                        <span className="ml-2 font-normal opacity-80">
-                          {((activeData[activeData.length - 1]?.value || 0) - (activeData[0]?.value || 0) >= 0 ? '+' : '-')} Rp {new Intl.NumberFormat('id-ID').format(Math.abs((activeData[activeData.length - 1]?.value || 0) - (activeData[0]?.value || 0)))} {chartPeriod === 'hour' ? 'hari ini' : chartPeriod === 'day' ? '7 hari terakhir' : '1 bulan terakhir'}
-                        </span>
-                      </span>
-                    </h2>
-                    <p className="text-xs text-gray-400 mt-1">Data real-time terbaru • Hamid's Cashflow</p>
-                  </div>
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Hamid's Cashflow</h3>
+                  <p className="text-xs text-gray-500">
+                    Data real-time {chartPeriod === 'hour' ? '24 jam' : (chartPeriod === 'day' ? '7 hari' : '1 bulan')} terakhir
+                  </p>
                 </div>
-
-                {/* Horizontal Tabs */}
-                <div className="flex gap-6 border-b border-gray-100">
-                  <button 
-                    onClick={() => setChartPeriod('hour')}
-                    className={`pb-2 text-sm font-medium transition-colors ${chartPeriod === 'hour' ? 'text-[#FFAD2D] border-b-2 border-[#FFAD2D]' : 'text-gray-400 hover:text-gray-600'}`}
-                  >
-                    1 HR
-                  </button>
-                  <button 
-                    onClick={() => setChartPeriod('day')}
-                    className={`pb-2 text-sm font-medium transition-colors ${chartPeriod === 'day' ? 'text-[#FFAD2D] border-b-2 border-[#FFAD2D]' : 'text-gray-400 hover:text-gray-600'}`}
-                  >
-                    7 HR
-                  </button>
-                  <button 
-                    onClick={() => setChartPeriod('month')}
-                    className={`pb-2 text-sm font-medium transition-colors ${chartPeriod === 'month' ? 'text-[#FFAD2D] border-b-2 border-[#FFAD2D]' : 'text-gray-400 hover:text-gray-600'}`}
-                  >
-                    1 BLN
-                  </button>
-                </div>
+                <select 
+                  value={chartPeriod}
+                  onChange={(e) => setChartPeriod(e.target.value)}
+                  className="bg-white border border-gray-200 text-gray-900 font-medium text-sm rounded-lg focus:ring-[#FFAD2D] focus:border-[#FFAD2D] block p-2 cursor-pointer"
+                >
+                  <option value="hour">24 Jam Terakhir</option>
+                  <option value="day">7 Hari Terakhir</option>
+                  <option value="month">1 Bulan Terakhir</option>
+                </select>
               </div>
               
-              {/* --- LINE CHART INTERAKTIF DENGAN HOVER TOOLTIP --- */}
-              <div 
-                ref={chartScrollRef}
-                className={`w-full flex-1 overflow-x-auto overflow-y-hidden pb-4 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-                onMouseDown={handleMouseDown}
-                onMouseLeave={handleMouseLeaveChart}
-                onMouseUp={handleMouseUp}
-                onMouseMove={handleMouseMove}>
-                <div 
-                  className="relative h-[280px] pt-4 mt-2 min-w-[800px] pl-12 pr-4" 
-                  >
-                  {/* Y-Axis Guidelines (Left side) */}
-                  <div className="absolute inset-0 pt-4 pointer-events-none">
-                    <div className="relative w-full h-full">
-                      {[
-                        { val: maxVal, yPos: '20%' }, // 40/200
-                        { val: minVal + (range * 0.5), yPos: '55%' }, // 110/200
-                        { val: minVal, yPos: '90%' } // 180/200
-                      ].map((item, idx) => (
-                        <div key={idx} className="absolute w-full border-t border-gray-100 border-dashed" style={{ top: item.yPos }}>
-                          <span className="text-[10px] text-gray-400 absolute -top-[7px] left-0 bg-white pr-2 z-20">
-                            {new Intl.NumberFormat('id-ID', { notation: "compact", compactDisplay: "short" }).format(item.val)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* SVG Garis & Titik */}
-                  <svg viewBox="0 0 1000 200" preserveAspectRatio="none" className="w-full h-full overflow-visible z-10 relative">
-                    <defs>
-                      <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stopColor="#FFAD2D" stopOpacity="0.4" />
-                        <stop offset="100%" stopColor="#FFAD2D" stopOpacity="0.0" />
-                      </linearGradient>
-                    </defs>
-                    
-                    {/* Area Fill */}
-                    {activeData.length > 0 && (
-                      <polygon
-                        fill="url(#chartGradient)"
-                        points={`${svgPoints[0]?.x || 0},200 ${polylineString} ${svgPoints[svgPoints.length-1]?.x || 1000},200`}
-                        className="transition-all duration-500"
-                      />
-                    )}
-
-                    {/* Garis Utama */}
-                    <polyline
-                      fill="none"
-                      stroke="#FFAD2D"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      points={polylineString}
-                      className="transition-all duration-500"
-                    />
-
-                    {/* Interactive Crosshair (Vertical Line) */}
-                    {hoveredPoint && (
-                      <line
-                        x1={hoveredPoint.x}
-                        y1={hoveredPoint.y}
-                        x2={hoveredPoint.x}
-                        y2="200"
-                        stroke="#9CA3AF"
-                        strokeWidth="1.5"
-                        strokeDasharray="4,4"
-                      />
-                    )}
-                  </svg>
-
-                  {/* Wrapper khusus untuk menyesuaikan ukuran persis dengan SVG content-box */}
-                  <div className="absolute inset-0 pt-4 pl-12 pr-4 pointer-events-none">
-                    <div className="relative w-full h-full">
-                      
-                      {/* Hanya 1 titik yang muncul saat hover (Single Dot) */}
-                      {hoveredPoint && (
-                        <div
-                          className="absolute rounded-full pointer-events-none bg-[#FFAD2D]"
-                          style={{
-                            left: `calc(${(hoveredPoint.x / 1000) * 100}% - 6px)`,
-                            top: `calc(${(hoveredPoint.y / 200) * 100}% - 6px)`,
-                            width: `12px`,
-                            height: `12px`,
-                            boxShadow: '0 0 0 4px rgba(255, 173, 45, 0.3)',
-                            zIndex: 10
-                          }}
-                        />
-                      )}
-
-                      {/* Hover Catchers (Kolom Transparan untuk snapping crosshair) */}
-                      {svgPoints.map((point) => (
-                        <div
-                          key={point.index}
-                          className="absolute h-full cursor-pointer pointer-events-auto"
-                          style={{
-                            left: `calc(${(point.x / 1000) * 100}% - 2%)`, 
-                            width: '4%',
-                            top: 0,
-                            zIndex: 20
-                          }}
-                          onMouseEnter={() => setHoveredPoint(point)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Tooltip HTML (Dark bubble) */}
-                  {hoveredPoint && (
-                    <div className="absolute inset-0 pt-4 pl-12 pr-4 pointer-events-none z-30">
-                      <div className="relative w-full h-full">
-                        <div 
-                          className="absolute bg-gray-900 text-white rounded-lg shadow-xl px-3 py-2 transform -translate-x-1/2 -translate-y-[120%] transition-all duration-100 ease-out"
-                          style={{
-                            left: `${(hoveredPoint.x / 1000) * 100}%`,
-                            top: `${(hoveredPoint.y / 200) * 100}%`
-                          }}
-                        >
-                          <div className="font-semibold text-sm whitespace-nowrap">
-                            Rp {new Intl.NumberFormat('id-ID').format(hoveredPoint.value)}
-                          </div>
-                          <div className="text-gray-400 font-medium text-[10px] mt-0.5">{hoveredPoint.label}</div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+              {/* --- STOCK-STYLE LINE CHART --- */}
+              <div className="flex mt-2">
+                {/* Y-Axis Labels */}
+                <div className="flex flex-col justify-between pr-3 py-1" style={{ height: '260px' }}>
+                  {yAxisLabels.map((val, i) => (
+                    <span key={i} className="text-[11px] text-gray-400 font-medium text-right whitespace-nowrap leading-none">
+                      {formatCompact(val)}
+                    </span>
+                  ))}
                 </div>
 
-                {/* Label Sumbu X (Bawah Chart) */}
-                <div className="flex justify-between w-full mt-3 text-xs text-gray-400 font-medium min-w-[800px] pl-12 pr-4">
-                  {chartPeriod === 'day' ? (
-                    // Tampilkan semua nama hari jika mode 7 hari
-                    activeData.map((d, i) => (
-                      <span key={i} className={i === 6 ? 'font-bold text-[#8C3A7A]' : ''}>
-                        {d.label}
+                {/* Chart Area */}
+                <div className="flex-1 flex flex-col">
+                  <div
+                    ref={chartContainerRef}
+                    className="relative cursor-crosshair"
+                    style={{ height: '260px' }}
+                    onMouseMove={handleChartHover}
+                    onMouseLeave={() => setHoveredPoint(null)}
+                  >
+                    {/* SVG Chart */}
+                    <svg
+                      viewBox={`0 0 ${chartW} ${chartH}`}
+                      preserveAspectRatio="none"
+                      className="w-full h-full"
+                      style={{ overflow: 'visible' }}
+                    >
+                      <defs>
+                        <linearGradient id="cashflowGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#FFAD2D" stopOpacity="0.3" />
+                          <stop offset="100%" stopColor="#FFAD2D" stopOpacity="0.02" />
+                        </linearGradient>
+                      </defs>
+
+                      {/* Garis horizontal grid */}
+                      {yAxisLabels.map((_, i) => {
+                        const gy = padTop + (i / (yAxisLabels.length - 1)) * usableH;
+                        return (
+                          <line
+                            key={i}
+                            x1="0" y1={gy}
+                            x2={chartW} y2={gy}
+                            stroke="#F3F4F6"
+                            strokeWidth="1"
+                          />
+                        );
+                      })}
+
+                      {/* Area fill gradient */}
+                      {areaPath && (
+                        <path d={areaPath} fill="url(#cashflowGradient)" />
+                      )}
+
+                      {/* Garis utama */}
+                      {linePath && (
+                        <path
+                          d={linePath}
+                          fill="none"
+                          stroke="#FFAD2D"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          vectorEffect="non-scaling-stroke"
+                        />
+                      )}
+                    </svg>
+
+                    {/* Crosshair + Tooltip (overlay HTML) */}
+                    {hoveredPoint && (
+                      <>
+                        {/* Vertical crosshair line */}
+                        <div
+                          className="absolute top-0 bottom-0 w-px bg-gray-300 pointer-events-none"
+                          style={{ left: `${(hoveredPoint.x / chartW) * 100}%` }}
+                        />
+
+                        {/* Dot at intersection */}
+                        <div
+                          className="absolute w-3 h-3 rounded-full border-2 border-[#FFAD2D] bg-white pointer-events-none"
+                          style={{
+                            left: `calc(${(hoveredPoint.x / chartW) * 100}% - 6px)`,
+                            top: `calc(${(hoveredPoint.y / chartH) * 100}% - 6px)`
+                          }}
+                        />
+
+                        {/* Tooltip bubble */}
+                        <div
+                          className="absolute z-20 pointer-events-none"
+                          style={{
+                            left: `${(hoveredPoint.x / chartW) * 100}%`,
+                            top: `calc(${(hoveredPoint.y / chartH) * 100}% - 16px)`,
+                            transform: 'translate(-50%, -100%)'
+                          }}
+                        >
+                          <div className="bg-gray-900 text-white text-xs rounded-lg shadow-lg px-3 py-2 whitespace-nowrap">
+                            <div className="text-gray-400 font-medium text-[10px]">{hoveredPoint.label}</div>
+                            <div className="font-bold text-[#FFAD2D] mt-0.5">
+                              Rp {new Intl.NumberFormat('id-ID').format(hoveredPoint.value)}
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* X-Axis Labels */}
+                  <div className="flex justify-between mt-2 px-1">
+                    {xLabels.map((item, i) => (
+                      <span
+                        key={i}
+                        className={`text-[11px] font-medium ${item.bold ? 'text-[#8C3A7A] font-bold' : 'text-gray-400'}`}
+                      >
+                        {item.label}
                       </span>
-                    ))
-                  ) : chartPeriod === 'hour' ? (
-                    // Tampilkan beberapa jam saja agar tidak kepanjangan
-                    <>
-                      <span>{activeData[0]?.label}</span>
-                      <span>{activeData[Math.floor(activeData.length / 4)]?.label}</span>
-                      <span>{activeData[Math.floor(activeData.length / 2)]?.label}</span>
-                      <span>{activeData[Math.floor((activeData.length * 3) / 4)]?.label}</span>
-                      <span className="font-bold text-[#8C3A7A]">{activeData[activeData.length - 1]?.label}</span>
-                    </>
-                  ) : (
-                    // Tampilkan Awal, Tengah, Akhir saja jika mode 30 hari agar tidak sempit
-                    <>
-                      <span>{activeData[0]?.label}</span>
-                      <span>{activeData[Math.floor(activeData.length / 2)]?.label}</span>
-                      <span className="font-bold text-[#8C3A7A]">{activeData[activeData.length - 1]?.label}</span>
-                    </>
-                  )}
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
