@@ -24,6 +24,7 @@ const KonfirmasiEmailPage = () => {
   const [isResending, setIsResending] = useState(false);
   const [resendMessage, setResendMessage] = useState('');
   const [verifyMessage, setVerifyMessage] = useState('');
+  const [isVerified, setIsVerified] = useState(false);
 
   // Auto-verify jika ada token di URL
   useEffect(() => {
@@ -32,8 +33,10 @@ const KonfirmasiEmailPage = () => {
         try {
           const { data } = await authApi.verifyEmail(tokenFromUrl);
           setVerifyMessage(data.message || 'Email berhasil diverifikasi!');
+          setIsVerified(true);
         } catch (err) {
           setVerifyMessage(err.response?.data?.message || 'Token verifikasi tidak valid.');
+          setIsVerified(false);
         }
       };
       verify();
@@ -79,21 +82,32 @@ const KonfirmasiEmailPage = () => {
 
           {/* Title & Subtitle */}
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 text-center">
-            Cek Email Kamu
+            {isVerified ? 'Verifikasi Berhasil' : 'Cek Email Kamu'}
           </h2>
           <p className="text-gray-500 text-sm md:text-base text-center mb-8 px-4 leading-relaxed max-w-sm">
-            Kami telah mengirimkan link verifikasi pengaturan ulang kata sandi ke <span className="font-bold text-gray-800">{userEmail}</span>. Silakan cek kotak masuk atau folder spam kamu.
+            {isVerified 
+              ? 'Akun kamu sudah berhasil diverifikasi dan siap digunakan. Silakan login untuk melanjutkan.' 
+              : <>Kami telah mengirimkan link verifikasi ke <span className="font-bold text-gray-800">{userEmail}</span>. Silakan cek kotak masuk atau folder spam kamu.</>}
           </p>
 
           {/* Action Button */}
-          {/* Catatan: Di gambar teksnya terlihat seperti 'Simpan Kata Sandi', namun untuk UX biasanya ini adalah 'Buka Aplikasi Email' atau 'Kembali ke Login'. Anda bisa menyesuaikannya. */}
-
-          <button 
-            type="button"
-            className="w-full max-w-sm bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3.5 rounded-xl shadow-[0_4px_14px_0_rgba(255,173,45,0.39)] transition-all active:scale-[0.98] mb-6"
-          >
-            Buka Aplikasi Email
-          </button>
+          {isVerified ? (
+            <button 
+              type="button"
+              onClick={() => window.location.href = '/login'}
+              className="w-full max-w-sm bg-[#32829E] hover:bg-[#276a82] text-white font-bold py-3.5 rounded-xl shadow-md transition-all active:scale-[0.98] mb-6"
+            >
+              Lanjut ke Login
+            </button>
+          ) : (
+            <button 
+              type="button"
+              onClick={() => window.open(`mailto:${userEmail}`, '_blank')}
+              className="w-full max-w-sm bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3.5 rounded-xl shadow-[0_4px_14px_0_rgba(255,173,45,0.39)] transition-all active:scale-[0.98] mb-6"
+            >
+              Buka Aplikasi Email
+            </button>
+          )}
 
           {/* Status Messages */}
           {verifyMessage && (
@@ -108,19 +122,21 @@ const KonfirmasiEmailPage = () => {
           )}
 
           {/* Resend Code Link */}
-          <div className="text-center">
-            <p className="text-sm font-medium text-gray-500">
-              Belum menerima kode?{' '}
-              <button 
-                type="button"
-                onClick={handleResend}
-                disabled={isResending}
-                className="font-bold text-[#FFAD2D] hover:text-[#F29F25] transition-colors focus:outline-none disabled:opacity-60"
-              >
-                {isResending ? 'Mengirim...' : 'Kirim ulang'}
-              </button>
-            </p>
-          </div>
+          {!isVerified && (
+            <div className="text-center">
+              <p className="text-sm font-medium text-gray-500">
+                Belum menerima kode?{' '}
+                <button 
+                  type="button"
+                  onClick={handleResend}
+                  disabled={isResending}
+                  className="font-bold text-[#FFAD2D] hover:text-[#F29F25] transition-colors focus:outline-none disabled:opacity-60"
+                >
+                  {isResending ? 'Mengirim...' : 'Kirim ulang'}
+                </button>
+              </p>
+            </div>
+          )}
 
         </div>
       </main>

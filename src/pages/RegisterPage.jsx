@@ -93,8 +93,8 @@ export default function RegisterPage() {
 
     try {
       await register(name, email, password);
-      setSuccess('Registrasi berhasil! Silakan cek email Anda untuk verifikasi.');
-      setTimeout(() => navigate('/login'), 2000);
+      setSuccess('Registrasi berhasil! Mengarahkan ke halaman verifikasi...');
+      setTimeout(() => navigate('/konfirmasi', { state: { email } }), 2000);
     } catch (err) {
       const message = err.response?.data?.message
         || err.response?.data?.errors?.email?.[0]

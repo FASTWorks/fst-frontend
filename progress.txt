@@ -250,3 +250,6 @@
 - Modified `src/pages/DashboardPage.jsx` - Refactor DashboardPage to pass `chartPeriod` as filter parameter to API, eliminate local cashflow mock data splitting, and split `useEffect` logic for more efficient rendering.
 - Modified `.env` - Update `VITE_API_URL` and `VITE_GATEWAY_URL` to point to the production API (https://fst-gateway-service-production.up.railway.app).
 - Modified `src/pages/DashboardPage.jsx` - Added `hour` filter option for cashflow chart, dynamically rendering data points and fallback data for today's transactions.
+- Verified the Auth Flow (Register, Forgot Password, Reset Password) against backend specifications.
+- Modified `src/pages/RegisterPage.jsx` - Updated redirection to point to `/konfirmasi` instead of `/login` after successful registration.
+- Modified `src/pages/KonfirmasiPage.jsx` - Added `isVerified` state to dynamically change UI text and button to 'Lanjut ke Login' when email verification is successful.
