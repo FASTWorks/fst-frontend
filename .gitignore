@@ -6,13 +6,21 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-.env
+
+# Node / Build Dependencies
 node_modules
 dist
 dist-ssr
 *.local
-API_DOCUMENTATION.md
-# Editor directories and files
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Editor / OS files
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -22,6 +30,14 @@ API_DOCUMENTATION.md
 *.njsproj
 *.sln
 *.sw?
+Thumbs.db
+
+# Testing & Scratch Scripts
+test-budget.js
+test-transactions.ts
+get_txs.cjs
+
+# Documentation & Logs (Opsional: hapus jika Anda ingin file ini di-push ke GitHub)
+API_DOCUMENTATION.md
 integration_plan.md
 progress.txt
-test-budget.js
