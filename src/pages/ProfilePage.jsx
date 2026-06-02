@@ -44,7 +44,15 @@ const ProfilePage = () => {
   const [showOldPass, setShowOldPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [isEditingNama, setIsEditingNama] = useState(false);
-  const fileInputRef = useRef(null);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+
+  const avatarOptions = [
+    { id: 'pria-1', url: '/assets/avatars/pria-1.svg', label: 'Pria 1' },
+    { id: 'pria-2', url: '/assets/avatars/pria-2.svg', label: 'Pria 2' },
+    { id: 'wanita-1', url: '/assets/avatars/wanita-1.svg', label: 'Wanita 1' },
+    { id: 'wanita-2', url: '/assets/avatars/wanita-2.svg', label: 'Wanita 2' },
+    { id: 'default-1', url: '/assets/avatars/default-1.svg', label: 'Default' }
+  ];
 
   // UI States
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -144,43 +152,21 @@ const ProfilePage = () => {
     }
   };
 
-  // Upload Profile Picture
-  const handleFileChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Frontend Validation
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      alert('Format file tidak didukung. Gunakan JPG, PNG, atau WEBP.');
-      return;
+  // Pilih Avatar dari Modal
+  const handleSelectAvatar = async (avatarUrl) => {
+    setError('');
+    setSuccess('');
+    setIsSubmitting(true);
+    try {
+      await authApi.updateProfile({ profilePicture: avatarUrl });
+      updateUser({ profilePicture: avatarUrl });
+      setSuccess('Foto profil berhasil diperbarui!');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Gagal mengubah avatar profil.');
+    } finally {
+      setIsSubmitting(false);
+      setShowAvatarModal(false);
     }
-    if (file.size > 2 * 1024 * 1024) { // 2MB
-      alert('Ukuran file maksimal 2MB.');
-      return;
-    }
-
-    // Convert to Base64
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = async () => {
-      setIsSubmitting(true);
-      try {
-        const { data } = await authApi.updateProfilePicture({ picture: reader.result });
-        const pictureUrl = data.data?.user?.profilePicture || data.data?.pictureUrl;
-        if (pictureUrl) {
-          updateUser({ profilePicture: pictureUrl });
-          setSuccess('Foto profil berhasil diperbarui!');
-        }
-      } catch (err) {
-        alert(err.response?.data?.message || 'Gagal mengupload foto profil.');
-      } finally {
-        setIsSubmitting(false);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-      }
-    };
-    reader.onerror = () => {
-      alert('Gagal membaca file gambar.');
-    };
   };
 
   // Navigasi Sidebar
@@ -284,16 +270,9 @@ const ProfilePage = () => {
                       className="w-full h-full rounded-full object-cover bg-gray-100"
                     />
                   </div>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    onChange={handleFileChange} 
-                    accept="image/jpeg, image/png, image/webp" 
-                    className="hidden" 
-                  />
                   <button 
                     type="button" 
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => setShowAvatarModal(true)}
                     disabled={isSubmitting}
                     className="absolute bottom-0 right-0 bg-[#FFAD2D] hover:bg-[#F29F25] p-2 rounded-full border-2 border-white shadow-sm transition-colors disabled:opacity-60"
                   >
@@ -301,6 +280,33 @@ const ProfilePage = () => {
                   </button>
                 </div>
               </div>
+
+              {/* Modal Avatar Selection */}
+              {showAvatarModal && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
+                  <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-lg relative">
+                    <button 
+                      onClick={() => setShowAvatarModal(false)}
+                      className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                    >
+                      <CloseIcon />
+                    </button>
+                    <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">Pilih Avatar Profil</h3>
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                      {avatarOptions.map((avatar) => (
+                        <button
+                          key={avatar.id}
+                          onClick={() => handleSelectAvatar(avatar.url)}
+                          className={`flex flex-col items-center gap-2 p-2 rounded-xl border-2 transition-all hover:border-[#FFAD2D] hover:bg-orange-50 ${user?.profilePicture === avatar.url ? 'border-[#FFAD2D] bg-orange-50' : 'border-transparent bg-gray-50'}`}
+                        >
+                          <img src={avatar.url} alt={avatar.label} className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-100" />
+                          <span className="text-xs font-medium text-gray-600">{avatar.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Feedback Alerts */}
               {error && (

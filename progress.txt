@@ -255,3 +255,6 @@
 - Modified `src/pages/KonfirmasiPage.jsx` - Added `isVerified` state to dynamically change UI text and button to 'Lanjut ke Login' when email verification is successful.
 - Modified `src/pages/KonfirmasiPage.jsx` - Centered the text inside the 'Buka Aplikasi Email' anchor tag.
 - Modified `src/App.jsx` - Removed `<PublicRoute>` wrapper from `/konfirmasi`, `/verify-email`, `/atur-ulang-kata-sandi`, and `/reset-password` so that logged-in users can still verify emails and reset passwords without being redirected to the dashboard.
+- Downloaded 5 default avatars (DiceBear) to `public/assets/avatars/`.
+- Modified `src/pages/ProfilePage.jsx` - Added Avatar Selection Modal with 5 options (plus manual upload option) when clicking the edit pencil on the profile picture.
+- Modified `src/pages/ProfilePage.jsx` - Removed manual profile picture upload functionality as requested.
