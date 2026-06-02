@@ -100,13 +100,11 @@ const KonfirmasiEmailPage = () => {
               Lanjut ke Login
             </button>
           ) : (
-            <button 
-              type="button"
-              onClick={() => window.open(`mailto:${userEmail}`, '_blank')}
+            <a href='https://mail.google.com/' target="_blank" 
               className="w-full max-w-sm bg-[#FFAD2D] hover:bg-[#F29F25] text-white font-bold py-3.5 rounded-xl shadow-[0_4px_14px_0_rgba(255,173,45,0.39)] transition-all active:scale-[0.98] mb-6"
             >
               Buka Aplikasi Email
-            </button>
+            </a>
           )}
 
           {/* Status Messages */}
