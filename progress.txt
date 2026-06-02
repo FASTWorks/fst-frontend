@@ -253,3 +253,4 @@
 - Verified the Auth Flow (Register, Forgot Password, Reset Password) against backend specifications.
 - Modified `src/pages/RegisterPage.jsx` - Updated redirection to point to `/konfirmasi` instead of `/login` after successful registration.
 - Modified `src/pages/KonfirmasiPage.jsx` - Added `isVerified` state to dynamically change UI text and button to 'Lanjut ke Login' when email verification is successful.
+- Modified `src/pages/KonfirmasiPage.jsx` - Centered the text inside the 'Buka Aplikasi Email' anchor tag.
