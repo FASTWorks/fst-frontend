@@ -258,3 +258,5 @@
 - Downloaded 5 default avatars (DiceBear) to `public/assets/avatars/`.
 - Modified `src/pages/ProfilePage.jsx` - Added Avatar Selection Modal with 5 options (plus manual upload option) when clicking the edit pencil on the profile picture.
 - Modified `src/pages/ProfilePage.jsx` - Removed manual profile picture upload functionality as requested.
+- Created `PrivacyPolicyPage.jsx` and `TermsOfServicePage.jsx` to fulfill Google OAuth consent screen requirements.
+- Modified `src/App.jsx` - Added routes for `/privacy-policy` and `/terms-of-service`.

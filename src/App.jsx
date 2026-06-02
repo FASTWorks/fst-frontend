@@ -1,7 +1,7 @@
 // src/App.jsx
 import React from "react";
 
-import { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPage, UploadPage, PengeluaranPage, TabunganPage, CatatTabunganPage, BuatTabunganPage, EditTabunganPage, ProfilePage, LupaKataSandiPage, KonfirmasiPage, AturUlangKataSandiPage} from "./pages/index.js";
+import { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPage, UploadPage, PengeluaranPage, TabunganPage, CatatTabunganPage, BuatTabunganPage, EditTabunganPage, ProfilePage, LupaKataSandiPage, KonfirmasiPage, AturUlangKataSandiPage, PrivacyPolicyPage, TermsOfServicePage } from "./pages/index.js";
 
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
@@ -26,6 +26,8 @@ const App = () => {
           <Route path="/verify-email" element={<KonfirmasiPage/>}/>
           <Route path="/atur-ulang-kata-sandi" element={<AturUlangKataSandiPage/>}/>
           <Route path="/reset-password" element={<AturUlangKataSandiPage/>}/>
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage/>}/>
+          <Route path="/terms-of-service" element={<TermsOfServicePage/>}/>
 
           {/* ─── Protected Routes ─── */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage/></ProtectedRoute>}/>

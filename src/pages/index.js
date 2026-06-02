@@ -14,5 +14,7 @@ import ProfilePage from "./ProfilePage";
 import LupaKataSandiPage from "./LupaKataSandiPage";
 import KonfirmasiPage from "./KonfirmasiPage";
 import AturUlangKataSandiPage from "./AturUlangKataSandiPage";
+import PrivacyPolicyPage from "./PrivacyPolicyPage";
+import TermsOfServicePage from "./TermsOfServicePage";
 
-export { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPage, UploadPage, PengeluaranPage, TabunganPage, CatatTabunganPage, BuatTabunganPage, EditTabunganPage, ProfilePage, LupaKataSandiPage, KonfirmasiPage, AturUlangKataSandiPage };
+export { DashboardPage, LoginPage, RegisterPage, NotFound, HomePage, PemasukanPage, UploadPage, PengeluaranPage, TabunganPage, CatatTabunganPage, BuatTabunganPage, EditTabunganPage, ProfilePage, LupaKataSandiPage, KonfirmasiPage, AturUlangKataSandiPage, PrivacyPolicyPage, TermsOfServicePage };
