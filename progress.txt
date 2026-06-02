@@ -254,3 +254,4 @@
 - Modified `src/pages/RegisterPage.jsx` - Updated redirection to point to `/konfirmasi` instead of `/login` after successful registration.
 - Modified `src/pages/KonfirmasiPage.jsx` - Added `isVerified` state to dynamically change UI text and button to 'Lanjut ke Login' when email verification is successful.
 - Modified `src/pages/KonfirmasiPage.jsx` - Centered the text inside the 'Buka Aplikasi Email' anchor tag.
+- Modified `src/App.jsx` - Removed `<PublicRoute>` wrapper from `/konfirmasi`, `/verify-email`, `/atur-ulang-kata-sandi`, and `/reset-password` so that logged-in users can still verify emails and reset passwords without being redirected to the dashboard.

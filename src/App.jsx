@@ -22,10 +22,10 @@ const App = () => {
           <Route path="/login" element={<PublicRoute><LoginPage/></PublicRoute>}/>
           <Route path="/register" element={<PublicRoute><RegisterPage/></PublicRoute>}/>
           <Route path="/lupa-kata-sandi" element={<PublicRoute><LupaKataSandiPage/></PublicRoute>}/>
-          <Route path="/konfirmasi" element={<PublicRoute><KonfirmasiPage/></PublicRoute>}/>
-          <Route path="/verify-email" element={<PublicRoute><KonfirmasiPage/></PublicRoute>}/>
-          <Route path="/atur-ulang-kata-sandi" element={<PublicRoute><AturUlangKataSandiPage/></PublicRoute>}/>
-          <Route path="/reset-password" element={<PublicRoute><AturUlangKataSandiPage/></PublicRoute>}/>
+          <Route path="/konfirmasi" element={<KonfirmasiPage/>}/>
+          <Route path="/verify-email" element={<KonfirmasiPage/>}/>
+          <Route path="/atur-ulang-kata-sandi" element={<AturUlangKataSandiPage/>}/>
+          <Route path="/reset-password" element={<AturUlangKataSandiPage/>}/>
 
           {/* ─── Protected Routes ─── */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage/></ProtectedRoute>}/>
