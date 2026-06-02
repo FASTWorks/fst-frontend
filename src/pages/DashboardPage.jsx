@@ -206,7 +206,26 @@ const DashboardPage = () => {
           days30.push({ label: dStart.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }), netChange: dayNet });
         }
 
-        setManualTrend({ days7, days30 });
+        const hours24 = [];
+        for (let i = 23; i >= 0; i--) {
+          const dStart = new Date();
+          dStart.setHours(dStart.getHours() - i, 0, 0, 0);
+          
+          const dEnd = new Date(dStart);
+          dEnd.setHours(dStart.getHours(), 59, 59, 999);
+          
+          let hourNet = 0;
+          ledger.forEach(entry => {
+            if (entry.date >= dStart && entry.date <= dEnd) {
+              if (entry.type === 'income') hourNet += entry.amount;
+              else if (entry.type === 'expense') hourNet -= entry.amount;
+            }
+          });
+          
+          hours24.push({ label: dStart.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), netChange: hourNet });
+        }
+
+        setManualTrend({ days7, days30, hours24 });
       } catch(err) {
         console.warn('Failed to calculate manual budget/trend', err);
       }
@@ -329,9 +348,10 @@ const DashboardPage = () => {
 
   const activeData = useMemo(() => {
     let baseData = [];
-    if (manualTrend && (chartPeriod === 'day' ? manualTrend.days7 : manualTrend.days30)) {
+    if (manualTrend) {
        // BACKWARD ACCUMULATION
-       const arr = chartPeriod === 'day' ? [...manualTrend.days7] : [...manualTrend.days30];
+       const arr = chartPeriod === 'hour' ? [...(manualTrend.hours24 || [])] : (chartPeriod === 'day' ? [...manualTrend.days7] : [...manualTrend.days30]);
+       if (arr.length === 0) return baseData;
        let runningAsset = totalAsset;
        for (let i = arr.length - 1; i >= 0; i--) {
          arr[i] = { ...arr[i], value: runningAsset };
@@ -371,8 +391,9 @@ const DashboardPage = () => {
   }, [summary?.cashflowTrend, manualTrend, totalAsset, chartPeriod]);
   
   // Update: Skala dinamis dari minimum hingga maksimum asset agar fluktuasi terlihat jelas
-  const maxVal = Math.max(...activeData.map(d => d.value), 1);
-  const minVal = Math.min(...activeData.map(d => d.value), 0);
+  const values = activeData.map(d => d.value);
+  const maxVal = values.length > 0 ? Math.max(...values, 1) : 1;
+  const minVal = values.length > 0 ? Math.min(...values) : 0;
   const range = maxVal - minVal;
   const safeRange = range === 0 ? 1 : range;
 
@@ -611,7 +632,7 @@ const DashboardPage = () => {
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">Hamid's Cashflow</h3>
                   <p className="text-xs text-gray-500">
-                    Data real-time {chartPeriod === 'hour' ? 'hari ini' : (chartPeriod === 'day' ? '7 hari' : '1 bulan')} terakhir
+                    Data real-time {chartPeriod === 'hour' ? '24 jam' : (chartPeriod === 'day' ? '7 hari' : '1 bulan')} terakhir
                   </p>
                 </div>
                 <select 
@@ -619,9 +640,9 @@ const DashboardPage = () => {
                   onChange={(e) => setChartPeriod(e.target.value)}
                   className="bg-white border border-gray-200 text-gray-900 font-medium text-sm rounded-lg focus:ring-[#FFAD2D] focus:border-[#FFAD2D] block p-2 cursor-pointer"
                 >
-                  <option value="hour">Today</option>
-                  <option value="day">7 days ago</option>
-                  <option value="month">1 Month ago</option>
+                  <option value="hour">24 Jam Terakhir</option>
+                  <option value="day">7 Hari Terakhir</option>
+                  <option value="month">1 Bulan Terakhir</option>
                 </select>
               </div>
               
