@@ -47,11 +47,9 @@ const ProfilePage = () => {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
 
   const avatarOptions = [
-    { id: 'pria-1', url: '/assets/avatars/pria-1.svg', label: 'Pria 1' },
-    { id: 'pria-2', url: '/assets/avatars/pria-2.svg', label: 'Pria 2' },
-    { id: 'wanita-1', url: '/assets/avatars/wanita-1.svg', label: 'Wanita 1' },
-    { id: 'wanita-2', url: '/assets/avatars/wanita-2.svg', label: 'Wanita 2' },
-    { id: 'default-1', url: '/assets/avatars/default-1.svg', label: 'Default' }
+    { id: 'default', url: '/assets/avatars/default.svg', label: 'Default' },
+    ...Array.from({ length: 11 }, (_, i) => ({ id: `pria-${i + 1}`, url: `/assets/avatars/pria-${i + 1}.svg`, label: `Pria ${i + 1}` })),
+    ...Array.from({ length: 10 }, (_, i) => ({ id: `wanita-${i + 1}`, url: `/assets/avatars/wanita-${i + 1}.svg`, label: `Wanita ${i + 1}` }))
   ];
 
   // UI States
@@ -240,7 +238,7 @@ const ProfilePage = () => {
           <div className="flex items-center gap-4">
             <h1 className="text-lg font-bold md:hidden">FAST</h1>
             <div className="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-[#FFAD2D]">
-              <img src={user?.profilePicture || '/assets/avatars/default-1.svg'} alt="User Avatar" className="w-full h-full object-cover bg-gray-200" />
+              <img src={user?.profilePicture || '/assets/avatars/default.svg'} alt="User Avatar" className="w-full h-full object-cover bg-gray-200" />
             </div>
           </div>
         </header>
@@ -265,7 +263,7 @@ const ProfilePage = () => {
                 <div className="relative">
                   <div className="w-28 h-28 md:w-32 md:h-32 rounded-full border-4 border-[#FFAD2D] p-1">
                     <img 
-                      src={user?.profilePicture || '/assets/avatars/default-1.svg'} 
+                      src={user?.profilePicture || '/assets/avatars/default.svg'} 
                       alt="Profile Avatar" 
                       className="w-full h-full rounded-full object-cover bg-gray-100"
                     />
@@ -292,14 +290,14 @@ const ProfilePage = () => {
                       <CloseIcon />
                     </button>
                     <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">Pilih Avatar Profil</h3>
-                    <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="grid grid-cols-3 md:grid-cols-4 gap-4 mb-6 max-h-[60vh] overflow-y-auto p-2 border border-gray-100 rounded-xl shadow-inner">
                       {avatarOptions.map((avatar) => (
                         <button
                           key={avatar.id}
                           onClick={() => handleSelectAvatar(avatar.url)}
                           className={`flex flex-col items-center gap-2 p-2 rounded-xl border-2 transition-all hover:border-[#FFAD2D] hover:bg-orange-50 ${user?.profilePicture === avatar.url ? 'border-[#FFAD2D] bg-orange-50' : 'border-transparent bg-gray-50'}`}
                         >
-                          <img src={avatar.url} alt={avatar.label} className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-100" />
+                          <img src={avatar.url} alt={avatar.label} className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-100 object-cover" />
                           <span className="text-xs font-medium text-gray-600">{avatar.label}</span>
                         </button>
                       ))}

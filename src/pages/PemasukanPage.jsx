@@ -215,7 +215,7 @@ const PemasukanPage = () => {
           <div className="w-10 h-10 rounded-full border-2 border-[#FFAD2D] overflow-hidden shrink-0">
             <Link to="/profile" className="w-full h-full block">
               <img 
-                src={user?.profilePicture || '/assets/avatars/default-1.svg'} 
+                src={user?.profilePicture || '/assets/avatars/default.svg'} 
                 alt="Profile Avatar" 
                 className="w-full h-full object-cover bg-gray-100"
               />
