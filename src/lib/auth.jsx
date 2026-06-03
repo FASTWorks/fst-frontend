@@ -1,4 +1,5 @@
 // src/lib/auth.jsx
+/* eslint-disable react-refresh/only-export-components */
 // ─────────────────────────────────────────────────────────────
 // AuthContext — Global authentication state management
 // ─────────────────────────────────────────────────────────────
