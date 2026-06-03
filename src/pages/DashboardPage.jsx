@@ -569,7 +569,7 @@ const DashboardPage = () => {
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 lg:col-span-2 flex flex-col">
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Hamid's Cashflow</h3>
+                  <h3 className="text-lg font-bold text-gray-900">Cashflow</h3>
                   <p className="text-xs text-gray-500">
                     Data real-time {chartPeriod === 'hour' ? '24 jam' : (chartPeriod === 'day' ? '7 hari' : '1 bulan')} terakhir
                   </p>
