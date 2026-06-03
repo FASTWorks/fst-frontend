@@ -204,7 +204,7 @@ export default function RegisterPage() {
               />
             </div>
             <label htmlFor="terms" className="ml-3 text-sm text-gray-700 leading-snug">
-              Saya menyetujui <a href="#" className="text-[#32829E] hover:underline">Syarat</a> dan <a href="#" className="text-[#32829E] hover:underline">Ketentuan</a> serta <a href="#" className="text-[#32829E] hover:underline">Kebijakan Privasi</a> FastWorks
+              Saya menyetujui <a href="/terms-of-service" target="_blank" className="text-[#32829E] hover:underline">Ketentuan Layanan</a> serta <a href="/privacy-policy" target="_blank" className="text-[#32829E] hover:underline">Kebijakan Privasi</a> FastWorks
             </label>
           </div>
 
