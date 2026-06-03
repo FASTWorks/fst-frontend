@@ -94,7 +94,7 @@ const FastLandingPage = () => {
         <div className="rounded-xl overflow-hidden shadow-2xl bg-white border">
           {/* Placeholder untuk gambar laptop/dashboard */}
           <img 
-            src="/assets/logo/logo-fast-v1.svg" 
+            src="/assets/logo/1-home.jpg" 
             alt="Dashboard Preview" 
 
             className="w-full h-auto object-cover"
@@ -139,7 +139,7 @@ const FastLandingPage = () => {
              <p className="text-sm text-gray-600 leading-relaxed">Create flexible budgets that adapt to your lifestyle. Set custom saving goals, track your progress visually, and receive alerts before you overspend in specific categories.</p>
           </div>
           <div className="md:w-1/2 bg-gray-50 h-full p-4 flex justify-end">
-             <img src="/assets/logo/logo-fast-v1-bg-white.svg" alt="Charts preview" className="rounded-l-lg shadow-sm w-full object-cover max-h-64" />
+             <img src="/assets/logo/2-home.jpg" alt="Charts preview" className="rounded-l-lg shadow-sm w-full object-cover max-h-64" />
           </div>
         </div>
       </section>
