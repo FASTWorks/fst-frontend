@@ -8,21 +8,21 @@ const teamMembers = [
     role: 'Full-Stack Web Developer',
     desc: 'Membangun arsitektur web yang responsif, aman, dan user-friendly dan Gacor.',
     img: '/assets/our-team/fs-baji.svg',
-    socials: {linkedin: "", github: "", instagram: ""}
+    socials: {linkedin: "https://www.linkedin.com/in/bagus-aji-fernando-466347286", github: "https://github.com/bajiff", instagram: "https://instagram.com/_bajif"}
   },
   {
     name: 'Abdurrahman Abdul Hamid',
     role: 'Full-Stack Web Developer',
     desc: 'Membangun arsitektur web yang responsif, aman, dan user-friendly.',
     img: '/assets/our-team/dummy.svg',
-    socials: {linkedin: "", github: "", instagram: ""}
+    socials: {linkedin: "https://www.linkedin.com/in/abdurrahmanhamid", github: "https://github.com/abdhaamed", instagram: "https://www.instagram.com/abdhaamed/"}
   },
   {
     name: 'Ahmad Raja Fadhil',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
     img: '/assets/our-team/ai-ahmad-raja-fadhil.svg',
-    socials: {linkedin: "", github: "", instagram: ""}
+    socials: {linkedin: "https://www.linkedin.com/in/ahmadrajaf/", github: "https://github.com/rajafadhil", instagram: "https://www.instagram.com/raja.f_007/"}
   },
 
   {
@@ -30,21 +30,21 @@ const teamMembers = [
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
     img: '/assets/our-team/ai-putri-maharani-fetra.svg',
-    socials: {linkedin: "", github: "", instagram: ""}
+    socials: {linkedin: "https://www.linkedin.com/in/putri-maharani-fetra-5131a7243/", github: "https://github.com/Ranran0703", instagram: "https://www.instagram.com/raniii_fetra/"}
   },
   {
     name: 'Devia',
     role: 'Data Scientist',
     desc: 'Mengolah data histori keuangan pengguna untuk menghasilkan prediksi pengeluaran dan grafik analitik yang akurat.',
     img: '/assets/our-team/ds-devia.svg',
-    socials: {linkedin: "", github: "", instagram: ""}
+    socials: {linkedin: "https://www.linkedin.com/in/devia-az-06a7392b2/", github: "", instagram: "https://www.instagram.com/dv_zzr/"}
   },
   {
     name: 'Nalitha',
     role: 'AI Engineer',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
     img: '/assets/our-team/ds-nalitha.svg',
-    socials: {linkedin: "https://linkedin.com/in/bagus-aji-fernando-466347286/", github: "https://github.com/bajiff", instagram: "https://instagram.com/_bajif"}
+    socials: {linkedin: "https://www.linkedin.com/in/nalithaeka/", github: "https://github.com/nalithaeka-n", instagram: "https://www.instagram.com/naalitha/"}
   }
 ];
 
