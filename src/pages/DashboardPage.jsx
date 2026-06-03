@@ -1,9 +1,10 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { aggregatorApi } from '@/api/aggregator';
 import { analyticsApi } from '@/api/analytics';
 import { financeApi } from '@/api/finance';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 // --- Mock Icons (Sesuaikan dengan import Anda) ---
 const DownloadIcon = () => <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>;
@@ -39,14 +40,12 @@ const DashboardPage = () => {
   const [chartPeriod, setChartPeriod] = useState('day');
 
   const [dashboardData, setDashboardData] = useState(null);
-  const [isDataLoading, setIsDataLoading] = useState(true);
   const [aiInsight, setAiInsight] = useState(() => {
     return localStorage.getItem('fast_ai_insight') || null;
   });
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiError, setAiError] = useState(null);
   const [manualBudget, setManualBudget] = useState(null);
-  const [manualTrend, setManualTrend] = useState(null);
   const [allTransactions, setAllTransactions] = useState([]);
   const [currentTrxPage, setCurrentTrxPage] = useState(1);
   const [totalServerPages, setTotalServerPages] = useState(0);
@@ -81,7 +80,6 @@ const DashboardPage = () => {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      setIsDataLoading(true);
       try {
         const { data } = await aggregatorApi.getDashboardData(chartPeriod);
         setDashboardData(data.data);
@@ -91,7 +89,7 @@ const DashboardPage = () => {
           alert('Terlalu banyak permintaan (Rate Limit). Beberapa data mungkin tidak termuat sempurna. Tunggu beberapa saat lalu refresh.');
         }
       } finally {
-        setIsDataLoading(false);
+        // Biarkan kosong
       }
     };
     fetchDashboardData();
@@ -231,13 +229,7 @@ const DashboardPage = () => {
           hours24.push({ label: dStart.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), netChange: hourNet });
         }
 
-        let calculatedAsset = 0;
-        ledger.forEach(entry => {
-          if (entry.type === 'income') calculatedAsset += entry.amount;
-          else if (entry.type === 'expense') calculatedAsset -= entry.amount;
-        });
-
-        setManualTrend({ days7, days30, hours24, realtimeAsset: calculatedAsset });
+        // --- Hapus setManualTrend ---
       } catch(err) {
         console.warn('Failed to calculate manual budget/trend', err);
       }
@@ -249,7 +241,6 @@ const DashboardPage = () => {
   // Fetch recent transactions with server-side pagination
   useEffect(() => {
     const fetchRecentTransactions = async () => {
-      setIsDataLoading(true);
       try {
         const { data } = await analyticsApi.getRecent({ page: currentTrxPage, limit: 10 });
         if (data.data) {
@@ -269,7 +260,7 @@ const DashboardPage = () => {
       } catch (err) {
         console.warn('Failed to fetch recent transactions', err);
       } finally {
-        setIsDataLoading(false);
+        // Biarkan kosong
       }
     };
     fetchRecentTransactions();
@@ -326,121 +317,19 @@ const DashboardPage = () => {
     : (totalExpense > 0 ? 100 : 1); 
 
   // --- LOGIKA CHART DINAMIS (Stock-Style) ---
-  const [hoveredPoint, setHoveredPoint] = useState(null);
-  const chartContainerRef = useRef(null);
-
-  // Forward Accumulation: hitung saldo kumulatif dari titik paling awal ke paling baru
   const activeData = useMemo(() => {
-    if (!manualTrend) {
-      // Fallback: pakai data dari aggregator jika manualTrend belum ready
-      const rawTrend = summary?.cashflowTrend || [];
-      if (rawTrend.length > 0) {
-        return rawTrend.map(t => ({ label: t.day || t.hour, value: t.amount }));
-      }
-      // Jika tidak ada data, buat garis flat di totalAsset
-      const emptyData = [];
-      if (chartPeriod === 'hour') {
-        for (let i = 23; i >= 0; i--) {
-          const d = new Date(); d.setHours(d.getHours() - i);
-          emptyData.push({ label: d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), value: totalAsset });
-        }
-      } else if (chartPeriod === 'day') {
-        const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date(); d.setDate(d.getDate() - i);
-          emptyData.push({ label: dayNames[d.getDay()], value: totalAsset });
-        }
-      } else {
-        for (let i = 29; i >= 0; i--) {
-          const d = new Date(); d.setDate(d.getDate() - i);
-          emptyData.push({ label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }), value: totalAsset });
-        }
-      }
-      return emptyData;
+    // API endpoint now returns cashflow directly inside dashboard
+    const apiCashflow = summary?.cashflow || [];
+    if (apiCashflow.length > 0) {
+      return apiCashflow.map(t => ({
+        label: t.day || t.hour || t.date || '?',
+        value: t.amount || 0
+      }));
     }
-
-    // Backward accumulation: mulai dari saldo sekarang, mundur ke belakang
-    const periodData = chartPeriod === 'hour'
-      ? [...(manualTrend.hours24 || [])]
-      : chartPeriod === 'day'
-        ? [...(manualTrend.days7 || [])]
-        : [...(manualTrend.days30 || [])];
-
-    if (periodData.length === 0) return [];
-
-    const currentAsset = manualTrend.realtimeAsset !== undefined ? manualTrend.realtimeAsset : totalAsset;
-    let running = currentAsset;
-    for (let i = periodData.length - 1; i >= 0; i--) {
-      periodData[i] = { ...periodData[i], value: running };
-      running -= (periodData[i].netChange || 0);
-    }
-    return periodData;
-  }, [summary?.cashflowTrend, manualTrend, totalAsset, chartPeriod]);
-
-  // --- Kalkulasi skala Y ---
-  const chartValues = activeData.map(d => d.value);
-  const dataMax = chartValues.length > 0 ? Math.max(...chartValues) : 0;
-  const dataMin = chartValues.length > 0 ? Math.min(...chartValues) : 0;
-  const dataRange = dataMax - dataMin;
-
-  // Buat Y-axis labels yang rapi (5 garis horizontal)
-  const yAxisLabels = useMemo(() => {
-    if (dataRange === 0) {
-      // Semua nilai sama, buat range artifisial +-10%
-      const center = dataMax || 0;
-      const offset = Math.max(Math.abs(center) * 0.1, 10000);
-      return Array.from({ length: 5 }, (_, i) => {
-        const val = center + offset - (i * (offset * 2) / 4);
-        return Math.round(val);
-      });
-    }
-    const padding = dataRange * 0.1;
-    const scaleMin = dataMin - padding;
-    const scaleMax = dataMax + padding;
-    const step = (scaleMax - scaleMin) / 4;
-    return Array.from({ length: 5 }, (_, i) => Math.round(scaleMax - i * step));
-  }, [dataMax, dataMin, dataRange]);
-
-  const scaleMax = yAxisLabels[0];
-  const scaleMin = yAxisLabels[yAxisLabels.length - 1];
-  const scaleRange = scaleMax - scaleMin || 1;
-
-  // Konversi data ke koordinat SVG (viewBox: 0 0 1000 400)
-  const chartW = 1000;
-  const chartH = 400;
-  const padTop = 20;
-  const padBottom = 20;
-  const usableH = chartH - padTop - padBottom;
-
-  const valueToY = (val) => padTop + ((scaleMax - val) / scaleRange) * usableH;
-
-  const svgPoints = useMemo(() => {
-    return activeData.map((d, index) => {
-      const x = activeData.length <= 1 ? chartW / 2 : (index / (activeData.length - 1)) * chartW;
-      const y = valueToY(d.value);
-      return { x, y, ...d, index };
-    });
-  }, [activeData, scaleMax, scaleRange]);
-
-  // Path garis + area fill
-  const linePath = svgPoints.length > 0
-    ? 'M ' + svgPoints.map(p => `${p.x},${p.y}`).join(' L ')
-    : '';
-  const areaPath = svgPoints.length > 0
-    ? linePath + ` L ${svgPoints[svgPoints.length - 1].x},${chartH} L ${svgPoints[0].x},${chartH} Z`
-    : '';
-
-  // Handler hover pada chart area
-  const handleChartHover = (e) => {
-    if (!chartContainerRef.current || svgPoints.length === 0) return;
-    const rect = chartContainerRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const chartWidth = rect.width;
-    const ratio = mouseX / chartWidth;
-    const idx = Math.round(ratio * (svgPoints.length - 1));
-    const clampedIdx = Math.max(0, Math.min(svgPoints.length - 1, idx));
-    setHoveredPoint(svgPoints[clampedIdx]);
-  };
+    
+    // Fallback if data not available yet
+    return [];
+  }, [summary?.cashflow]);
 
   const formatCompact = (val) => {
     if (Math.abs(val) >= 1000000) return `${(val / 1000000).toFixed(1)}jt`;
@@ -448,21 +337,19 @@ const DashboardPage = () => {
     return val.toString();
   };
 
-  // X-axis labels
-  const xLabels = useMemo(() => {
-    if (activeData.length === 0) return [];
-    if (chartPeriod === 'day') {
-      return activeData.map((d, i) => ({ label: d.label, index: i, bold: i === activeData.length - 1 }));
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-gray-900 text-white text-xs rounded-lg shadow-lg px-3 py-2 whitespace-nowrap border-0">
+          <div className="text-gray-400 font-medium text-[10px]">{label}</div>
+          <div className="font-bold text-[#FFAD2D] mt-0.5">
+            Rp {new Intl.NumberFormat('id-ID').format(payload[0].value)}
+          </div>
+        </div>
+      );
     }
-    // Untuk hour dan month, pilih ~5 label agar rapi
-    const count = Math.min(5, activeData.length);
-    const result = [];
-    for (let i = 0; i < count; i++) {
-      const idx = Math.round((i / (count - 1)) * (activeData.length - 1));
-      result.push({ label: activeData[idx]?.label, index: idx, bold: idx === activeData.length - 1 });
-    }
-    return result;
-  }, [activeData, chartPeriod]);
+    return null;
+  };
 
   // --- LOGIKA FILTER & PAGINATION TRANSAKSI ---
   const [isViewAll, setIsViewAll] = useState(false); // State baru untuk toggle Lihat Semua
@@ -699,122 +586,43 @@ const DashboardPage = () => {
               </div>
               
               {/* --- STOCK-STYLE LINE CHART --- */}
-              <div className="flex mt-2">
-                {/* Y-Axis Labels */}
-                <div className="flex flex-col justify-between pr-3 py-1" style={{ height: '260px' }}>
-                  {yAxisLabels.map((val, i) => (
-                    <span key={i} className="text-[11px] text-gray-400 font-medium text-right whitespace-nowrap leading-none">
-                      {formatCompact(val)}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Chart Area */}
-                <div className="flex-1 flex flex-col">
-                  <div
-                    ref={chartContainerRef}
-                    className="relative cursor-crosshair"
-                    style={{ height: '260px' }}
-                    onMouseMove={handleChartHover}
-                    onMouseLeave={() => setHoveredPoint(null)}
+              <div className="mt-6 flex-1" style={{ minHeight: '300px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={activeData}
+                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                   >
-                    {/* SVG Chart */}
-                    <svg
-                      viewBox={`0 0 ${chartW} ${chartH}`}
-                      preserveAspectRatio="none"
-                      className="w-full h-full"
-                      style={{ overflow: 'visible' }}
-                    >
-                      <defs>
-                        <linearGradient id="cashflowGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#FFAD2D" stopOpacity="0.3" />
-                          <stop offset="100%" stopColor="#FFAD2D" stopOpacity="0.02" />
-                        </linearGradient>
-                      </defs>
-
-                      {/* Garis horizontal grid */}
-                      {yAxisLabels.map((_, i) => {
-                        const gy = padTop + (i / (yAxisLabels.length - 1)) * usableH;
-                        return (
-                          <line
-                            key={i}
-                            x1="0" y1={gy}
-                            x2={chartW} y2={gy}
-                            stroke="#F3F4F6"
-                            strokeWidth="1"
-                          />
-                        );
-                      })}
-
-                      {/* Area fill gradient */}
-                      {areaPath && (
-                        <path d={areaPath} fill="url(#cashflowGradient)" />
-                      )}
-
-                      {/* Garis utama */}
-                      {linePath && (
-                        <path
-                          d={linePath}
-                          fill="none"
-                          stroke="#FFAD2D"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          vectorEffect="non-scaling-stroke"
-                        />
-                      )}
-                    </svg>
-
-                    {/* Crosshair + Tooltip (overlay HTML) */}
-                    {hoveredPoint && (
-                      <>
-                        {/* Vertical crosshair line */}
-                        <div
-                          className="absolute top-0 bottom-0 w-px bg-gray-300 pointer-events-none"
-                          style={{ left: `${(hoveredPoint.x / chartW) * 100}%` }}
-                        />
-
-                        {/* Dot at intersection */}
-                        <div
-                          className="absolute w-3 h-3 rounded-full border-2 border-[#FFAD2D] bg-white pointer-events-none"
-                          style={{
-                            left: `calc(${(hoveredPoint.x / chartW) * 100}% - 6px)`,
-                            top: `calc(${(hoveredPoint.y / chartH) * 100}% - 6px)`
-                          }}
-                        />
-
-                        {/* Tooltip bubble */}
-                        <div
-                          className="absolute z-20 pointer-events-none"
-                          style={{
-                            left: `${(hoveredPoint.x / chartW) * 100}%`,
-                            top: `calc(${(hoveredPoint.y / chartH) * 100}% - 16px)`,
-                            transform: 'translate(-50%, -100%)'
-                          }}
-                        >
-                          <div className="bg-gray-900 text-white text-xs rounded-lg shadow-lg px-3 py-2 whitespace-nowrap">
-                            <div className="text-gray-400 font-medium text-[10px]">{hoveredPoint.label}</div>
-                            <div className="font-bold text-[#FFAD2D] mt-0.5">
-                              Rp {new Intl.NumberFormat('id-ID').format(hoveredPoint.value)}
-                            </div>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* X-Axis Labels */}
-                  <div className="flex justify-between mt-2 px-1">
-                    {xLabels.map((item, i) => (
-                      <span
-                        key={i}
-                        className={`text-[11px] font-medium ${item.bold ? 'text-[#8C3A7A] font-bold' : 'text-gray-400'}`}
-                      >
-                        {item.label}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                    <defs>
+                      <linearGradient id="cashflowGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#FFAD2D" stopOpacity="0.3" />
+                        <stop offset="100%" stopColor="#FFAD2D" stopOpacity="0.02" />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
+                    <XAxis 
+                      dataKey="label" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#9CA3AF', fontSize: 11, fontWeight: 500 }}
+                      dy={10}
+                    />
+                    <YAxis 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#9CA3AF', fontSize: 11, fontWeight: 500 }}
+                      tickFormatter={formatCompact}
+                    />
+                    <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#D1D5DB', strokeWidth: 1 }} />
+                    <Area 
+                      type="monotone" 
+                      dataKey="value" 
+                      stroke="#FFAD2D" 
+                      strokeWidth={3}
+                      fillOpacity={1} 
+                      fill="url(#cashflowGradient)" 
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
@@ -933,7 +741,6 @@ const DashboardPage = () => {
                   {/* Tombol Refresh */}
                   <button 
                     onClick={async () => {
-                      setIsDataLoading(true);
                       try {
                         const [{ data: dashData }, { data: recentData }] = await Promise.all([
                           aggregatorApi.getDashboardData(),
@@ -954,8 +761,6 @@ const DashboardPage = () => {
                         }
                       } catch (err) {
                         console.error('Refresh failed:', err);
-                      } finally {
-                        setIsDataLoading(false);
                       }
                     }}
                     className="flex items-center text-xs font-bold bg-[#FFF8ED] text-[#8C3A7A] hover:bg-[#8C3A7A] hover:text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm"
