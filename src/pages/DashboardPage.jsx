@@ -89,7 +89,7 @@ const DashboardPage = () => {
           alert('Terlalu banyak permintaan (Rate Limit). Beberapa data mungkin tidak termuat sempurna. Tunggu beberapa saat lalu refresh.');
         }
       } finally {
-        setIsDataLoading(false);
+        // Biarkan kosong
       }
     };
     fetchDashboardData();
@@ -229,12 +229,6 @@ const DashboardPage = () => {
           hours24.push({ label: dStart.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), netChange: hourNet });
         }
 
-        let calculatedAsset = 0;
-        ledger.forEach(entry => {
-          if (entry.type === 'income') calculatedAsset += entry.amount;
-          else if (entry.type === 'expense') calculatedAsset -= entry.amount;
-        });
-
         // --- Hapus setManualTrend ---
       } catch(err) {
         console.warn('Failed to calculate manual budget/trend', err);
@@ -266,7 +260,7 @@ const DashboardPage = () => {
       } catch (err) {
         console.warn('Failed to fetch recent transactions', err);
       } finally {
-        setIsDataLoading(false);
+        // Biarkan kosong
       }
     };
     fetchRecentTransactions();
@@ -747,7 +741,6 @@ const DashboardPage = () => {
                   {/* Tombol Refresh */}
                   <button 
                     onClick={async () => {
-                      setIsDataLoading(true);
                       try {
                         const [{ data: dashData }, { data: recentData }] = await Promise.all([
                           aggregatorApi.getDashboardData(),
@@ -768,8 +761,6 @@ const DashboardPage = () => {
                         }
                       } catch (err) {
                         console.error('Refresh failed:', err);
-                      } finally {
-                        setIsDataLoading(false);
                       }
                     }}
                     className="flex items-center text-xs font-bold bg-[#FFF8ED] text-[#8C3A7A] hover:bg-[#8C3A7A] hover:text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm"
