@@ -571,7 +571,7 @@ const DashboardPage = () => {
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">Cashflow</h3>
                   <p className="text-xs text-gray-500">
-                    Data real-time {chartPeriod === 'hour' ? '24 jam' : (chartPeriod === 'day' ? '7 hari' : '1 bulan')} terakhir
+                    Data real-time {chartPeriod === '24h' ? '24 jam' : (chartPeriod === 'day' ? '7 hari' : '1 bulan')} terakhir
                   </p>
                 </div>
                 <select 
@@ -579,7 +579,7 @@ const DashboardPage = () => {
                   onChange={(e) => setChartPeriod(e.target.value)}
                   className="bg-white border border-gray-200 text-gray-900 font-medium text-sm rounded-lg focus:ring-[#FFAD2D] focus:border-[#FFAD2D] block p-2 cursor-pointer"
                 >
-                  <option value="hour">24 Jam Terakhir</option>
+                  <option value="24h">24 Jam Terakhir</option>
                   <option value="day">7 Hari Terakhir</option>
                   <option value="month">1 Bulan Terakhir</option>
                 </select>

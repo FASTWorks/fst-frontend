@@ -52,7 +52,7 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      await login(email.trim(), password);
       navigate(from, { replace: true });
     } catch (err) {
       const message = err.response?.data?.message || 'Login gagal. Periksa email dan password Anda.';
