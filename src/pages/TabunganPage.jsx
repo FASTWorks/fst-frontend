@@ -172,7 +172,7 @@ const TabunganPage = () => {
             <div className="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-[#FFAD2D]">
               <Link to="/profile" className="w-full h-full block">
                 <img 
-                  src={user?.profilePicture || '/assets/avatars/default-1.svg'} 
+                  src={user?.profilePicture || '/assets/avatars/default.svg'} 
                   alt="Profile Avatar" 
                   className="w-full h-full object-cover bg-gray-100"
                 />

@@ -221,7 +221,7 @@ const CatatTabunganPage = () => {
           </div>
           <div className="flex items-center gap-4">
             <div className="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-[#FFAD2D]">
-              <img src={user?.profilePicture || '/assets/avatars/default-1.svg'} alt="User Avatar" className="w-full h-full object-cover bg-gray-200" />
+              <img src={user?.profilePicture || '/assets/avatars/default.svg'} alt="User Avatar" className="w-full h-full object-cover bg-gray-200" />
             </div>
           </div>
         </header>
