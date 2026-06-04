@@ -37,7 +37,7 @@ const teamMembers = [
     role: 'Data Scientist',
     desc: 'Mengolah data histori keuangan pengguna untuk menghasilkan prediksi pengeluaran dan grafik analitik yang akurat.',
     img: '/assets/our-team/ds-devia.svg',
-    socials: {linkedin: "https://www.linkedin.com/in/devia-az-06a7392b2/", github: "", instagram: "https://www.instagram.com/dv_zzr/"}
+    socials: {linkedin: "https://www.linkedin.com/in/devia-az-06a7392b2/", github: "https://github.com/dytinbadeviaazzahro-commits", instagram: "https://www.instagram.com/dv_zzr/"}
   },
   {
     name: 'Nalitha',
