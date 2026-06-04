@@ -265,3 +265,4 @@
 
 ### Dokumentasi & Panduan
 - Created `README.md` - Menyusun dokumentasi lengkap tentang instalasi dari berbagai OS, panduan penggunaan end-to-end, dan menambahkan credits "Bagus Aji Fernando (Baji-Front-End)".
+- Modified `README.md` - Merestrukturisasi isi dokumen agar sesuai dengan standar format pada `README.md.txt` (Index, About, Usage, Development, Community, FAQ, dll).

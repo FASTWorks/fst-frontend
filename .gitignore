@@ -37,7 +37,7 @@ test-budget.js
 test-transactions.ts
 get_txs.cjs
 
-# Documentation & Logs (Opsional: hapus jika Anda ingin file ini di-push ke GitHub)
+# Documentation & Logs
 API_DOCUMENTATION.md
 integration_plan.md
 progress.txt
@@ -45,3 +45,6 @@ progress.txt
 
 # AI
 .agents
+
+# Documentation
+README-EXAMPLE.md
