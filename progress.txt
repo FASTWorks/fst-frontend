@@ -260,3 +260,8 @@
 - Modified `src/pages/ProfilePage.jsx` - Removed manual profile picture upload functionality as requested.
 - Created `PrivacyPolicyPage.jsx` and `TermsOfServicePage.jsx` to fulfill Google OAuth consent screen requirements.
 - Modified `src/App.jsx` - Added routes for `/privacy-policy` and `/terms-of-service`.
+
+## 2026-06-04
+
+### Dokumentasi & Panduan
+- Created `README.md` - Menyusun dokumentasi lengkap tentang instalasi dari berbagai OS, panduan penggunaan end-to-end, dan menambahkan credits "Bagus Aji Fernando (Baji-Front-End)".

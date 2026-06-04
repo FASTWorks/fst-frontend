@@ -41,7 +41,7 @@ const teamMembers = [
   },
   {
     name: 'Nalitha',
-    role: 'AI Engineer',
+    role: 'Data Scientist',
     desc: 'Merancang model kecerdasan buatan untuk fitur Scan Struk dan Insight AI.',
     img: '/assets/our-team/ds-nalitha.svg',
     socials: {linkedin: "https://www.linkedin.com/in/nalithaeka/", github: "https://github.com/nalithaeka-n", instagram: "https://www.instagram.com/naalitha/"}
